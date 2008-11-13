@@ -1,21 +1,22 @@
-;|======================================================|
-;|	‚e‚h‚m‚`‚k@‚e‚`‚m‚s‚`‚r‚x@VIII		|
-;|		‹t‚l‚l‚kƒRƒ“ƒpƒCƒ‰	Version 1.00	|
-;|							|
-;|				Programmed By		|
-;|					A.Watanabe	|
-;|							|
-;=======================================================|
+;|==============================================================|
+;|	‚e‚h‚m‚`‚k@‚e‚`‚m‚s‚`‚r‚x@VIII			|
+;|		‹t‚l‚l‚kƒRƒ“ƒpƒCƒ‰				|
+;|								|
+;|				Programmed By			|
+;|					||||		|
+;|								|
+;===============================================================|
+
+
+assume	cs:code,ds:code,es:code,ss:code
+
+code	segment
 
 .186
 
-ASSUME	CS:CODE,DS:CODE,ES:CODE,SS:CODE
+	org	0100h
 
-CODE	SEGMENT
-
-	ORG	0100H
-
-COM:	
+ff8mml_:	
 	JMP	START
 ;************************************************************************
 ;*									*
@@ -62,8 +63,8 @@ UN_MML_COMPAILE:		;
 ;		(1) Žg—pƒp[ƒg”				|
 ;---------------------------------------------------------------|
 MML2MID_HED:
-	DB	'#title     "‚e‚h‚m‚`‚k@‚e‚`‚m‚s‚`‚r‚x@VIII@@"',0dh,0ah
-	DB	'#copyright "A¼@M•v	i‚ƒj‚r‚p‚t‚`‚q‚d"',0dh,0ah
+	DB	'#title     "FINAL FANTASY VIII  "',0dh,0ah
+	DB	'#copyright "A¼ L•v	(c)SQUARE"',0dh,0ah
 	DB	'#timebase 48',0dh,0ah
 	DB	0dh,0ah
 	DB	0dh,0ah
@@ -107,6 +108,9 @@ MML2MID_HED:
 	DB	'1H	EExff,x21,1,1	C14BR8',0Dh,0ah
 	DB	'2H	EExff,x21,1,1	C15BR8',0Dh,0ah
 	DB	'3H	EExff,x21,1,1	C16BR8',0Dh,0ah
+	DB	0dh,0ah
+	DB	'0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D'
+	DB	'0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	v127',0DH,0AH
 	DB	0dh,0ah,24h
 
 UC_START:
@@ -174,54 +178,55 @@ UC_END_VOICE_ADD:
 		DW	OFFSET UCE_VOICE_5F	
 		DW	OFFSET UCE_VOICE_6F	
 		DW	OFFSET UCE_VOICE_7F	
-UCE_VOICE_0A	DB	'0a	H0,2	@48k127	',0dh,0ah,24h	
-UCE_VOICE_1A	DB	'1a	H0,3	@1 k127	',0dh,0ah,24h	
-UCE_VOICE_2A	DB	'2a	H0,3	@2 k127	',0dh,0ah,24h	
-UCE_VOICE_3A	DB	'3a	H0,3	@3 k127	',0dh,0ah,24h	
-UCE_VOICE_4A	DB	'4a	H0,3	@4 k127	',0dh,0ah,24h	
-UCE_VOICE_5A	DB	'5a	H0,3	@5 k127	',0dh,0ah,24h	
-UCE_VOICE_6A	DB	'6a	H0,3	@6 k127	',0dh,0ah,24h	
-UCE_VOICE_7A	DB	'7a	H0,3	@7 k127	',0dh,0ah,24h	
-UCE_VOICE_0B	DB	'0b	H0,3	@8 k127	',0dh,0ah,24h	
-UCE_VOICE_1B	DB	'1b	H0,3	@9 k127	',0dh,0ah,24h	
-UCE_VOICE_2B	DB	'2b	H0,3	@10k127	',0dh,0ah,24h	
-UCE_VOICE_3B	DB	'3b	H0,3	@11k127	',0dh,0ah,24h	
-UCE_VOICE_4B	DB	'4b	H0,3	@12k127	',0dh,0ah,24h	
-UCE_VOICE_5B	DB	'5b	H0,3	@13k127	',0dh,0ah,24h	
-UCE_VOICE_6B	DB	'6b	H0,3	@14k127	',0dh,0ah,24h	
-UCE_VOICE_7B	DB	'7b	H0,3	@15k127	',0dh,0ah,24h	
-UCE_VOICE_0C	DB	'0c	H0,3	@16k127	',0dh,0ah,24h	
-UCE_VOICE_1C	DB	'1c	H0,3	@17k127	',0dh,0ah,24h	
-UCE_VOICE_2C	DB	'2c	H0,3	@18k127	',0dh,0ah,24h	
-UCE_VOICE_3C	DB	'3c	H0,3	@19k127	',0dh,0ah,24h	
-UCE_VOICE_4C	DB	'4c	H0,3	@20k127	',0dh,0ah,24h	
-UCE_VOICE_5C	DB	'5c	H0,3	@21k127	',0dh,0ah,24h	
-UCE_VOICE_6C	DB	'6c	H0,3	@22k127	',0dh,0ah,24h	
-UCE_VOICE_7C	DB	'7c	H0,3	@23k127	',0dh,0ah,24h	
-UCE_VOICE_0D	DB	'0d	H0,3	@24k127	',0dh,0ah,24h	
-UCE_VOICE_1D	DB	'1d	H0,3	@25k127	',0dh,0ah,24h	
-UCE_VOICE_2D	DB	'2d	H0,3	@26k127	',0dh,0ah,24h	
-UCE_VOICE_3D	DB	'3d	H0,3	@27k127	',0dh,0ah,24h	
-UCE_VOICE_4D	DB	'4d	H0,3	@28k127	',0dh,0ah,24h	
-UCE_VOICE_5D	DB	'5d	H0,3	@29k127	',0dh,0ah,24h	
-UCE_VOICE_6D	DB	'6d	H0,3	@30k127	',0dh,0ah,24h	
-UCE_VOICE_7D	DB	'7d	H0,3	@31k127	',0dh,0ah,24h	
-UCE_VOICE_0E	DB	'0e	H0,3	@32k127	',0dh,0ah,24h	
-UCE_VOICE_1E	DB	'1e	H0,3	@33k127	',0dh,0ah,24h	
-UCE_VOICE_2E	DB	'2e	H0,3	@34k127	',0dh,0ah,24h	
-UCE_VOICE_3E	DB	'3e	H0,3	@35k127	',0dh,0ah,24h	
-UCE_VOICE_4E	DB	'4e	H0,3	@36k127	',0dh,0ah,24h	
-UCE_VOICE_5E	DB	'5e	H0,3	@37k127	',0dh,0ah,24h	
-UCE_VOICE_6E	DB	'6e	H0,3	@38k127	',0dh,0ah,24h	
-UCE_VOICE_7E	DB	'7e	H0,3	@39k127	',0dh,0ah,24h	
-UCE_VOICE_0F	DB	'0f	H0,3	@40k127	',0dh,0ah,24h	
-UCE_VOICE_1F	DB	'1f	H0,3	@41k127	',0dh,0ah,24h	
-UCE_VOICE_2F	DB	'2f	H0,3	@42k127	',0dh,0ah,24h	
-UCE_VOICE_3F	DB	'3f	H0,3	@43k127	',0dh,0ah,24h	
-UCE_VOICE_4F	DB	'4f	H0,3	@44k127	',0dh,0ah,24h	
-UCE_VOICE_5F	DB	'5f	H0,3	@45k127	',0dh,0ah,24h	
-UCE_VOICE_6F	DB	'6f	H0,3	@46k127	',0dh,0ah,24h	
-UCE_VOICE_7F	DB	'7f	H0,3	@47k127	',0dh,0ah,24h	
+UCE_VOICE_0A	DB	'0a	k127	H0,2	@48',0dh,0ah,24h
+UCE_VOICE_1A	DB	'1a	k127	H0,3	@1 ',0dh,0ah,24h
+UCE_VOICE_2A	DB	'2a	k127	H0,3	@2 ',0dh,0ah,24h
+UCE_VOICE_3A	DB	'3a	k127	H0,3	@3 ',0dh,0ah,24h
+UCE_VOICE_4A	DB	'4a	k127	H0,3	@4 ',0dh,0ah,24h
+UCE_VOICE_5A	DB	'5a	k127	H0,3	@5 ',0dh,0ah,24h
+UCE_VOICE_6A	DB	'6a	k127	H0,3	@6 ',0dh,0ah,24h
+UCE_VOICE_7A	DB	'7a	k127	H0,3	@7 ',0dh,0ah,24h
+UCE_VOICE_0B	DB	'0b	k127	H0,3	@8 ',0dh,0ah,24h
+UCE_VOICE_1B	DB	'1b	k127	H0,3	@9 ',0dh,0ah,24h
+UCE_VOICE_2B	DB	'2b	k127	H0,3	@10',0dh,0ah,24h
+UCE_VOICE_3B	DB	'3b	k127	H0,3	@11',0dh,0ah,24h
+UCE_VOICE_4B	DB	'4b	k127	H0,3	@12',0dh,0ah,24h
+UCE_VOICE_5B	DB	'5b	k127	H0,3	@13',0dh,0ah,24h
+UCE_VOICE_6B	DB	'6b	k127	H0,3	@14',0dh,0ah,24h
+UCE_VOICE_7B	DB	'7b	k127	H0,3	@15',0dh,0ah,24h
+UCE_VOICE_0C	DB	'0c	k127	H0,3	@',24h
+UCE_VOICE_1C	DB	'1c	k127	H0,3	@',24h
+UCE_VOICE_2C	DB	'2c	k127	H0,3	@',24h
+UCE_VOICE_3C	DB	'3c	k127	H0,3	@',24h
+UCE_VOICE_4C	DB	'4c	k127	H0,3	@',24h
+UCE_VOICE_5C	DB	'5c	k127	H0,3	@',24h
+UCE_VOICE_6C	DB	'6c	k127	H0,3	@',24h
+UCE_VOICE_7C	DB	'7c	k127	H0,3	@',24h
+UCE_VOICE_0D	DB	'0d	k127	H0,3	@',24h
+UCE_VOICE_1D	DB	'1d	k127	H0,3	@',24h
+UCE_VOICE_2D	DB	'2d	k127	H0,3	@',24h
+UCE_VOICE_3D	DB	'3d	k127	H0,3	@',24h
+UCE_VOICE_4D	DB	'4d	k127	H0,3	@',24h
+UCE_VOICE_5D	DB	'5d	k127	H0,3	@',24h
+UCE_VOICE_6D	DB	'6d	k127	H0,3	@',24h
+UCE_VOICE_7D	DB	'7d	k127	H0,3	@',24h
+UCE_VOICE_0E	DB	'0e	k127	H0,3	@',24h
+UCE_VOICE_1E	DB	'1e	k127	H0,3	@',24h
+UCE_VOICE_2E	DB	'2e	k127	H0,3	@',24h
+UCE_VOICE_3E	DB	'3e	k127	H0,3	@',24h
+UCE_VOICE_4E	DB	'4e	k127	H0,3	@',24h
+UCE_VOICE_5E	DB	'5e	k127	H0,3	@',24h
+UCE_VOICE_6E	DB	'6e	k127	H0,3	@',24h
+UCE_VOICE_7E	DB	'7e	k127	H0,3	@',24h
+UCE_VOICE_0F	DB	'0f	k127	H0,3	@',24h
+UCE_VOICE_1F	DB	'1f	k127	H0,3	@',24h
+UCE_VOICE_2F	DB	'2f	k127	H0,3	@',24h
+UCE_VOICE_3F	DB	'3f	k127	H0,3	@',24h
+UCE_VOICE_4F	DB	'4f	k127	H0,3	@',24h
+UCE_VOICE_5F	DB	'5f	k127	H0,3	@',24h
+UCE_VOICE_6F	DB	'6f	k127	H0,3	@',24h
+UCE_VOICE_7F	DB	'7f	k127	H0,3	@',24h
+UCE_VOICE_cr	db	0dh,0ah,24h
 UC_END:		
 	XOR	CX,CX			;CL©0
 	MOV	BX,VOICE_ADDRESS	;]‘®‰¹Fî•ñƒAƒhƒŒƒX
@@ -233,6 +238,8 @@ UC_END_L0:
 	MOV	AX,ES:[BX]		;“Ç‚Ýž‚Ý
 	CMP	AX,0FFFFH		;ÅŒãH
 	JZ	UC_END_L1		;
+	cmp	cx,16			;
+	jz	UC_END_L1		;16ŒÂ•ÏŠ·‚µ‚½‚çÅŒã
 	
 	PUSH	BX			;
 	MOV	BX,OFFSET UC_END_VOICE_ADD
@@ -258,8 +265,11 @@ UC_END_L2:
 	MOV	AL,CS:[BX]		;AL©‰¹F“o˜^î•ñ
 	CMP	AL,0FFh			;î•ñI—¹ŒŸ¸
 	JZ	UC_END_LE		;
+	cmp	cx,32			;
+	jz	UC_END_L1		;32ŒÂ•ÏŠ·‚µ‚½‚çÅŒã
 
 	PUSH	BX			;
+	push	ax
 	MOV	BX,OFFSET UC_END_VOICE_ADD
 	ADD	BX,32			;
 	ADD	BX,CX			;
@@ -270,6 +280,16 @@ UC_END_L2:
 	MOV	DX,CS:[BX]		;DX©o—Í‚·‚×‚«•¶Žš—ñ‚ÌƒAƒhƒŒƒX
 	MOV	AH,09H			;
 	INT	21H			;o—Í
+	pop	ax
+	mov	ah,al
+	call	hex2asc8
+	MOV	AH,09H			;
+	INT	21H			;o—Í
+
+	mov	dx,offset UCE_VOICE_cr
+	MOV	AH,09H			;
+	INT	21H			;o—Í
+
 	POP	BX			;
 	INC	BX			;
 	INC	CX			;
@@ -344,7 +364,9 @@ UCMO_COMMAND_SIZE:				;
 UCMO_TAI_OUTPUT:			;
 	DB	'&$'			;
 UCMO_LOOP_OUTPUT:			;
-	DB	'[$'			;
+	DB	'/*L1*/[$'		;
+UCMO_LOOP_OUTPUT2:			;
+	DB	'/*L2*/[$'		;
 UC_MML_OUTPUT:
 	MOV	CL,CS:[UC_PART]		;CL©Žg—pƒp[ƒg”
 	MOV	CH,0			;CH©Œ»Ý‚Ìƒp[ƒg
@@ -373,6 +395,15 @@ UCMO_L01:
 	MOV	AH,09H				;
 	INT	21H				;
 UCMO_L01_1:
+	cmp	cs:[UCMOLS_LOOP_flag],01h	;
+	jnz	UCMO_L01_2
+	MOV	AX,CS:[UCMOLS_LOOP_ADDRESS2]	;ƒ‹[ƒvƒAƒhƒŒƒXƒŠƒZƒbƒg
+	CMP	AX,BX				;“¯ˆêH
+	JNZ	UCMO_L01_2			;
+	MOV	DX,OFFSET UCMO_LOOP_OUTPUT2	;
+	MOV	AH,09H				;
+	INT	21H				;
+UCMO_L01_2:
 	XOR	AX,AX			;
 	MOV	AL,ES:[BX]		;ƒf[ƒ^“Ç‚Ýž‚Ý
 	INC	BX			;ƒ|ƒCƒ“ƒ^ƒCƒ“ƒNƒŠƒƒ“ƒg
@@ -548,6 +579,11 @@ UCMO_END:				;
 ;---------------------------------------------------------------|
 UCMOLS_START_ADDRESS	DW	?
 UCMOLS_LOOP_ADDRESS	DW	0000H
+UCMOLS_LOOP_ADDRESS2	DW	0000H
+UCMOLS_LOOP_flag	DB	00
+UCMOLS_LOOP_flag1	DB	00
+UCMOLS_LOOP_flag2	DB	00
+UCMOLS_LOOP_bxwork	dw	0000h
 UCMO_LOOP_SEARCH:
 	PUSH	BX				;
 	PUSH	CX				;ƒŒƒWƒXƒ^•Û‘¶
@@ -556,6 +592,9 @@ UCMOL_0:MOV	AX,BX				;
 	MOV	CS:[UCMOLS_START_ADDRESS],AX	;æ“ªƒAƒhƒŒƒX•Û‘¶
 	XOR	AX,AX				;
 	MOV	CS:[UCMOLS_LOOP_ADDRESS],AX	;ƒ‹[ƒvƒAƒhƒŒƒXƒŠƒZƒbƒg
+	mov	byte ptr cs:[UCMOLS_LOOP_flag],00h
+	mov	byte ptr cs:[UCMOLS_LOOP_flag1],00h
+	mov	byte ptr cs:[UCMOLS_LOOP_flag2],00h
 
 UCMOL_1:XOR	AX,AX			;
 	MOV	AL,ES:[BX]		;ƒf[ƒ^“Ç‚Ýž‚Ý@‹È
@@ -582,6 +621,8 @@ UCMOL_K:CMP	AH,0A0h			;E0A0h‚ÌƒRƒ}ƒ“ƒh
 UCMOL_2:CMP	AL,8			;
 	JNZ	UCMOL_3			;
 	MOV	AX,ES:[BX]		;
+	CMP	AX,007FEH		;
+	JZ	UCMOL_7			;
 	CMP	AX,006FEH		;
 	JZ	UCMOL_E			;
 	CMP	AX,004FEH		;
@@ -595,7 +636,15 @@ UCMOL_3:				;
 	MOV	AH,0			;
 	ADD	BX,AX			;
 	JMP	UCMOL_1			;
+UCMOL_7:				;
+	mov	byte ptr cs:[UCMOLS_LOOP_flag],01h
+	mov	byte ptr cs:[UCMOLS_LOOP_flag1],01h
+	mov	byte ptr cs:[UCMOLS_LOOP_flag2],01h
+	add	bx,5			;
+	jmp	UCMOL_1			;
 UCMOL_E:				;
+	mov	ax,bx
+	mov	word ptr cs:[UCMOLS_LOOP_bxwork],ax
 	MOV	DX,BX				;DX©FE06hƒRƒ}ƒ“ƒh‚ÌƒAƒhƒŒƒX
 	ADD	BX,2				;
 	MOV	AX,ES:[BX]			;
@@ -612,6 +661,17 @@ UCMOL_E1:
 	JNC	UCMOL_E2			;
 	JMP	UCMOL_0				;ReStrat
 UCMOL_E2:
+	cmp	byte ptr cs:[UCMOLS_LOOP_flag1],01h	;
+	jnz	UCMOL_E3			;
+	MOV	AX,BX				;
+	MOV	CS:[UCMOLS_LOOP_ADDRESS2],AX	;ƒ‹[ƒvƒAƒhƒŒƒXƒŠƒZƒbƒg
+	mov	byte ptr cs:[UCMOLS_LOOP_flag1],00h	;
+
+	mov	ax,word ptr cs:[UCMOLS_LOOP_bxwork]
+	mov	bx,ax				;
+	add	bx,4				;
+	JMP	UCMOL_1				;
+UCMOL_E3:
 	MOV	AX,BX				;
 	MOV	CS:[UCMOLS_LOOP_ADDRESS],AX	;ƒ‹[ƒvƒAƒhƒŒƒXƒŠƒZƒbƒg
 UCMOL_EE:
@@ -1049,9 +1109,9 @@ MCLRET:	RET				;
 ;		BX©•ÏX‚Å‚«‚éÅ‘å‚Ì‘å‚«‚³			|
 ;		AX©INT21H Ì§Ý¸¼®Ý4AHŽQÆ			|
 ;---------------------------------------------------------------|
-SMLME7:	DB	"ƒvƒƒOƒ‰ƒ€‚É‚æ‚éƒƒ‚ƒŠ[’†‚Ìƒf[ƒ^[‚Ì”j‰óB",0DH,0AH,"$"
-SMLME8:	DB	"\•ª‚È‹ó‚«ƒƒ‚ƒŠ[‚ª–³‚¢B",0DH,0AH,"$"
-SMLME9:	DB	"•s³‚Èƒƒ‚ƒŠ[ƒuƒƒbƒN‚ÌŽg—pB",0DH,0AH,"$"
+SMLME7	DB	"ƒvƒƒOƒ‰ƒ€‚É‚æ‚éƒƒ‚ƒŠ[’†‚Ìƒf[ƒ^[‚Ì”j‰óB",0DH,0AH,"$"
+SMLME8	DB	"\•ª‚È‹ó‚«ƒƒ‚ƒŠ[‚ª–³‚¢B",0DH,0AH,"$"
+SMLME9	DB	"•s³‚Èƒƒ‚ƒŠ[ƒuƒƒbƒN‚ÌŽg—pB",0DH,0AH,"$"
 COMSML:				;ƒƒ‚ƒŠ[‚ÌÅ¬‰»
 	PUSH	DX		;
 	PUSH	CX		;ƒŒƒWƒXƒ^‚Ì•Û‘¶
@@ -1109,7 +1169,8 @@ SMLRET:				;‚q‚d‚s‚t‚q‚m
 ;*		ƒƒCƒ“ƒ‹[ƒ`ƒ“						*
 ;*									*
 ;************************************************************************
-START:	MOV	AX,OFFSET CEND + BSTACK	;
+START:	
+	MOV	AX,OFFSET CEND + BSTACK	;
 	MOV	SP,AX			;
 
 	MOV	AX,CS			;
@@ -1132,13 +1193,12 @@ COMEND:					;
 ;---------------------------------------------------------------|
 ;		ƒGƒ‰[ˆ—					|
 ;---------------------------------------------------------------|
-FILE_OPEN_ERR_MES	DB	'ƒtƒ@ƒCƒ‹‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB',0DH,0AH,'$'
-FILE_NAME_NOTHING_MES	DB	'FF8MML[32;4m ƒtƒ@ƒCƒ‹–¼[.snd]'
-			DB	'[32;0m [m',0DH,0AH,'$'
-FILE_READ_ERR_MES	DB	'ƒtƒ@ƒCƒ‹‚ð“Ç‚ß‚Ü‚¹‚ñB',0AH,0DH,24H
-FILE_CLOSE_ERR_MES	DB	'ƒtƒ@ƒCƒ‹ƒNƒ[ƒY‚ÉŽ¸”s‚µ‚Ü‚µ‚½',0DH,0AH,'$'
-MEMORY_OPEN_ERR_MES	DB	'ƒƒ‚ƒŠ‚ª‘«‚è‚Ü‚¹‚ñB',0AH,0DH,24H
-MEMORY_CLOSE_ERR_MES	DB	'ƒƒ‚ƒŠ‚Ì‰ð•ú‚ÉŽ¸”s‚µ‚Ü‚µ‚½',0DH,0AH,'$'
+FILE_OPEN_ERR_MES	DB	'File not found',0DH,0AH,'$'
+FILE_NAME_NOTHING_MES	DB	'FF8MML filename[.snd] [>filename.mml]',0DH,0AH,'$'
+FILE_READ_ERR_MES	DB	'ƒtƒ@ƒCƒ‹‚ð“Ç‚ß‚Ü‚¹‚ñ‚Å‚µ‚½B',0DH,0AH,24H
+FILE_CLOSE_ERR_MES	DB	'ƒtƒ@ƒCƒ‹ƒNƒ[ƒY‚ÉŽ¸”s‚µ‚Ü‚µ‚½',0DH,0AH,'$'
+MEMORY_OPEN_ERR_MES	DB	'ƒƒ‚ƒŠ‚ª‘«‚è‚Ü‚¹‚ñB',0DH,0AH,24H
+MEMORY_CLOSE_ERR_MES	DB	'ƒƒ‚ƒŠ‚Ì‰ð•ú‚ÉŽ¸”s‚µ‚Ü‚µ‚½',0DH,0AH,'$'
 PRINT:					;
 	PUSH	CS			;
 	POP	DS			;DS©CS
@@ -1165,5 +1225,4 @@ MEMORY_CLOSE_ERROR:
 	JMP	PRINT
 CEND:
 CODE	ENDS
-	END	COM
-
+	END	ff8mml_
