@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
+            'http://www.w3.org/TR/html4/loose.dtd'>
+
+<html lang='ja'>
+
+<head>
+	<meta http-equiv='Content-Type' content='text/html;charset=Shift_JIS'>
+	<meta http-equiv='Content-Style-Type' content='text/css'>
+	<link rel='stylesheet' type='text/css' href='doc.css'>
+	<title>FF8MML</title>
+</head>
+
+<BODY>
+<!--────────────────────────────────────
+	ツールバー（レイヤー２）
+─────────────────────────────────────-->
+<div id='header'>
+
+<table>
+<tr><td width='640pt'><i>FF8MML</i></td></tr>
+</table>
+<!--（↑このコンテンツの位置。）-->
+
+</div>
+<!--────────────────────────────────────
+	コンテンツ本体（レイヤー１）
+─────────────────────────────────────-->
+<div id='contents'>
+
+<h2>概要</h2>
+<!--─────────────────────────────-->
+このアプリケーションは、SQUARE ENIX社（旧SQUARE社）のAKAOフォーマットを
+<a href='http://platz.jp/~mml2mid/'>MML2MID</a>仕様のMML(Music Macro Language)に逆コンパイルします。<br>
+
+
+
+<br><br>
+<h2>動作条件</h2>
+<!--─────────────────────────────-->
+<ol type='1'>
+<li>Microsot社製MS-DOS及び、NEC製PC98用MS-DOSの、version 3.30d以降。<br>
+	（64bit版Windowsは、未対応）<br>
+<li>NEC社V30シリーズ、intel社i80186若しくは、その上位互換のCPU。<br>
+	プロテクトモード、Intel 64、AMD64及びIA-64モード時は動作しません。<br>
+	仮想86モード（32bit版WindowsのDOS窓、コマンドプロンプト）での動作は確認しております。<br>
+	又、その際、ファイル名及びフォルダ名は、MS-DOSの仕様である必要があります。<br>
+<ul><li>ファイル名は半角８文字以内、拡張子は半角３文字以内。<br>
+	<li>使用できる文字は、"0"～"9","A"～"Z","_"。<br>
+</ul>
+<li>MS-DOSの空きメモリは、128kByte以上空いていれば、充分のはずです。<br>
+	640kByte以上のメモリを積んでいるマシンなら、問題ないはず。<br>
+	Windowsには、問題ありまくりかもしれないが。<br>
+</ol>
+
+
+<br><br>
+<h2>使用方法</h2>
+<!--─────────────────────────────-->
+コマンドラインに、次の通りに打ち込んでください。<br>
+尚、（）内は省略可能です。<br>
+<br>
+FF8MML <var>ファイル名１（.SND）</var> （><var>ファイル名２.MML</var>）<br>
+<br>
+<var>ファイル名１(.SND)</var>は、逆コンパイルする元ファイルを指定します。<br>
+拡張子を省略した場合は、自動的に拡張子を".SND"とします。<br>
+拡張子がないファイルを指定する場合は、"<var>ファイル名１.</var>"とピリオドまで記述して下さい。<br>
+元ファイルは、AKAOフォーマットである必要があります。<br>
+<br>
+><var>ファイル名２.MML</var>を指定した場合、指定したファイルに逆コンパイルしたMMLを出力します。<br>
+省略した場合は、MS-DOSに設定されている標準出力（通常は画面）に出力します。<br>
+MMLの文法は、別途、<a href='http://platz.jp/~mml2mid/'>MML2MID</a>のドキュメントを参照して下さい。<br>
+
+
+<br><br>
+<h2>参考資料</h2>
+<!--─────────────────────────────-->
+<li><a href='format.txt'>AKAOファイルのフォーマット</a><br>
+<li><a href='assemble.txt'>アセンブルの方法について</a><br>
+
+
+<br><br>
+<h2>改訂履歴</h2>
+<!--─────────────────────────────-->
+<li><a href='revision.txt'>改訂履歴</a><br>
+
+
+<br><br>
+</div>
+<!--────────────────────────────────────
+	フッター
+─────────────────────────────────────-->
+<div id='footer'>
+
+<table>
+<tr><td width='640pt' colspan='4'><i>FF8MML</i><br></td></tr>
+</table>
+
+</div>
+<!--────────────────────────────────────-->
+</BODY>
+</html>

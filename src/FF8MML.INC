@@ -442,9 +442,9 @@ UC_DA0	DB	80h,00h			;終了
 UC_DA1	DB	24h,24h,0FFH		;音色	'$'の出力
 	DW	OFFSET UC_VOICE_OUTPUT	;	マクロ番号出力
 	DB	00h			;	使用マクロ記憶
-UC_DA2	DB	' /*A2,$',0ffH		;リリースタイム
-	DW	OFFSET UC_DELAY
-	DB	' */$',00h
+UC_DA2	DB	0ffH			;次の音符の音長指定
+	DW	OFFSET UC_Step
+	DB	00h
 UC_DA3	DB	' v$',0FFh		;音量（ただしリニア）
 	DW	OFFSET UC_Volume	
 	DB	00h			
@@ -1040,25 +1040,11 @@ UC_Volume:
 ;===============================================================
 ;	ディレイ？
 ;===============================================================
-UC_DELAY:
-	PUSH	DX				;
+UC_Step_work	db	0			;
+UC_Step:
 	MOV	AH,ES:[BX]			;データ読み込み
-	INC	BX				;
-;	SHR	AH,1				;AX←AX/2
-	push	ax				;
-	CALL	HEX2ASC8			;出力
-	MOV	AH,09H				;
-	INT	21H				;
-	pop	ax				;
-	cmp	ah,3
-	jnc	UC_DELAY_1
-	MOV	AH,ES:[BX]			;データ読み込み
-	INC	BX				;
-	CALL	HEX2ASC8			;出力
-	MOV	AH,09H				;
-	INT	21H				;
-UC_DELAY_1:
-	POP	DX				;
+	inc	bx				;
+	mov	byte ptr cs:[UC_Step_work],ah	;保存
 	RET					;
 ;===============================================================
 ;	ピッチベンド

@@ -361,6 +361,8 @@ UCMO_COMMAND_SIZE:				;
 	DB	1,1,1,1, 1,1,1,1, 2,1,1,1, 1,1,1,1	;D0h-DFh
 	DB	1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1	;E0h-EFh
 	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 9,0,8,1	;F0h-FFh
+UCMO_ComStartFlag:
+	db	0
 UCMO_TAI_OUTPUT:			;
 	DB	'&$'			;
 UCMO_LOOP_OUTPUT:			;
@@ -388,6 +390,8 @@ UCMO_L00:
 	ADD	BX,AX			;BX←演奏アドレス
 	CALL	UCMO_LOOP_SEARCH	;
 UCMO_L01:
+	mov	byte ptr cs:[UCMO_ComStartFlag],1
+
 	MOV	AX,CS:[UCMOLS_LOOP_ADDRESS]	;ループアドレスリセット
 	CMP	AX,BX				;同一？
 	JNZ	UCMO_L01_1			;
@@ -413,7 +417,10 @@ UCMO_L01_2:
 	ADD	BX,AX			;BX←変換情報アドレス格納アドレス
 	MOV	DX,CS:[BX]		;DX←変換情報アドレス
 	POP	BX			;
+	jmp	UCMO_L03
 UCMO_L02:
+	mov	byte ptr cs:[UCMO_ComStartFlag],0
+UCMO_L03:
 	XCHG	BX,DX			;
 	MOV	AL,CS:[BX]		;変換情報読み込み
 	INC	BX			;
@@ -470,6 +477,43 @@ UCMO_L13:
 UCMO_L20:
 	CMP	AL,20h			;
 	JNZ	UCMO_L21		;
+
+	cmp	byte ptr cs:[UCMO_ComStartFlag],1
+	jnz	UCMO_L20_2
+
+	;----------------------------------------
+	mov	ah,es:[bx-1]		;コマンドが0x9A未満だったら
+	cmp	ah,9ah			;
+	jnc	UCMO_L20_2		;
+
+	mov	ah,byte ptr cs:[UC_Step_work]
+	cmp	ah,0			;音長設定の有無チェック
+	jz	UCMO_L20_2		;
+
+	XCHG	BX,DX			;
+	push	dx
+
+	mov	dl,cs:[bx]		;1文字表示
+	mov	ah,02h			;
+	int	21h			;
+
+	mov	dl,'%'
+	mov	ah,02h			;
+	int	21h			;
+
+	mov	ah,byte ptr cs:[UC_Step_work]
+	call	hex2asc8
+	mov	ah,09h
+	int	21h			;
+
+	mov	byte ptr cs:[UC_Step_work],0
+
+	pop	dx			;
+	XCHG	BX,DX			;
+
+	jmp	UCMO_L20_1
+	;----------------------------------------
+UCMO_L20_2:
 	PUSH	DX			;
 	MOV	AH,09H			;表示
 	INT	21H			;
