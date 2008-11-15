@@ -450,7 +450,9 @@ UC_DA3	DB	' v$',0FFh		;音量（ただしリニア）
 	DB	00h			
 UC_DA4	DB	' /*A4,$',10h,' ,$', 11h,' */$',00h	;ポルタメント
 ;UC_DA4	DB	' y5,$',10h,' y84,$',10h,00h
-UC_DA5	DB	' o$',10h,00h		;オクターブ
+UC_DA5	DB	' o$',0FFh		;オクターブ
+	DW	offset UC_Octave	
+	DB	0
 UC_DA6	DB	' >$',00h		;オクターブアップ
 UC_DA7	DB	' <$',00h		;オクターブダウン
 UC_DA8	DB	' E$',0FFh		;expression
@@ -473,28 +475,28 @@ UC_DAC	DB	' /*AC,$',010h,' */$',00h	;不明
 UC_DAD	DB	' /*AD(AL),$',010h,' */$',00h	;不明
 UC_DAE	DB	' /*AE(DL),$',010h,' */$',00h	;不明
 UC_DAF	DB	' /*AF(SL),$',010h,' */$',00h	;不明
-UC_DB0	DB	' /*B0*/$',00h
+UC_DB0	DB	' /*B0,$',010h,' ,$',010h,' */$',00h		;
 UC_DB1	DB	' /*B1(SR),$',010h,' */$',00h	;不明
 UC_DB2	DB	' /*B2(RR),$',010h,' */$',00h	;不明
-UC_DB3	DB	' /*B3*/$',00h
-UC_DB4	DB	' /*B4,$',010h,' ,$',010h,' ,$',010h,' */$',00h	;
-UC_DB5	DB	' /*B5,$',010h,' */$',00h			;
-UC_DB6	DB	' /*B6*/$',00h					;
-UC_DB7	DB	' /*B7*/$',00h
+UC_DB3	DB	' /*B3*/$',00h					;エンベロープ
+UC_DB4	DB	' /*B4,$',010h,' ,$',010h,' ,$',010h,' */$',00h	;LFO
+UC_DB5	DB	' /*B5,$',010h,' */$',00h			;LFO Depth
+UC_DB6	DB	' /*B6*/$',00h					;LFO off
+UC_DB7	DB	' /*B7,$',010h,' */$',00h			;
 UC_DB8	DB	' /*B8,$',010h,' ,$',010h,' ,$',010h,' */$',00h	;
 UC_DB9	DB	' /*B9,$',010h,' */$',00h			;
 UC_DBA	DB	' /*BA*/$',00h					;
-UC_DBB	DB	' /*BB*/$',00h
+UC_DBB	DB	' /*BB,$',010h,' */$',00h			;
 UC_DBC	DB	' /*BC,$',010h,' ,$',010h,' */$',00h		;
 UC_DBD	DB	' /*BD,$',010h,' */$',00h			;
 UC_DBE	DB	' /*BE*/$',00h					;
-UC_DBF	DB	' /*BF*/$',00h
-UC_DC0	DB	' /*C0*/$',00h
-UC_DC1	DB	' /*C1*/$',00h
-UC_DC2	DB	' y91,80$',00h		;Reverb on
+UC_DBF	DB	' /*BF,$',010h,' */$',00h			;
+UC_DC0	DB	' _$',10h,00h
+UC_DC1	DB	' __$',11h,00h
+UC_DC2	DB	' y91,100$',00h		;Reverb on
 UC_DC3	DB	' y91,0 $',00h		;Reverb off
-UC_DC4	DB	' /*C4*/$',00h
-UC_DC5	DB	' /*C5*/$',00h
+UC_DC4	DB	' /*C4(Non)*/$',00h	;Noise on
+UC_DC5	DB	' /*C5(Noff)*/$',00h	;Noise off
 UC_DC6	DB	' /*C6(Mon)*/$',00h	;modulation on
 UC_DC7	DB	' /*C7(Moff)*/$',00h	;modulation off
 UC_DC8	DB	' [$',00h		;Loop start
@@ -507,8 +509,8 @@ UC_DCE	DB	' /*CE*/$',00h
 UC_DCF	DB	' /*CF*/$',00h
 UC_DD0	DB	' /*D0*/$',00h
 UC_DD1	DB	' /*D1*/$',00h
-UC_DD2	DB	' /*D2*/$',00h
-UC_DD3	DB	' /*D3*/$',00h
+UC_DD2	DB	' /*D2,$',010h,' */$',00h	;不明
+UC_DD3	DB	' /*D3,$',010h,' */$',00h	;不明
 UC_DD4	DB	' /*D4*/$',00h
 UC_DD5	DB	' /*D5*/$',00h
 UC_DD6	DB	' /*D6*/$',00h
@@ -516,13 +518,13 @@ UC_DD7	DB	' /*D7*/$',00h
 UC_DD8	DB	' BS$',0FFh		;ディチューン
 	DW	offset UC_Detune
 	DB	00h
-UC_DD9	DB	' /*D9*/$',00h
-UC_DDA	DB	' /*DA,$',010h,' */$',00h	;不明
+UC_DD9	DB	' BS$',11h,00h		;相対ディチューン
+UC_DDA	DB	' /*DA,$',010h,' ,$',010h,' */$',00h	;不明
 UC_DDB	DB	' /*DB*/$',00h
-UC_DDC	DB	' /*DC*/$',00h
+UC_DDC	DB	' /*DC,$',010h,' */$',00h	;不明
 UC_DDD	DB	' /*DD,$',010h,' ,$',010h,' */$',00h	;不明
 UC_DDE	DB	' /*DE,$',010h,' ,$',010h,' */$',00h	;不明
-UC_DDF	DB	' /*DF*/$',00h
+UC_DDF	DB	' /*DF,$',010h,' ,$',010h,' */$',00h	;不明
 ifdef	ff7	;------------------------
 UC_DE0	DB	' /*E0*/$',80h,00h
 UC_DE1	DB	' /*E1*/$',80h,00h
@@ -532,50 +534,58 @@ UC_DE4	DB	' /*E4*/$',80h,00h
 UC_DE5	DB	' /*E5*/$',80h,00h
 UC_DE6	DB	' /*E6*/$',80h,00h
 UC_DE7	DB	' /*E7*/$',80h,00h
-endif	;--------------------------------
-ifdef	ff8	;------------------------
-UC_DE0	DB	' /*E0*/$',00h
-UC_DE1	DB	' /*E1*/$',00h
-UC_DE2	DB	' /*E2*/$',00h
-UC_DE3	DB	' /*E3*/$',00h
-UC_DE4	DB	' /*E4*/$',00h
-UC_DE5	DB	' /*E5*/$',00h
-UC_DE6	DB	' /*E6,$',010h,' ,$',010h,' */$',00h	
-UC_DE7	DB	' /*E7*/$',00h
-endif	;--------------------------------
 UC_DE8	DB	' t$',0FFh			;テンポ(FF7)
 	dw	offset UC_Tempo
 	db	00h
 UC_DE9	DB	' /*t_$',013h,' */$',00h	;相対テンポ(FF7)
 UC_DEA	DB	' /*Reverb($',012h,' )*/$',00h	;Reverb depth(FF7)
 UC_DEB	DB	' /*Reverb(_$',013h,' )*/$',00h	;相対リバーブ(FF7)
-UC_DEC	DB	0ffh				;パーカッション
+UC_DEC	DB	' /*EC,$',012h,' */$',0ffh	;パーカッション
 	dw	offset	UCDFF_L04_1		;
 	db	00h				;
 UC_DED	DB	' /*ED*/$',00h
 UC_DEE	DB	0FFh				;無限ループ(FF7)
 	dw	offset	UCDFF_L06_1
 	db	' /*L*/$',00h
-UC_DEF	DB	' /*EF*/$',00h
-ifdef	ff7	;------------------------
-UC_DF0	DB	' /*F0*/$',00h
-UC_DF1	DB	' /*F1*/$',00h
-UC_DF2	DB	' /*F2,$',010h,' */$',00h	;不明
+UC_DEF	DB	' /*EF,$',010h,' ,$',010h,' ,$',010h,' */$',00h	;
+UC_DF0	DB	0FFh				;ループ抜け
+	dw	offset UCDFF_L09_1		;
+	db	00h				;
+UC_DF1	DB	' /*F1,$',010h,' ,$',010h,' ,$',010h,' */$',00h	;
+UC_DF2	DB	24h,24h,0FFH			;音色	'$'の出力
+	DW	OFFSET UC_VOICE_OUTPUT		;	マクロ番号出力
+	DB	00h				;	使用マクロ記憶
 UC_DF3	DB	' /*F3*/$',00h
 UC_DF4	DB	' /*F4*/$',00h
 UC_DF5	DB	' /*F5*/$',00h
 UC_DF6	DB	' /*F6*/$',00h
 UC_DF7	DB	' /*F7*/$',00h
 UC_DF8	DB	' /*F8,$',010h,' */$',00h	;不明
-UC_DF9	DB	' /*F9*/$',00h
+UC_DF9	DB	' /*F9,$',010h,' */$',00h	;不明
 UC_DFA	DB	' /*FA*/$',80h,00h
 UC_DFB	DB	' /*FB*/$',80h,00h
-UC_DFC	DB	' /*FC*/$',80h,00h
+UC_DFC	DB	' /*FC,$',010h,' ,$',010h,' */$',00h	;不明
 UC_DFD	DB	' /*FD,$',010h,' ,$',010h,' */$',00h	;不明
 UC_DFE	DB	' /*FE,$',010h,' ,$',010h,' */$',00h	;不明
 UC_DFF	DB	' /*FF*/$',80h,00h
 endif	;--------------------------------
 ifdef	ff8	;------------------------
+UC_DE0	DB	' /*E0*/$',00h
+UC_DE1	DB	' /*E1,$',010h,' */$',00h	;不明
+UC_DE2	DB	' /*E2*/$',00h
+UC_DE3	DB	' /*E3*/$',00h
+UC_DE4	DB	' /*E4*/$',00h
+UC_DE5	DB	' /*E5*/$',00h
+UC_DE6	DB	' /*E6,$',010h,' ,$',010h,' */$',00h	
+UC_DE7	DB	' /*E7*/$',00h
+UC_DE8	DB	' /*E8*/$',00h
+UC_DE9	DB	' /*E9*/$',00h
+UC_DEA	DB	' /*EA*/$',00h
+UC_DEB	DB	' /*EB*/$',00h
+UC_DEC	DB	' /*EC*/$',00h
+UC_DED	DB	' /*ED*/$',00h
+UC_DEE	DB	' /*EE*/$',00h
+UC_DEF	DB	' /*EF*/$',00h
 UC_DF0	DB	' c%$',10h,21h,00h
 UC_DF1	DB	' c+%$',10h,21h,00h
 UC_DF2	DB	' d%$',10h,21h,00h
@@ -598,7 +608,7 @@ endif	;--------------------------------
 
 
 ;===============================================================
-;	0xA1	音色をマクロで出力する
+;	0xA1	0xF2	音色をマクロで出力する
 ;===============================================================
 ;
 ;		音色マクロ変換　（まだ暫定的に'@0x' を出力）
@@ -719,6 +729,18 @@ UC_Volume:
 	INT	21H				;
 	POP	BX				;
 	RET					;
+;===============================================================
+;	0xA3	オクターブ
+;===============================================================
+UC_Octave:
+	MOV	Ah,ES:[BX]			;
+	inc	bx				
+	dec	ah				
+	call	hex2asc8			
+	mov	ah,9				
+	int	21h				
+	RET					;
+
 ;===============================================================
 ;	0xA8	音量セーブ
 ;===============================================================

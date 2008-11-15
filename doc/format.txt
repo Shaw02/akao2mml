@@ -17,11 +17,13 @@ Address		type	内容
 +-------+-------+-------+-------+-------
 0x0004～0x0005	word	ファイルID？
 +-------+-------+-------+-------+-------
-0x0006～0x0007	word	ファイルサイズ
+0x0006～0x0007	word	ファイルサイズ（先頭の16Byteは除く）
 			当該ファイルのサイズを示す。
 			文字列"AKAO"を起点とするサイズ
 +-------+-------+-------+-------+-------
-0x0008～0x000F		不明
+0x0008～0x0009		不明
++-------+-------+-------+-------+-------
+0x000A～0x000F		タイムスタンプ
 +-------+-------+-------+-------+-------
 0x0010～0x0013	dword	本曲データで使用されるチャンネル(32bit)
 			各Bitがそれぞれのチャンネルに対応。
@@ -360,7 +362,8 @@ Command	param		MML	機能
 0xAD	b			atack level
 0xAE	b			decay level
 0xAF	b			sustain level
-0xB0	
+0xB0	b1			
+	b2			
 0xB1	b			
 0xB2	b			
 +-------+-------+-------+-------+-------
@@ -373,7 +376,7 @@ Command	param		MML	機能
 	b3		…	
 0xB5	b			ＬＦＯsw？
 0xB6				ＬＦＯoff？
-0xB7
+0xB7	b			
 
 +-------+-------+-------+-------+-------
 0xB8				ＬＦＯ？
@@ -382,7 +385,7 @@ Command	param		MML	機能
 	b3		…	
 0xB9	b			ＬＦＯsw？
 0xBA				ＬＦＯoff？
-0xBB
+0xBB	b			
 
 +-------+-------+-------+-------+-------
 0xBC				ＬＦＯ？
@@ -390,19 +393,19 @@ Command	param		MML	機能
 	b2		…	
 0xBD	b			ＬＦＯsw？
 0xBE				ＬＦＯoff？
-0xBF
+0xBF	b
 
 +-------+-------+-------+-------+-------
-0xC0
-0xC1
+0xC0	trance		_	移調
+0xC1	trance		__	相対移調
 
 +-------+-------+-------+-------+-------
 0xC2				Reverb on
 0xC3				Reverb off
 
 +-------+-------+-------+-------+-------
-0xC4
-0xC5
+0xC4				Noise on
+0xC5				Noise off
 
 +-------+-------+-------+-------+-------
 0xC6				FM modulation on
@@ -426,22 +429,26 @@ Command	param		MML	機能
 0xCF
 0xD0
 0xD1				？
-0xD2
-0xD3
+0xD2	b			
+0xD3	b			
 0xD4
 0xD5
 0xD6
 0xD7
 
 +-------+-------+-------+-------+-------
-0xD8			BS	ピッチベンド
+0xD8	bPitch		BS	ピッチベンド
 				BRは、8としておくと、良い感じ？
+0xD9	bPitch		BS	相対ピッチベンド
+0xDA				ピッチベンド関連？
+	b1		…	
+	b2		…	
 
 +-------+-------+-------+-------+-------
-0xD9
-0xDA	b1
 0xDB
-0xDC
+0xDC				不明
+	b1		…	
+	b2		…	
 0xDD				不明
 	b1		…	
 	b2		…	
@@ -463,28 +470,31 @@ Command	param		MML	機能
 0xE7				End of Channel
 
 +-------+-------+-------+-------+-------
-0xE8	wTempo			テンポ				…FF7
-0xE9	wTempo			相対テンポ			…FF7
-0xEA	wReverb			リバーブの深さ(16bit)		…FF7
-0xEB	wReverb			リバーブ			…FF7
-0xEC				パーカッション			…FF7
-0xED
-0xEE	wOffset			無限ループ（End of Track）	…FF7
-0xEF
+0xE8	wTempo		t	テンポ				…FF7
+0xE9	wTempo		t	相対テンポ			…FF7
+0xEA	wReverb		Rev()	リバーブの深さ(16bit)		…FF7
+0xEB	wReverb		Rev()	リバーブ			…FF7
+0xEC	wOffset			パーカッション			…FF7
+0xED				パーカッションoff		…FF7
+0xEE				無限ループ（End of Track）	…FF7
+	wOffset			戻り先アドレス＋２
+0xEF	
 
-0xF0
+0xF0			:	ループ抜け
+	b1	…		ループ回数
+	ptAddr	…		行き先アドレス？（相対値　符号付16bit）
 0xF1
-0xF2	b
+0xF2	bVoice		@	音色（アタック無し）
 0xF3
 0xF4
 0xF5
 0xF6
 0xF7
 0xF8	b
-0xF9				？
+0xF9	b			？
 0xFA				End of Channel
 0xFB				End of Channel
-0xFC				End of Channel
+0xFC	word			？
 0xFD	word			？
 0xFE	word			？
 0xFF				End of Channel
