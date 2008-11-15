@@ -20,13 +20,30 @@ ff8mml_:
 	JMP	START
 ;************************************************************************
 ;*									*
+;*		定義部							*
+;*									*
+;************************************************************************
+ifdef	ff7	;------------------------
+;FINAL FANTASY 7
+VOICE_ADDRESS	EQU	0000H		
+RIHTM_ADDRESS	EQU	0000H		
+MUSIC_ADDRESS	EQU	0014H		
+MUSIC_ADDRESSa	equ	+2
+endif	;--------------------------------
+
+ifdef	ff8	;------------------------
+;FINAL FANTASY 2,7,8
+VOICE_ADDRESS	EQU	0030H		
+RIHTM_ADDRESS	EQU	0034H		
+MUSIC_ADDRESS	EQU	0040H		
+MUSIC_ADDRESSa	equ	0
+endif	;--------------------------------
+
+;************************************************************************
+;*									*
 ;*		データ部						*
 ;*									*
 ;************************************************************************
-;---------------------------------------------------------------|
-;								|
-;		ＤＡＴＡ					|
-;---------------------------------------------------------------|
 BSTACK		EQU	0400H		;スタックバッファ
 F_ADD		DW	?		;ファイル名格納アドレス
 FILE_H		DW	?		;ファイルハンドル
@@ -34,13 +51,7 @@ DATSEG		DW	?		;割り当てたメモリのセグメント
 ;
 ;	逆ＭＭＬ変換情報
 ;
-INCLUDE	FF8MML.INC			;情報
-;
-;	ＦＦ８の曲データは、相対アドレスにて記載される。
-;	
-VOICE_ADDRESS	EQU	0030H		
-RIHTM_ADDRESS	EQU	0034H		
-MUSIC_ADDRESS	EQU	0040H		
+INCLUDE	AKAO2MML.INC			;情報
 ;************************************************************************
 ;*									*
 ;*		逆ＭＭＬ部						*
@@ -63,8 +74,8 @@ UN_MML_COMPAILE:		;
 ;		(1) 使用パート数				|
 ;---------------------------------------------------------------|
 MML2MID_HED:
-	DB	'#title     "FINAL FANTASY VIII  "',0dh,0ah
-	DB	'#copyright "植松 伸夫	(c)SQUARE"',0dh,0ah
+	DB	'#title     "		"',0dh,0ah
+	DB	'#copyright "		(c)SQUARE"',0dh,0ah
 	DB	'#timebase 48',0dh,0ah
 	DB	0dh,0ah
 	DB	0dh,0ah
@@ -119,6 +130,7 @@ UC_START:
 	INT	21H			;
 	
 	MOV	AX,ES:[MUSIC_ADDRESS]	;使用パート数
+	add	ax,MUSIC_ADDRESSa
 	SHR	AX,1			;AX←AX/2
 	MOV	CS:[UC_PART],AL		;
 
@@ -230,6 +242,8 @@ UCE_VOICE_cr	db	0dh,0ah,24h
 UC_END:		
 	XOR	CX,CX			;CL←0
 	MOV	BX,VOICE_ADDRESS	;従属音色情報アドレス
+	cmp	bx,0
+	JZ	UC_END_L1		;無かったら終わり。
 	MOV	DX,ES:[BX]		;
 	CMP	DX,0000H		;従属音色有り？
 	JZ	UC_END_L1		;無かったら終わり。
@@ -355,12 +369,18 @@ UCMO_COMMAND_SIZE:				;
 	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;70h-7Fh
 	DB	0,0,0,0, 9,9,9,9, 9,9,9,9, 9,9,9,0	;80h-8Fh
 	DB	0,0,0,0, 0,0,0,0, 0,0,1,1, 1,1,1,1	;90h-9Fh
-	DB	0,2,2,2, 3,2,1,1, 2,3,2,3, 1,2,1,2	;A0h-AFh
-	DB	1,2,1,1, 4,2,1,1, 4,2,1,1, 4,2,1,1	;B0h-BFh
+	DB	0,2,2,2, 3,2,1,1, 2,3,2,3, 2,2,2,2	;A0h-AFh
+	DB	1,2,2,1, 4,2,1,1, 4,2,1,1, 3,2,1,1	;B0h-BFh
 	DB	1,1,1,1, 1,1,1,1, 1,2,1,1, 1,1,1,1	;C0h-CFh
-	DB	1,1,1,1, 1,1,1,1, 2,1,1,1, 1,1,1,1	;D0h-DFh
-	DB	1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1	;E0h-EFh
+	DB	1,1,1,1, 1,1,1,1, 2,1,2,1, 1,1,3,1	;D0h-DFh
+ifdef	ff7	;------------------------
+	DB	0,0,0,0, 0,0,0,0, 3,1,1,1, 1,1,8,1	;E0h-EFh
+	DB	1,1,1,1, 1,1,1,1, 1,1,0,0, 0,3,3,0	;F0h-FFh
+endif	;--------------------------------
+ifdef	ff8	;------------------------
+	DB	1,1,1,1, 1,1,3,1, 1,1,1,1, 1,1,1,1	;E0h-EFh
 	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 9,0,8,1	;F0h-FFh
+endif	;--------------------------------
 UCMO_ComStartFlag:
 	db	0
 UCMO_TAI_OUTPUT:			;
@@ -387,6 +407,7 @@ UCMO_L00:
 	ADD	AX,MUSIC_ADDRESS	;AX←パート情報＋AX
 	MOV	BX,AX			;
 	MOV	BX,ES:[BX]		;BX←演奏アドレス（相対）
+	add	bx,MUSIC_ADDRESSa	;
 	ADD	BX,AX			;BX←演奏アドレス
 	CALL	UCMO_LOOP_SEARCH	;
 UCMO_L01:
@@ -664,6 +685,17 @@ UCMOL_K:CMP	AH,0A0h			;・0A0hのコマンド
 
 UCMOL_2:CMP	AL,8			;
 	JNZ	UCMOL_3			;
+ifdef	ff7	;------------------------
+	ADD	BX,1				;
+	MOV	AX,ES:[BX]			;
+	ADD	bx,2
+	TEST	AX,AX				;
+	JZ	UCMOL_EE			;If AX=0 Then Return
+	ADD	AX,BX				;AX←ループ先アドレス
+	MOV	BX,AX				;BX←AX
+	jmp	UCMOL_E3
+endif	;--------------------------------
+ifdef	ff8	;------------------------
 	MOV	AX,ES:[BX]		;
 	CMP	AX,007FEH		;
 	JZ	UCMOL_7			;
@@ -676,6 +708,7 @@ UCMOL_2:CMP	AL,8			;
 UCMOL_2_1:				;
 	ADD	BX,4			;
 	JMP	UCMOL_1			;
+endif	;--------------------------------
 UCMOL_3:				;
 	MOV	AH,0			;
 	ADD	BX,AX			;

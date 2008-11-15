@@ -499,7 +499,7 @@ UC_DC6	DB	' /*C6(Mon)*/$',00h	;modulation on
 UC_DC7	DB	' /*C7(Moff)*/$',00h	;modulation off
 UC_DC8	DB	' [$',00h		;Loop start
 UC_DC9	DB	' ]$',10h,00h		;Loop end
-UC_DCA	DB	' /*CA*/$',00h
+UC_DCA	DB	' /*ff7*/]2$',00h	;Loop end(FF7用)
 UC_DCB	DB	' /*CB*/$',00h
 UC_DCC	DB	' P$'			;スラー開始
 UC_DCD	DB	' X$'			;スラー終了
@@ -520,9 +520,20 @@ UC_DD9	DB	' /*D9*/$',00h
 UC_DDA	DB	' /*DA,$',010h,' */$',00h	;不明
 UC_DDB	DB	' /*DB*/$',00h
 UC_DDC	DB	' /*DC*/$',00h
-UC_DDD	DB	' /*DD*/$',00h
+UC_DDD	DB	' /*DD,$',010h,' ,$',010h,' */$',00h	;不明
 UC_DDE	DB	' /*DE,$',010h,' ,$',010h,' */$',00h	;不明
 UC_DDF	DB	' /*DF*/$',00h
+ifdef	ff7	;------------------------
+UC_DE0	DB	' /*E0*/$',80h,00h
+UC_DE1	DB	' /*E1*/$',80h,00h
+UC_DE2	DB	' /*E2*/$',80h,00h
+UC_DE3	DB	' /*E3*/$',80h,00h
+UC_DE4	DB	' /*E4*/$',80h,00h
+UC_DE5	DB	' /*E5*/$',80h,00h
+UC_DE6	DB	' /*E6*/$',80h,00h
+UC_DE7	DB	' /*E7*/$',80h,00h
+endif	;--------------------------------
+ifdef	ff8	;------------------------
 UC_DE0	DB	' /*E0*/$',00h
 UC_DE1	DB	' /*E1*/$',00h
 UC_DE2	DB	' /*E2*/$',00h
@@ -531,14 +542,40 @@ UC_DE4	DB	' /*E4*/$',00h
 UC_DE5	DB	' /*E5*/$',00h
 UC_DE6	DB	' /*E6,$',010h,' ,$',010h,' */$',00h	
 UC_DE7	DB	' /*E7*/$',00h
-UC_DE8	DB	' /*E8*/$',00h
-UC_DE9	DB	' /*E9*/$',00h
-UC_DEA	DB	' /*EA*/$',00h
-UC_DEB	DB	' /*EB*/$',00h
-UC_DEC	DB	' /*EC*/$',00h
+endif	;--------------------------------
+UC_DE8	DB	' t$',0FFh			;テンポ(FF7)
+	dw	offset UC_Tempo
+	db	00h
+UC_DE9	DB	' /*t_$',013h,' */$',00h	;相対テンポ(FF7)
+UC_DEA	DB	' /*Reverb($',012h,' )*/$',00h	;Reverb depth(FF7)
+UC_DEB	DB	' /*Reverb(_$',013h,' )*/$',00h	;相対リバーブ(FF7)
+UC_DEC	DB	0ffh				;パーカッション
+	dw	offset	UCDFF_L04_1		;
+	db	00h				;
 UC_DED	DB	' /*ED*/$',00h
-UC_DEE	DB	' /*EE*/$',00h
+UC_DEE	DB	0FFh				;無限ループ(FF7)
+	dw	offset	UCDFF_L06_1
+	db	' /*L*/$',00h
 UC_DEF	DB	' /*EF*/$',00h
+ifdef	ff7	;------------------------
+UC_DF0	DB	' /*F0*/$',00h
+UC_DF1	DB	' /*F1*/$',00h
+UC_DF2	DB	' /*F2,$',010h,' */$',00h	;不明
+UC_DF3	DB	' /*F3*/$',00h
+UC_DF4	DB	' /*F4*/$',00h
+UC_DF5	DB	' /*F5*/$',00h
+UC_DF6	DB	' /*F6*/$',00h
+UC_DF7	DB	' /*F7*/$',00h
+UC_DF8	DB	' /*F8,$',010h,' */$',00h	;不明
+UC_DF9	DB	' /*F9*/$',00h
+UC_DFA	DB	' /*FA*/$',80h,00h
+UC_DFB	DB	' /*FB*/$',80h,00h
+UC_DFC	DB	' /*FC*/$',80h,00h
+UC_DFD	DB	' /*FD,$',010h,' ,$',010h,' */$',00h	;不明
+UC_DFE	DB	' /*FE,$',010h,' ,$',010h,' */$',00h	;不明
+UC_DFF	DB	' /*FF*/$',80h,00h
+endif	;--------------------------------
+ifdef	ff8	;------------------------
 UC_DF0	DB	' c%$',10h,21h,00h
 UC_DF1	DB	' c+%$',10h,21h,00h
 UC_DF2	DB	' d%$',10h,21h,00h
@@ -557,8 +594,226 @@ UC_DFE	DB	0FFh
 	DW	OFFSET UCDFF_LSTART
 	DB	00h
 UC_DFF	DB	' /*FF*/$',00h		;不明
+endif	;--------------------------------
 
 
+;===============================================================
+;	0xA1	音色をマクロで出力する
+;===============================================================
+;
+;		音色マクロ変換　（まだ暫定的に'@0x' を出力）
+;
+UC_VOICE	DB	32	DUP	(0FFh)	
+UC_VOICE_NAME	DB	'0c$'			;音色マクロ名
+		DB	'1c$'
+		DB	'2c$'
+		DB	'3c$'
+		DB	'4c$'
+		DB	'5c$'
+		DB	'6c$'
+		DB	'7c$'
+		DB	'0d$'
+		DB	'1d$'
+		DB	'2d$'
+		DB	'3d$'
+		DB	'4d$'
+		DB	'5d$'
+		DB	'6d$'
+		DB	'7d$'
+		DB	'0e$'
+		DB	'1e$'
+		DB	'2e$'
+		DB	'3e$'
+		DB	'4e$'
+		DB	'5e$'
+		DB	'6e$'
+		DB	'7e$'
+		DB	'0f$'
+		DB	'1f$'
+		DB	'2f$'
+		DB	'3f$'
+		DB	'4f$'
+		DB	'5f$'
+		DB	'6f$'
+		DB	'7f$'
+UC_VOICE_OUTPUT:
+	MOV	AL,ES:[BX]			;データ読み込み
+	INC	BX				;
+	PUSH	BX				;
+	PUSH	CX				;
+	PUSH	DX				;
+
+	XOR	BX,BX				;BX←0
+UC_VOICE_OUTPUT_L1:				;
+	MOV	AH,CS:[UC_VOICE + BX]		;使用登録済み音色読み込み
+	CMP	AH,0FFh				;登録情報終了検査
+	JZ	UC_VOICE_OUTPUT_L2		;
+	
+	CMP	AH,AL				;音色一致検査
+	JZ	UC_VOICE_OUTPUT_L3		;存在した。
+	INC	BX				;
+	JMP	UC_VOICE_OUTPUT_L1		;
+
+UC_VOICE_OUTPUT_L2:				;
+	MOV	CS:[UC_VOICE + BX],AL		;登録
+
+UC_VOICE_OUTPUT_L3:				;表示
+	MOV	DX,OFFSET UC_VOICE_NAME		;
+	ADD	DX,BX				;
+	ADD	DX,BX				;
+	ADD	DX,BX				;DX←Address + BX *3
+	MOV	AH,09H				;
+	INT	21H				;
+	JMP	UC_VOICE_OUTPUT_LE		;
+
+UC_VOICE_OUTPUT_LE:				;終わり
+	POP	DX				;
+	POP	CX				;
+	POP	BX				;
+	RET					;
+
+;===============================================================
+;	0xA2	次の音符・休符の音長
+;===============================================================
+;	ディレイ？
+UC_Step_work	db	0			;
+UC_Step:
+	MOV	AH,ES:[BX]			;データ読み込み
+	inc	bx				;
+	mov	byte ptr cs:[UC_Step_work],ah	;保存
+	RET					;
+;===============================================================
+;	0xA3	音量
+;===============================================================
+
+UC_Volume_TABLE:	;指数値を、リニアに変換
+			;=INT(LOG((x+1))/LOG(129)*128)
+;		0	+1	+2	+3	+4	+5	+6	+7
+	db	0,	18,	28,	36,	42,	47,	51,	54
+	db	57,	60,	63,	65,	67,	69,	71,	73
+	db	74,	76,	77,	78,	80,	81,	82,	83
+	db	84,	85,	86,	87,	88,	89,	90,	91
+	db	92,	92,	93,	94,	95,	95,	96,	97
+	db	97,	98,	99,	99,	100,	100,	101,	101
+	db	102,	103,	103,	104,	104,	105,	105,	106
+	db	106,	106,	107,	107,	108,	108,	109,	109
+	db	109,	110,	110,	111,	111,	111,	112,	112
+	db	113,	113,	113,	114,	114,	114,	115,	115
+	db	115,	116,	116,	116,	117,	117,	117,	117
+	db	118,	118,	118,	119,	119,	119,	119,	120
+	db	120,	120,	121,	121,	121,	121,	122,	122
+	db	122,	122,	123,	123,	123,	123,	124,	124
+	db	124,	124,	124,	125,	125,	125,	125,	126
+	db	126,	126,	126,	126,	127,	127,	127,	127
+
+UC_Volume:
+	MOV	AL,ES:[BX]			;データ読み込み
+	INC	BX				;
+	PUSH	BX				;
+	XOR	AH,AH				;
+	MOV	BX,OFFSET UC_Volume_TABLE	;
+	ADD	BX,AX				;
+	MOV	AH,CS:[BX]			;
+	CALL	HEX2ASC8			;出力
+	MOV	AH,09H				;
+	INT	21H				;
+	POP	BX				;
+	RET					;
+;===============================================================
+;	0xA8	音量セーブ
+;===============================================================
+UC_DATA_E	DB	?			;エクスプレッション
+UC_SAVE_E:
+	MOV	AL,ES:[BX]			;データ保存
+	MOV	CS:[UC_DATA_E],AL		;
+	RET					;
+
+;===============================================================
+;	0xA9	音量ロード
+;===============================================================
+UC_LOAD_E:
+	MOV	AH,ES:[BX]			;データ読み込み
+	INC	BX				;
+	PUSH	DX				;
+	MOV	AL,CS:[UC_DATA_E]		;保存データ
+	MOV	CS:[UC_DATA_E],AH		;
+	SUB	AH,AL				;
+	CALL	FH2A8				;出力
+	MOV	AH,09H				;
+	INT	21H				;
+	POP	DX				;
+	RET					;
+;---------------------------------------------------------------
+UC_LOAD_ES:
+	PUSH	DX				;
+	MOV	AH,CS:[UC_DATA_E]		;
+	CALL	HEX2ASC8			;出力
+	MOV	AH,09H				;
+	INT	21H				;
+	POP	DX				;
+	RET					;
+;===============================================================
+;	0xAA	パンポット・セーブ
+;===============================================================
+UC_DATA_P	DB	?			;パンポット
+UC_SAVE_P:
+	MOV	AL,ES:[BX]			;データ保存
+	MOV	CS:[UC_DATA_P],AL		;
+	RET					;
+;===============================================================
+;	0xA9	パンポット・ロード
+;===============================================================
+UC_LOAD_P:
+	MOV	AH,ES:[BX]			;データ読み込み
+	INC	BX				;
+	PUSH	DX				;
+	MOV	AL,CS:[UC_DATA_P]		;保存データ
+	MOV	CS:[UC_DATA_P],AH		;
+	SUB	AH,AL				;
+	CALL	FH2A8				;出力
+	MOV	AH,09H				;
+	INT	21H				;
+	POP	DX				;
+	RET					;
+;---------------------------------------------------------------
+UC_LOAD_PS:
+	PUSH	DX				;
+	MOV	AH,CS:[UC_DATA_P]		;
+	CALL	HEX2ASC8			;出力
+	MOV	AH,09H				;
+	INT	21H				;
+	POP	DX				;
+	RET					;
+;===============================================================
+;	0xD8	ピッチベンド
+;===============================================================
+UC_Detune:
+	PUSH	DX				;
+	MOV	AH,ES:[BX]			;データ読み込み
+	inc	bx
+	add	ah,64				;
+	CALL	HEX2ASC8			;出力
+	MOV	AH,09H				;
+	INT	21H				;
+	POP	DX				;
+	RET					;
+
+;===============================================================
+;	0xE8	テンポ
+;===============================================================
+UC_Tempo:
+	MOV	AX,ES:[BX]	;AX←データ（WORD）
+	INC	BX		;
+	INC	BX		;
+	PUSH	CX		;
+	XOR	DX,DX		;DX,AX←Ax
+	MOV	CX,218		;
+	DIV	CX		;ax←dx,ax÷218
+	POP	CX		;
+	CALL	HEX2ASC16	;数値変換
+	MOV	AH,09H		;
+	INT	21H		;そしてそれを表示
+	RET
 ;===============================================================
 ;	0xFE系コマンドの処理
 ;===============================================================
@@ -653,6 +908,8 @@ UCDFF_L06:
 	CMP	AL,06h		;データ終了
 	JZ	UCDFF_L06_1	;
 	JMP	UCDFF_L07	;
+;---------------------------------------
+;	FF7の0xEE
 UCDFF_L06_1:			;
 	mov	ax,bx		;
 	mov	cs:[UCDFF_M06_bx],ax
@@ -867,196 +1124,4 @@ UCDFF_LQQ:
 	INT	21H		;
 
 	RET			;
-
-;===============================================================
-;	音色をマクロで出力する
-;===============================================================
-;
-;		音色マクロ変換　（まだ暫定的に'@0x' を出力）
-;
-UC_VOICE	DB	32	DUP	(0FFh)	
-UC_VOICE_NAME	DB	'0c$'			;音色マクロ名
-		DB	'1c$'
-		DB	'2c$'
-		DB	'3c$'
-		DB	'4c$'
-		DB	'5c$'
-		DB	'6c$'
-		DB	'7c$'
-		DB	'0d$'
-		DB	'1d$'
-		DB	'2d$'
-		DB	'3d$'
-		DB	'4d$'
-		DB	'5d$'
-		DB	'6d$'
-		DB	'7d$'
-		DB	'0e$'
-		DB	'1e$'
-		DB	'2e$'
-		DB	'3e$'
-		DB	'4e$'
-		DB	'5e$'
-		DB	'6e$'
-		DB	'7e$'
-		DB	'0f$'
-		DB	'1f$'
-		DB	'2f$'
-		DB	'3f$'
-		DB	'4f$'
-		DB	'5f$'
-		DB	'6f$'
-		DB	'7f$'
-UC_VOICE_OUTPUT:
-	MOV	AL,ES:[BX]			;データ読み込み
-	INC	BX				;
-	PUSH	BX				;
-	PUSH	CX				;
-	PUSH	DX				;
-
-	XOR	BX,BX				;BX←0
-UC_VOICE_OUTPUT_L1:				;
-	MOV	AH,CS:[UC_VOICE + BX]		;使用登録済み音色読み込み
-	CMP	AH,0FFh				;登録情報終了検査
-	JZ	UC_VOICE_OUTPUT_L2		;
-	
-	CMP	AH,AL				;音色一致検査
-	JZ	UC_VOICE_OUTPUT_L3		;存在した。
-	INC	BX				;
-	JMP	UC_VOICE_OUTPUT_L1		;
-
-UC_VOICE_OUTPUT_L2:				;
-	MOV	CS:[UC_VOICE + BX],AL		;登録
-
-UC_VOICE_OUTPUT_L3:				;表示
-	MOV	DX,OFFSET UC_VOICE_NAME		;
-	ADD	DX,BX				;
-	ADD	DX,BX				;
-	ADD	DX,BX				;DX←Address + BX *3
-	MOV	AH,09H				;
-	INT	21H				;
-	JMP	UC_VOICE_OUTPUT_LE		;
-
-UC_VOICE_OUTPUT_LE:				;終わり
-	POP	DX				;
-	POP	CX				;
-	POP	BX				;
-	RET					;
-
-;===============================================================
-;	音量とパンポット
-;===============================================================
-;
-;		エンベロープのための記憶
-;
-UC_DATA_E	DB	?			;エクスプレッション
-UC_DATA_P	DB	?			;パンポット
-
-UC_SAVE_E:
-	MOV	AL,ES:[BX]			;データ保存
-	MOV	CS:[UC_DATA_E],AL		;
-	RET					;
-UC_SAVE_P:
-	MOV	AL,ES:[BX]			;データ保存
-	MOV	CS:[UC_DATA_P],AL		;
-	RET					;
-UC_LOAD_E:
-	MOV	AH,ES:[BX]			;データ読み込み
-	INC	BX				;
-	PUSH	DX				;
-	MOV	AL,CS:[UC_DATA_E]		;保存データ
-	MOV	CS:[UC_DATA_E],AH		;
-	SUB	AH,AL				;
-	CALL	FH2A8				;出力
-	MOV	AH,09H				;
-	INT	21H				;
-	POP	DX				;
-	RET					;
-UC_LOAD_P:
-	MOV	AH,ES:[BX]			;データ読み込み
-	INC	BX				;
-	PUSH	DX				;
-	MOV	AL,CS:[UC_DATA_P]		;保存データ
-	MOV	CS:[UC_DATA_P],AH		;
-	SUB	AH,AL				;
-	CALL	FH2A8				;出力
-	MOV	AH,09H				;
-	INT	21H				;
-	POP	DX				;
-	RET					;
-UC_LOAD_ES:
-	PUSH	DX				;
-	MOV	AH,CS:[UC_DATA_E]		;
-	CALL	HEX2ASC8			;出力
-	MOV	AH,09H				;
-	INT	21H				;
-	POP	DX				;
-	RET					;
-UC_LOAD_PS:
-	PUSH	DX				;
-	MOV	AH,CS:[UC_DATA_P]		;
-	CALL	HEX2ASC8			;出力
-	MOV	AH,09H				;
-	INT	21H				;
-	POP	DX				;
-	RET					;
-;===============================================================
-;	音量
-;===============================================================
-
-UC_Volume_TABLE:	;指数値を、リニアに変換
-			;=INT(LOG((x+1))/LOG(129)*128)
-;		0	+1	+2	+3	+4	+5	+6	+7
-	db	0,	18,	28,	36,	42,	47,	51,	54
-	db	57,	60,	63,	65,	67,	69,	71,	73
-	db	74,	76,	77,	78,	80,	81,	82,	83
-	db	84,	85,	86,	87,	88,	89,	90,	91
-	db	92,	92,	93,	94,	95,	95,	96,	97
-	db	97,	98,	99,	99,	100,	100,	101,	101
-	db	102,	103,	103,	104,	104,	105,	105,	106
-	db	106,	106,	107,	107,	108,	108,	109,	109
-	db	109,	110,	110,	111,	111,	111,	112,	112
-	db	113,	113,	113,	114,	114,	114,	115,	115
-	db	115,	116,	116,	116,	117,	117,	117,	117
-	db	118,	118,	118,	119,	119,	119,	119,	120
-	db	120,	120,	121,	121,	121,	121,	122,	122
-	db	122,	122,	123,	123,	123,	123,	124,	124
-	db	124,	124,	124,	125,	125,	125,	125,	126
-	db	126,	126,	126,	126,	127,	127,	127,	127
-
-UC_Volume:
-	MOV	AL,ES:[BX]			;データ読み込み
-	INC	BX				;
-	PUSH	BX				;
-	XOR	AH,AH				;
-	MOV	BX,OFFSET UC_Volume_TABLE	;
-	ADD	BX,AX				;
-	MOV	AH,CS:[BX]			;
-	CALL	HEX2ASC8			;出力
-	MOV	AH,09H				;
-	INT	21H				;
-	POP	BX				;
-	RET					;
-;===============================================================
-;	ディレイ？
-;===============================================================
-UC_Step_work	db	0			;
-UC_Step:
-	MOV	AH,ES:[BX]			;データ読み込み
-	inc	bx				;
-	mov	byte ptr cs:[UC_Step_work],ah	;保存
-	RET					;
-;===============================================================
-;	ピッチベンド
-;===============================================================
-UC_Detune:
-	PUSH	DX				;
-	MOV	AH,ES:[BX]			;データ読み込み
-	inc	bx
-	add	ah,64				;
-	CALL	HEX2ASC8			;出力
-	MOV	AH,09H				;
-	INT	21H				;
-	POP	DX				;
-	RET					;
 
