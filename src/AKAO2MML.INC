@@ -499,9 +499,15 @@ UC_DC4	DB	' /*C4(Non)*/$',00h	;Noise on
 UC_DC5	DB	' /*C5(Noff)*/$',00h	;Noise off
 UC_DC6	DB	' /*C6(Mon)*/$',00h	;modulation on
 UC_DC7	DB	' /*C7(Moff)*/$',00h	;modulation off
-UC_DC8	DB	' [$',00h		;Loop start
-UC_DC9	DB	' ]$',10h,00h		;Loop end
-UC_DCA	DB	' /*ff7*/]2$',00h	;Loop end(FF7用)
+UC_DC8	DB	' [$',0FFH		;Loop start
+	dw	offset UC_LoopCountInc
+	db	00h
+UC_DC9	DB	' ]$',10h,0FFh		;Loop end
+	dw	offset UC_LoopCountDec
+	db	00h
+UC_DCA	DB	' ]2$',0FFh		;Loop end(FF7用)
+	dw	offset UC_LoopCountDec
+	db	00h
 UC_DCB	DB	' /*CB*/$',00h
 UC_DCC	DB	' P$'			;スラー開始
 UC_DCD	DB	' X$'			;スラー終了
@@ -534,12 +540,12 @@ UC_DE4	DB	' /*E4*/$',80h,00h
 UC_DE5	DB	' /*E5*/$',80h,00h
 UC_DE6	DB	' /*E6*/$',80h,00h
 UC_DE7	DB	' /*E7*/$',80h,00h
-UC_DE8	DB	' t$',0FFh			;テンポ(FF7)
+UC_DE8	DB	' t$',0FFh				;テンポ(FF7)
 	dw	offset UC_Tempo
 	db	00h
-UC_DE9	DB	' /*t_$',013h,' */$',00h	;相対テンポ(FF7)
-UC_DEA	DB	' /*Reverb($',012h,' )*/$',00h	;Reverb depth(FF7)
-UC_DEB	DB	' /*Reverb(_$',013h,' )*/$',00h	;相対リバーブ(FF7)
+UC_DE9	DB	' /*t_$',011h,' ,$',013h,' */$',00h	;相対テンポ(FF7)
+UC_DEA	DB	' /*Reverb($',012h,' )*/$',00h		;Reverb depth(FF7)
+UC_DEB	DB	' /*Reverb(_$',011h,' ,$',013h,' )*/$',00h	;相対リバーブ
 UC_DEC	DB	' /*EC,$',012h,' */$',0ffh	;パーカッション
 	dw	offset	UCDFF_L04_1		;
 	db	00h				;
@@ -807,6 +813,22 @@ UC_LOAD_PS:
 	POP	DX				;
 	RET					;
 ;===============================================================
+;	0xC8		ループ
+;===============================================================
+UC_LoopCountData	dw	0
+UC_LoopCountInc:
+	inc	word ptr cs:[UC_LoopCountData]
+	ret
+;===============================================================
+;	0xC9,0xCA	ループ
+;===============================================================
+UC_LoopCountDec:
+	cmp	word ptr cs:[UC_LoopCountData],0
+	jz	UC_LoopCountDec_1
+	dec	word ptr cs:[UC_LoopCountData]
+UC_LoopCountDec_1:
+	ret
+;===============================================================
 ;	0xD8	ピッチベンド
 ;===============================================================
 UC_Detune:
@@ -925,6 +947,7 @@ UCDFF_L04_1:
 ;	0x06	終了
 ;---------------------------------------
 UCDFF_M06_1	DB	']2/*L*/$'
+UCDFF_M06_2	DB	']1/*L*/$'
 UCDFF_M06_bx	Dw	0
 UCDFF_L06:
 	CMP	AL,06h		;データ終了
@@ -933,6 +956,14 @@ UCDFF_L06:
 ;---------------------------------------
 ;	FF7の0xEE
 UCDFF_L06_1:			;
+	cmp	word ptr cs:[UC_LoopCountData],0
+	jz	UCDFF_L06_1_LoopOk
+	mov	dx,offset UCDFF_M06_2
+	mov	ah,09h		;
+	int	21h		;
+	dec	word ptr cs:[UC_LoopCountData]
+	jmp	UCDFF_L06_1	;
+UCDFF_L06_1_LoopOk:		;
 	mov	ax,bx		;
 	mov	cs:[UCDFF_M06_bx],ax
 	MOV	AX,ES:[BX]	;

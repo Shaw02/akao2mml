@@ -25,6 +25,7 @@ ff8mml_:
 ;************************************************************************
 ifdef	ff7	;------------------------
 ;FINAL FANTASY 7
+PARTF_ADDRESS	equ	0010h		
 VOICE_ADDRESS	EQU	0000H		
 RIHTM_ADDRESS	EQU	0000H		
 MUSIC_ADDRESS	EQU	0014H		
@@ -32,7 +33,8 @@ MUSIC_ADDRESSa	equ	+2
 endif	;--------------------------------
 
 ifdef	ff8	;------------------------
-;FINAL FANTASY 2,7,8
+;FINAL FANTASY 2,8,9
+PARTF_ADDRESS	equ	0020h		
 VOICE_ADDRESS	EQU	0030H		
 RIHTM_ADDRESS	EQU	0034H		
 MUSIC_ADDRESS	EQU	0040H		
@@ -390,10 +392,33 @@ UCMO_LOOP_OUTPUT:			;
 UCMO_LOOP_OUTPUT2:			;
 	DB	'/*L2*/[$'		;
 UC_MML_OUTPUT:
-	MOV	CL,CS:[UC_PART]		;CL←使用パート数
+;	MOV	CL,CS:[UC_PART]		;CL←使用パート数
+	mov	cl,32
 	MOV	CH,0			;CH←現在のパート
-UCMO_L00:
+
+UCMO_L00:				;
+	mov	dx,0000h		;
+	mov	ax,0001h		;dx:axで、32bit幅とする。
+	push	cx			;
+
+UCMO_L00_0:				;当該パートがあるかチェック
+	cmp	ch,0			;
+	jz	UCMO_L00_1		;
+	shl	ax,1			;
+	rcl	dx,1			;
+	dec	ch			;cxの数だけループ
+	jmp	UCMO_L00_0		;
+
+UCMO_L00_1:
+	pop	cx			;
 	PUSH	CX			;
+	test	word ptr es:[PARTF_ADDRESS+0],ax
+	jnz	UCMO_L00_2		;
+	test	word ptr es:[PARTF_ADDRESS+2],dx
+	jnz	UCMO_L00_2		;
+	jmp	UCMO_LQQ		;無かったら、次のパートへゴー
+
+UCMO_L00_2:
 	XOR	DX,DX			;
 	MOV	DL,CH			;
 	SHL	DX,1			;
