@@ -65,7 +65,7 @@ INCLUDE	AKAO2MML.INC			;情報
 UN_MML_COMPAILE:		;
 	CALL	UC_START	;初期設定
 	CALL	UC_MML_OUTPUT	;ＭＭＬ出力部
-	CALL	UC_END		;後期設定
+	CALL	UC_Instrument	;後期設定
 	RET			;RETURN
 ;---------------------------------------------------------------|
 ;		初期変換					|
@@ -76,66 +76,153 @@ UN_MML_COMPAILE:		;
 ;		(1) 使用パート数				|
 ;---------------------------------------------------------------|
 MML2MID_HED:
-	DB	'#title     "		"',0dh,0ah
-	DB	'#copyright "		(c)SQUARE"',0dh,0ah
+	DB	'#title     ""',0dh,0ah
+	DB	'#copyright "(c)SQUARE"',0dh,0ah
+	db	0dh,0ah
+ifdef	ff8	;------------------------
 	DB	'#timebase 48',0dh,0ah
 	DB	0dh,0ah
 	DB	0dh,0ah
-	DB	'Z	EX x41,x10,x42,x12,{x40,x00,x7f,x00},xf7	r1'
-	DB	0DH,0AH
+	DB	'0A	EX x41,x10,x42,x12,{x40,x00,x7f,x00},xf7',0DH,0AH
 	DB	0dh,0ah
 	DB	'0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D'
 	DB	'0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	r1',0DH,0AH
 	DB	0dh,0ah
-	DB	'0A			C1 BR8',0Dh,0ah
-	DB	'1A			C2 BR8',0Dh,0ah
-	DB	'2A			C3 BR8',0Dh,0ah
-	DB	'3A			C4 BR8',0Dh,0ah
-	DB	'0B			C5 BR8',0Dh,0ah
-	DB	'1B			C6 BR8',0Dh,0ah
-	DB	'2B			C7 BR8',0Dh,0ah
-	DB	'3B			C8 BR8',0Dh,0ah
-	DB	'0C			C9 BR8',0Dh,0ah
-	DB	'1C			C10BR8	'
-	DB	'EX x41,x10,x42,x12,{x40,x10,x15,0},xF7',0Dh,0Ah
-	DB	'2C			C11BR8',0Dh,0ah
-	DB	'3C			C12BR8',0Dh,0ah
-	DB	'0D			C13BR8',0Dh,0ah
-	DB	'1D			C14BR8',0Dh,0ah
-	DB	'2D			C15BR8',0Dh,0ah
-	DB	'3D			C16BR8',0Dh,0ah
-	DB	'0E	EExff,x21,1,1	C1 BR8',0Dh,0ah
-	DB	'1E	EExff,x21,1,1	C2 BR8',0Dh,0ah
-	DB	'2E	EExff,x21,1,1	C3 BR8',0Dh,0ah
-	DB	'3E	EExff,x21,1,1	C4 BR8',0Dh,0ah
-	DB	'0F	EExff,x21,1,1	C5 BR8',0Dh,0ah
-	DB	'1F	EExff,x21,1,1	C6 BR8',0Dh,0ah
-	DB	'2F	EExff,x21,1,1	C7 BR8',0Dh,0ah
-	DB	'3F	EExff,x21,1,1	C8 BR8',0Dh,0ah
-	DB	'0G	EExff,x21,1,1	C9 BR8',0Dh,0ah
-	DB	'1G	EExff,x21,1,1	C10BR8	'
-	DB	'EX x41,x10,x42,x12,{x40,x10,x15,0},xF7',0Dh,0Ah
-	DB	'2G	EExff,x21,1,1	C11BR8',0Dh,0ah
-	DB	'3G	EExff,x21,1,1	C12BR8',0Dh,0ah
-	DB	'0H	EExff,x21,1,1	C13BR8',0Dh,0ah
-	DB	'1H	EExff,x21,1,1	C14BR8',0Dh,0ah
-	DB	'2H	EExff,x21,1,1	C15BR8',0Dh,0ah
-	DB	'3H	EExff,x21,1,1	C16BR8',0Dh,0ah
+	DB	'0A			C1 ',0Dh,0ah
+	DB	'1A			C2 ',0Dh,0ah
+	DB	'2A			C3 ',0Dh,0ah
+	DB	'3A			C4 ',0Dh,0ah
+	DB	'0B			C5 ',0Dh,0ah
+	DB	'1B			C6 ',0Dh,0ah
+	DB	'2B			C7 ',0Dh,0ah
+	DB	'3B			C8 ',0Dh,0ah
+	DB	'0C			C9 ',0Dh,0ah
+	DB	'1C			C10',0Dh,0Ah
+	DB	'2C			C11',0Dh,0ah
+	DB	'3C			C12',0Dh,0ah
+	DB	'0D			C13',0Dh,0ah
+	DB	'1D			C14',0Dh,0ah
+	DB	'2D			C15',0Dh,0ah
+	DB	'3D			C16',0Dh,0ah
+	DB	'0E	EExff,x21,1,1	C1 ',0Dh,0ah
+	DB	'1E	EExff,x21,1,1	C2 ',0Dh,0ah
+	DB	'2E	EExff,x21,1,1	C3 ',0Dh,0ah
+	DB	'3E	EExff,x21,1,1	C4 ',0Dh,0ah
+	DB	'0F	EExff,x21,1,1	C5 ',0Dh,0ah
+	DB	'1F	EExff,x21,1,1	C6 ',0Dh,0ah
+	DB	'2F	EExff,x21,1,1	C7 ',0Dh,0ah
+	DB	'3F	EExff,x21,1,1	C8 ',0Dh,0ah
+	DB	'0G	EExff,x21,1,1	C9 ',0Dh,0ah
+	DB	'1G	EExff,x21,1,1	C10',0Dh,0Ah
+	DB	'2G	EExff,x21,1,1	C11',0Dh,0ah
+	DB	'3G	EExff,x21,1,1	C12',0Dh,0ah
+	DB	'0H	EExff,x21,1,1	C13',0Dh,0ah
+	DB	'1H	EExff,x21,1,1	C14',0Dh,0ah
+	DB	'2H	EExff,x21,1,1	C15',0Dh,0ah
+	DB	'3H	EExff,x21,1,1	C16',0Dh,0ah
 	DB	0dh,0ah
 	DB	'0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D'
-	DB	'0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	v127',0DH,0AH
-	DB	0dh,0ah,24h
+	DB	'0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	v127	E127	p64	BR8'
+endif	;--------------------------------
+	DB	24h
+
+MML2MID_HED0:
+	db	'0z',0dh,0ah
+	db	0dh,0ah,24h
+
+MML2MID_HED1:
+ifdef	ff7	;------------------------
+	db	'8z	@0	/*Instrument of percussion 1z*/'		,0dh,0ah,24h
+endif	;--------------------------------
+ifdef	ff8	;------------------------
+	db	'0z	EX x41,x10,x42,x12,{x40,x10+R,x15,0},xF7	J0'	,0dh,0ah,24h
+endif	;--------------------------------
+MML2MID_HED2:
+ifdef	ff7	;------------------------
+	db	'9z	@0	/*Instrument of percussion 2z*/'		,0dh,0ah,24h
+endif	;--------------------------------
+ifdef	ff8	;------------------------
+	db	'1z	EX x41,x10,x42,x12,{x40,x10+R,x15,1},xF7	H0,3	@0'	,0dh,0ah,24h
+endif	;--------------------------------
+MML2MID_HED3:
+ifdef	ff7	;------------------------
+	db	0dh,0ah
+	DB	'#include "define.mml"',0dh,0ah
+endif	;--------------------------------
+	db	0dh,0ah,24h
 
 UC_START:
 	MOV	DX,OFFSET MML2MID_HED	;
 	MOV	AH,09H			;
 	INT	21H			;
-	
-	MOV	AX,ES:[MUSIC_ADDRESS]	;使用パート数
-	add	ax,MUSIC_ADDRESSa
-	SHR	AX,1			;AX←AX/2
-	MOV	CS:[UC_PART],AL		;
 
+ifdef	ff8	;------------------------
+	mov	dl,24h			;$の表示
+	mov	ah,02h			;
+	int	21h			;
+	MOV	DX,OFFSET MML2MID_HED0	;
+	MOV	AH,09H			;
+	INT	21H			;
+endif	;--------------------------------
+
+	mov	dl,24h			;$の表示
+	mov	ah,02h			;
+	int	21h			;
+	MOV	DX,OFFSET MML2MID_HED1	;
+	MOV	AH,09H			;
+	INT	21H			;
+
+	mov	dl,24h			;$の表示
+	mov	ah,02h			;
+	int	21h			;
+	MOV	DX,OFFSET MML2MID_HED2	;
+	MOV	AH,09H			;
+	INT	21H			;
+
+	MOV	DX,OFFSET MML2MID_HED3	;
+	MOV	AH,09H			;
+	INT	21H			;
+	
+;	MOV	AX,ES:[MUSIC_ADDRESS]	;使用パート数
+;	add	ax,MUSIC_ADDRESSa
+;	SHR	AX,1			;AX←AX/2
+
+
+;
+;	チャンネル数のチェック
+;
+	push	cx
+
+	mov	cl,0			;Counter
+	mov	ch,32			;パート数最大
+
+	mov	dx,0000h		;
+	mov	ax,0001h		;dx:axで、32bit幅とする。
+
+UC_START_0:
+	test	word ptr es:[PARTF_ADDRESS+0],ax
+	jnz	UC_START_1		;
+	test	word ptr es:[PARTF_ADDRESS+2],dx
+	jnz	UC_START_1		;
+	jmp	UC_START_2
+UC_START_1:
+	inc	cl
+UC_START_2:
+	shl	ax,1			;
+	rcl	dx,1			;
+
+	dec	ch
+	jnz	UC_START_0
+
+	MOV	CS:[UC_PART],cl		;
+
+;	Debug用
+;	mov	ah,cl
+;	call	hex2asc8
+;	mov	ah,09h
+;	int	21h
+
+	pop	cx
 	RET				;
 ;---------------------------------------------------------------|
 ;		後期変換					|
@@ -160,6 +247,7 @@ UC_END_VOICE_ADD:
 		DW	OFFSET UCE_VOICE_5B	
 		DW	OFFSET UCE_VOICE_6B	
 		DW	OFFSET UCE_VOICE_7B	
+
 		DW	OFFSET UCE_VOICE_0C	
 		DW	OFFSET UCE_VOICE_1C	
 		DW	OFFSET UCE_VOICE_2C	
@@ -192,6 +280,7 @@ UC_END_VOICE_ADD:
 		DW	OFFSET UCE_VOICE_5F	
 		DW	OFFSET UCE_VOICE_6F	
 		DW	OFFSET UCE_VOICE_7F	
+
 UCE_VOICE_0A	DB	'0a	k127	H0,2	@48',0dh,0ah,24h
 UCE_VOICE_1A	DB	'1a	k127	H0,3	@1 ',0dh,0ah,24h
 UCE_VOICE_2A	DB	'2a	k127	H0,3	@2 ',0dh,0ah,24h
@@ -208,6 +297,7 @@ UCE_VOICE_4B	DB	'4b	k127	H0,3	@12',0dh,0ah,24h
 UCE_VOICE_5B	DB	'5b	k127	H0,3	@13',0dh,0ah,24h
 UCE_VOICE_6B	DB	'6b	k127	H0,3	@14',0dh,0ah,24h
 UCE_VOICE_7B	DB	'7b	k127	H0,3	@15',0dh,0ah,24h
+
 UCE_VOICE_0C	DB	'0c	k127	H0,3	@',24h
 UCE_VOICE_1C	DB	'1c	k127	H0,3	@',24h
 UCE_VOICE_2C	DB	'2c	k127	H0,3	@',24h
@@ -241,7 +331,7 @@ UCE_VOICE_5F	DB	'5f	k127	H0,3	@',24h
 UCE_VOICE_6F	DB	'6f	k127	H0,3	@',24h
 UCE_VOICE_7F	DB	'7f	k127	H0,3	@',24h
 UCE_VOICE_cr	db	0dh,0ah,24h
-UC_END:		
+UC_Instrument:
 	XOR	CX,CX			;CL←0
 	MOV	BX,VOICE_ADDRESS	;従属音色情報アドレス
 	cmp	bx,0
@@ -275,14 +365,16 @@ UC_END_L0:
 	JMP	UC_END_L0		;
 UC_END_L1:
 
+ifdef	ff8	;------------------------
+
 	XOR	CX,CX			;CL←0
 	MOV	BX,OFFSET UC_VOICE	;
 UC_END_L2:
 	MOV	AL,CS:[BX]		;AL←音色登録情報
 	CMP	AL,0FFh			;情報終了検査
 	JZ	UC_END_LE		;
-	cmp	cx,32			;
-	jz	UC_END_L1		;32個変換したら最後
+	cmp	cx,64			;
+	jz	UC_END_L1		;64個変換したら最後
 
 	PUSH	BX			;
 	push	ax
@@ -310,7 +402,14 @@ UC_END_L2:
 	INC	BX			;
 	INC	CX			;
 	JMP	UC_END_L2		;
+
+endif	;--------------------------------
+
 UC_END_LE:
+	mov	dx,offset UCE_VOICE_cr
+	MOV	AH,09H			;
+	INT	21H			;出力
+
 	RET
 ;---------------------------------------------------------------|
 ;		ＭＭＬ出力部					|
@@ -392,31 +491,31 @@ UCMO_LOOP_OUTPUT:			;
 UCMO_LOOP_OUTPUT2:			;
 	DB	'/*L2*/[$'		;
 UC_MML_OUTPUT:
-;	MOV	CL,CS:[UC_PART]		;CL←使用パート数
-	mov	cl,32
+	MOV	CL,CS:[UC_PART]		;CL←使用パート数
+;	mov	cl,32
 	MOV	CH,0			;CH←現在のパート
 
 UCMO_L00:				;
-	mov	dx,0000h		;
-	mov	ax,0001h		;dx:axで、32bit幅とする。
 	push	cx			;
+;	mov	dx,0000h		;
+;	mov	ax,0001h		;dx:axで、32bit幅とする。
 
 UCMO_L00_0:				;当該パートがあるかチェック
-	cmp	ch,0			;
-	jz	UCMO_L00_1		;
-	shl	ax,1			;
-	rcl	dx,1			;
-	dec	ch			;cxの数だけループ
-	jmp	UCMO_L00_0		;
+;	cmp	ch,0			;
+;	jz	UCMO_L00_1		;
+;	shl	ax,1			;
+;	rcl	dx,1			;
+;	dec	ch			;cxの数だけループ
+;	jmp	UCMO_L00_0		;
 
 UCMO_L00_1:
-	pop	cx			;
-	PUSH	CX			;
-	test	word ptr es:[PARTF_ADDRESS+0],ax
-	jnz	UCMO_L00_2		;
-	test	word ptr es:[PARTF_ADDRESS+2],dx
-	jnz	UCMO_L00_2		;
-	jmp	UCMO_LQQ		;無かったら、次のパートへゴー
+;	pop	cx			;
+;	PUSH	CX			;
+;	test	word ptr es:[PARTF_ADDRESS+0],ax
+;	jnz	UCMO_L00_2		;
+;	test	word ptr es:[PARTF_ADDRESS+2],dx
+;	jnz	UCMO_L00_2		;
+;	jmp	UCMO_LQQ		;無かったら、次のパートへゴー
 
 UCMO_L00_2:
 	XOR	DX,DX			;
