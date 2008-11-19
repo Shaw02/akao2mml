@@ -8,21 +8,6 @@
 ;	このMMLは、TAB＝４スペースで整形しています。
 ;
 ;-----------------------------------------------------------------------
-;
-;	AKAO32の曲データは、２ポート仕様となります。
-;		ポート１ …  1～16ch
-;		ポート２ … 17～32ch
-;	従って、１ポート仕様のMIDI音源（Microsoft GS Wavetable等）や
-;	１ポート仕様のプレイヤー（Microsoft Media Player等）では再生できません。
-;	多ポートに対応したMIDI音源（Roland SC-88Pro等）若しくは、2台のMIDI音源及び、
-;	多ポート仕様のＳＭＦプレイヤ（T-MIDI等）が必要です。
-;
-;-----------------------------------------------------------------------
-;
-;	マクロ	『$0a～$7a, $0b～7b』	は、AKAO32のレイヤー付き音色で使う。
-;	レイヤー付き音色は、曲データ毎に統一されていない為、
-;	曲データ毎に編集が必要です。
-;
 
 
 
@@ -202,7 +187,7 @@ $7o		$0z		H0,3	@127	k127	y100,2	y101,0	y6,64	;@127
 0A	EX x41,x10,x42,x12,{x40,x00,x7f,x00},xf7		;GS System on
 
 0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D	r1		;GS System onの為に、
-0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	r1		;全chに一分休符を配置する。
+;0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	r1		;全chに一分休符を配置する。
 
 ;Port 1(1～16ch)
 0A					C1
@@ -223,24 +208,24 @@ $7o		$0z		H0,3	@127	k127	y100,2	y101,0	y6,64	;@127
 3D					C16
 
 ;Port 2(17～32ch)
-0E	EExff,x21,1,1	C1
-1E	EExff,x21,1,1	C2
-2E	EExff,x21,1,1	C3
-3E	EExff,x21,1,1	C4
-0F	EExff,x21,1,1	C5
-1F	EExff,x21,1,1	C6
-2F	EExff,x21,1,1	C7
-3F	EExff,x21,1,1	C8
-0G	EExff,x21,1,1	C9
-1G	EExff,x21,1,1	C10		$0z		;初期設定はメロディーにする
-2G	EExff,x21,1,1	C11
-3G	EExff,x21,1,1	C12
-0H	EExff,x21,1,1	C13
-1H	EExff,x21,1,1	C14
-2H	EExff,x21,1,1	C15
-3H	EExff,x21,1,1	C16
+;0E	EExff,x21,1,1	C1
+;1E	EExff,x21,1,1	C2
+;2E	EExff,x21,1,1	C3
+;3E	EExff,x21,1,1	C4
+;0F	EExff,x21,1,1	C5
+;1F	EExff,x21,1,1	C6
+;2F	EExff,x21,1,1	C7
+;3F	EExff,x21,1,1	C8
+;0G	EExff,x21,1,1	C9
+;1G	EExff,x21,1,1	C10		$0z		;初期設定はメロディーにする
+;2G	EExff,x21,1,1	C11
+;3G	EExff,x21,1,1	C12
+;0H	EExff,x21,1,1	C13
+;1H	EExff,x21,1,1	C14
+;2H	EExff,x21,1,1	C15
+;3H	EExff,x21,1,1	C16
 
 0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D	v127	E127	p64	BR8		;AKAO側は、この様に
-0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	v127	E127	p64	BR8		;初期設定される？
+;0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	v127	E127	p64	BR8		;初期設定される？
 
 

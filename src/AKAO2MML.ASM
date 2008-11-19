@@ -497,6 +497,9 @@ UC_MML_OUTPUT:
 
 UCMO_L00:				;
 	push	cx			;
+
+	call	UC_INIT			;変数初期化
+
 ;	mov	dx,0000h		;
 ;	mov	ax,0001h		;dx:axで、32bit幅とする。
 
@@ -602,7 +605,7 @@ UCMO_L12:
 	MOV	AX,ES:[BX]		;データ読み込み
 	INC	BX			;ポインタインクリメント
 	INC	BX			;ポインタインクリメント
-	CALL	HEX2ASC8		
+	CALL	HEX2ASC16		
 	MOV	AH,09H			
 	INT	21H			
 	POP	DX			;
@@ -614,7 +617,7 @@ UCMO_L13:
 	MOV	AX,ES:[BX]		;データ読み込み
 	INC	BX			;ポインタインクリメント
 	INC	BX			;ポインタインクリメント
-	CALL	FH2A8			
+	CALL	FH2A16			
 	MOV	AH,09H			
 	INT	21H			
 	POP	DX			;

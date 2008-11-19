@@ -371,34 +371,50 @@ Command	param		MML	機能
 0xB3	
 
 +-------+-------+-------+-------+-------
-0xB4				ＬＦＯ？
-	b1		…	
-	b2		…	
-	b3		…	
-0xB5	b			ＬＦＯsw？
-0xB6				ＬＦＯoff？
+	ＬＦＯ関連
+	MML2MID文法への変換	…bCountが半周期の場合　（全周期の場合）
+	3typeのLFO（音程・音量・パンポット）がある。
+	コンバーター内部に各３type×４パラメータ（Panpotは３）を保存要。
+	コンバートのチャンネルが切り替わったら、要０リセット
+
+	IB n1,n2,n3,n4,n5	… LFO of PitchBend
+	IE n1,n2,n3,n4,n5	… LFO of Expression
+	IP n1,n2,n3,n4,n5	… LFO of Panpot
+	　n1 ＝	bDepth
+	　n2 ＝	bSpeed
+	　n3 ＝	bDelay	（Panpot LFOは、0固定）
+	　n4 ＝	bSpeed × bCount ×2(÷2)
+	　n5 ＝	0
+
+	- - - - - - - - - - - - - - - - -
+0xB4			IB	音程ＬＦＯ？
+	bDelay		…	始まるまでの時間[Step]
+	bSpeed		…	１変化の周期[Step]
+	bCount		…	周期[step]
+0xB5	bDepth		…	最大変化量[PitchBend MSB]
+0xB6			IB0	停止
 0xB7	b			
 
-+-------+-------+-------+-------+-------
-0xB8				ＬＦＯ？
-	b1		…	
-	b2		…	
-	b3		…	
-0xB9	b			ＬＦＯsw？
-0xBA				ＬＦＯoff？
+	- - - - - - - - - - - - - - - - -
+0xB8			IE	音量ＬＦＯ？
+	bDelay		…	始まるまでの時間[Step]
+	bSpeed		…	１回の周期[Step]
+	bCount		…	１回の増減量[Expression]
+0xB9	bDepth		…	最大変化量
+0xBA			IE0	停止
 0xBB	b			
 
-+-------+-------+-------+-------+-------
-0xBC				ＬＦＯ？
-	b1		…	
-	b2		…	
-0xBD	b			ＬＦＯsw？
-0xBE				ＬＦＯoff？
-0xBF	b
+	- - - - - - - - - - - - - - - - -
+0xBC			IP	パンポットＬＦＯ？
+	bSpeed		…	始まるまでの時間[Step]
+	bCount		…	１回の増減量[Panpot]
+0xBD	bDepth		…	最大変化量
+0xBE			IP0	停止
+0xBF	b		
 
 +-------+-------+-------+-------+-------
-0xC0	trance		_	移調
-0xC1	trance		__	相対移調
+0xC0	btrance		_	移調
+0xC1	btrance		__	相対移調
 
 +-------+-------+-------+-------+-------
 0xC2				Reverb on
@@ -492,36 +508,36 @@ Command	param		MML	機能
 	wOffset			戻り先アドレス＋２
 
 +-------+-------+-------+-------+-------
-0xEF				不明
+0xEF				不明				…FF7
 	b1		…
 	b2		…
 	b3		…
 
 +-------+-------+-------+-------+-------
-0xF0			:	ループ抜け
+0xF0			:	ループ抜け			…FF7
 	b1		…	ループ回数
 	ptAddr		…	行き先アドレス？（相対値　符号付16bit）
 +-------+-------+-------+-------+-------
-0xF1
+0xF1				不明				…FF7
 	b1		…
 	b2		…
 	b3		…
 +-------+-------+-------+-------+-------
-0xF2	bVoice		@	音色（アタック無し）
+0xF2	bVoice		@	音色（アタック無し）		…FF7
 +-------+-------+-------+-------+-------
-0xF3
-0xF4
-0xF5
-0xF6
-0xF7
-0xF8	b
-0xF9	b			？
-0xFA				End of Channel
-0xFB				End of Channel
+0xF3				
+0xF4	word			？
+0xF5				
+0xF6	byte			？
+0xF7	word			？
+0xF8	byte			？
+0xF9	byte			？
+0xFA				
+0xFB				
 0xFC	word			？
 0xFD	word			？
 0xFE	word			？
-0xFF				End of Channel
+0xFF				
 
 ========================================
 ■Akao for 32ch

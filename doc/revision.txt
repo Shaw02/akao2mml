@@ -6,6 +6,22 @@
 
 
 
+version 1.10		2008.11.19
+	・以下のコマンドに対応
+		0xB4	音程LFO設定
+		0xB5	音程LFO深さ
+		0xB6	音程LFO off
+		0xB8	音量LFO設定
+		0xB9	音量LFO深さ
+		0xBA	音量LFO off
+		0xBC	パンLFO設定
+		0xBD	パンLFO深さ
+		0xBE	パンLFO off
+
+
+
+
+
 version 1.09		2008.11.17
 	・"Define.mml"を新設。これにより、以下をカスタマイズできるようにした。
 		(1) MIDI音源の初期設定
