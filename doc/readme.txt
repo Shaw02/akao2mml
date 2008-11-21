@@ -1,6 +1,6 @@
 +-----------------------------------------------------------------------------
-| タイトル | ＦＩＮＡＬ　ＦＡＮＴＡＳＹ　８	逆ＭＭＬコンパイラ
-|ファイル名| FF8MML.LZH
+| タイトル | PlayStation版 SQUARE SOFT	逆ＭＭＬコンパイラ
+|ファイル名| AKAO2MML.LZH
 | カテゴリ | MS-DOS用プログラム（※16bitアプリケーションです）
 | 動作機種 | NEC社V30シリーズ、intel社i80186若しくは、その上位互換のCPU
 |前提ソフト| MS-DOS version 3.30d以降　（但し、64bit versionのOSは不可）
@@ -13,9 +13,11 @@
 	MML2MID仕様のMML（Music Macro Language）に逆コンパイルします。
 
 	私の確認した範囲では、
-	・FINAL FANTASY 8
-	・FINAL FANTASY 9
+	・Saga Frontier		(ff7mml)
+	・FINAL FANTASY 7	(ff7mml)
+	・FINAL FANTASY 8	(ff8mml)
+	・FINAL FANTASY 9	(ff8mml)
 	のデータを逆コンパイル出来ることを確認しております。
 	※一部のデータは、正常に逆コンパイル出来ません。
 
-製作のファイルは【FF8MML  .LZH】です。
+製作のファイルは【AKAO2MML.LZH】です。

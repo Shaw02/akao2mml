@@ -1,5 +1,29 @@
 ;************************************************************************
 ;*									*
+;*		定義部							*
+;*									*
+;************************************************************************
+ifdef	ff7	;------------------------
+;FINAL FANTASY 7
+PARTF_ADDRESS	equ	0010h		
+VOICE_ADDRESS	EQU	0000H		
+RIHTM_ADDRESS	EQU	0000H		
+MUSIC_ADDRESS	EQU	0014H		
+MUSIC_ADDRESSa	equ	+2
+endif	;--------------------------------
+
+ifdef	ff8	;------------------------
+;FINAL FANTASY 2,8,9
+PARTF_ADDRESS	equ	0020h		
+VOICE_ADDRESS	EQU	0030H		
+RIHTM_ADDRESS	EQU	0034H		
+MUSIC_ADDRESS	EQU	0040H		
+MUSIC_ADDRESSa	equ	0
+endif	;--------------------------------
+
+
+;************************************************************************
+;*									*
 ;*		逆ＭＭＬ変換情報のあるアドレス				*
 ;*									*
 ;************************************************************************
@@ -500,17 +524,17 @@ UC_DBB	DB	' /*BB,$',010h,' */$',00h			;
 
 UC_DBC	DB	' IP$',0ffh					;
 	dw	offset UC_LFO_Panpot				;
-	db	00h						;
+	db	' $',00h					;
 UC_DBD	DB	' IP$',0ffh					;
 	dw	offset UC_LFO_PanpotDepth			;
-	db	00h						;
+	db	' $',00h					;
 UC_DBE	DB	' IP0$',00h					;
 UC_DBF	DB	' /*BF,$',010h,' */$',00h			;
 
 UC_DC0	DB	' _$',11h,00h
 UC_DC1	DB	' __$',11h,00h
 UC_DC2	DB	' y91,100$',00h		;Reverb on
-UC_DC3	DB	' y91,0 $',00h		;Reverb off
+UC_DC3	DB	' y91,0$',00h		;Reverb off
 UC_DC4	DB	' /*C4(Non)*/$',00h	;Noise on
 UC_DC5	DB	' /*C5(Noff)*/$',00h	;Noise off
 UC_DC6	DB	' /*C6(Mon)*/$',00h	;modulation on
@@ -525,8 +549,8 @@ UC_DCA	DB	' ]2$',0FFh		;Loop end(FF7用)
 	dw	offset UC_LoopCountDec
 	db	00h
 UC_DCB	DB	' /*CB*/$',00h
-UC_DCC	DB	' P$'			;スラー開始
-UC_DCD	DB	' X$'			;スラー終了
+UC_DCC	DB	' /*P*/$',00h		;スラー開始
+UC_DCD	DB	' /*X*/$',00h		;スラー終了
 UC_DCE	DB	' /*CE*/$',00h
 UC_DCF	DB	' /*CF*/$',00h
 UC_DD0	DB	' /*D0*/$',00h
@@ -544,9 +568,9 @@ UC_DD9	DB	' BS$',11h,00h		;相対ディチューン
 UC_DDA	DB	' /*DA,$',010h,' ,$',010h,' */$',00h	;不明
 UC_DDB	DB	' /*DB*/$',00h
 UC_DDC	DB	' /*DC,$',010h,' */$',00h	;不明
-UC_DDD	DB	' /*DD,$',010h,' ,$',010h,' */$',00h	;不明
-UC_DDE	DB	' /*DE,$',010h,' ,$',010h,' */$',00h	;不明
-UC_DDF	DB	' /*DF,$',010h,' ,$',010h,' */$',00h	;不明
+UC_DDD	DB	' /*DD,$',012h,' */$',00h	;
+UC_DDE	DB	' /*DE,$',012h,' */$',00h	;
+UC_DDF	DB	' /*DF,$',012h,' */$',00h	;不明
 ifdef	ff7	;------------------------
 UC_DE0	DB	' /*E0*/$',80h,00h
 UC_DE1	DB	' /*E1*/$',80h,00h
@@ -562,23 +586,20 @@ UC_DE8	DB	0FFh				;テンポ(FF7)
 UC_DE9	DB	0FFh				;相対テンポ(FF7)
 	dw	offset UC_RelativeTempo		;
 	db	00h				;
-;UC_DE9	DB	' /*t_$',011h,' ,$',013h,' */$',00h	;相対テンポ(FF7)
-;UC_DEA	DB	' /*Reverb($',012h,' )*/$',00h		;Reverb depth(FF7)
-;UC_DEB	DB	' /*Reverb(_$',011h,' ,$',013h,' )*/$',00h	;相対リバーブ
 UC_DEA	DB	0FFh				;リバーブ
-	dw	offset	UC_Reverb		;
+	dw	offset UC_Reverb		;
 	db	00h				;
 UC_DEB	DB	0FFh				;相対リバーブ
-	dw	offset	UC_RelativeReverb	;
+	dw	offset UC_RelativeReverb	;
 	db	00h				;
 UC_DEC	DB	0ffh				;パーカッションon
-	dw	offset	UC_Perc_On		;
-	db	' /*$',012h,' */$',00h		;Address?
+	dw	offset UC_PercussionOn		;
+	db	' /*Adr=$',012h,' */$',00h	;Address?
 UC_DED	DB	0ffh				;パーカッションoff
-	dw	offset	UC_Perc_Off		;
+	dw	offset UC_PercussionOff		;
 	db	00h				;
 UC_DEE	DB	0FFh				;無限ループ(FF7)
-	dw	offset	UC_PermanentLoop	;
+	dw	offset UC_PermanentLoop	;
 	db	00h				;
 UC_DEF	DB	' /*EF,$',010h,' ,$',010h,' ,$',010h,' */$',00h	;
 UC_DF0	DB	0FFh				;ループ抜け
@@ -643,7 +664,7 @@ endif	;--------------------------------
 ;===============================================================
 ;	初期化
 ;===============================================================
-UC_INIT:
+UC_INIT		proc	near
 
 	mov	ax,0
 	mov	byte ptr cs:[UC_Step_work],al
@@ -651,17 +672,17 @@ UC_INIT:
 	mov	byte ptr cs:[UC_DATA_P],al
 
 	mov	byte ptr cs:[UC_LFO_PitchBend_delay],al
-	mov	byte ptr cs:[UC_LFO_PitchBend_step],al
+	mov	byte ptr cs:[UC_LFO_PitchBend_range],al
 	mov	byte ptr cs:[UC_LFO_PitchBend_count],al
 	mov	byte ptr cs:[UC_LFO_PitchBend_depth],al
 
 	mov	byte ptr cs:[UC_LFO_Expression_delay],al
-	mov	byte ptr cs:[UC_LFO_Expression_step],al
+	mov	byte ptr cs:[UC_LFO_Expression_range],al
 	mov	byte ptr cs:[UC_LFO_Expression_count],al
 	mov	byte ptr cs:[UC_LFO_Expression_depth],al
 
 	mov	byte ptr cs:[UC_LFO_Panpot_delay],al
-	mov	byte ptr cs:[UC_LFO_Panpot_step],al
+	mov	byte ptr cs:[UC_LFO_Panpot_range],al
 	mov	byte ptr cs:[UC_LFO_Panpot_count],al
 	mov	byte ptr cs:[UC_LFO_Panpot_depth],al
 
@@ -669,6 +690,8 @@ UC_INIT:
 	mov	word ptr cs:[UC_Tempo_Work],ax
 
 	ret
+
+UC_INIT		endp
 ;===============================================================
 ;	0xA1	0xF2	音色をマクロで出力する
 ;===============================================================
@@ -702,7 +725,7 @@ ifdef	ff8	;------------------------
 		DB	'0i$','1i$','2i$','3i$','4i$','5i$','6i$','7i$'
 		DB	'0j$','1j$','2j$','3j$','4j$','5j$','6j$','7j$'
 endif	;--------------------------------
-UC_VOICE_OUTPUT:
+UC_VOICE_OUTPUT	proc	near
 	mov	ax,0				;
 	MOV	AL,ES:[BX]			;ax←データ読み込み
 	INC	BX				;
@@ -748,16 +771,17 @@ UC_VOICE_OUTPUT_LE:				;終わり
 	POP	BX				;
 	RET					;
 
+UC_VOICE_OUTPUT	endp
 ;===============================================================
 ;	0xA2	次の音符・休符の音長
 ;===============================================================
-;	ディレイ？
 UC_Step_work	db	0			;
-UC_Step:
+UC_Step		proc	near
 	MOV	AH,ES:[BX]			;データ読み込み
 	inc	bx				;
 	mov	byte ptr cs:[UC_Step_work],ah	;保存
 	RET					;
+UC_Step		endp
 ;===============================================================
 ;	0xA3	音量
 ;===============================================================
@@ -782,7 +806,7 @@ UC_Volume_TABLE:	;指数値を、リニアに変換
 	db	124,	124,	124,	125,	125,	125,	125,	126
 	db	126,	126,	126,	126,	127,	127,	127,	127
 
-UC_Volume:
+UC_Volume	proc	near
 	MOV	AL,ES:[BX]			;データ読み込み
 	INC	BX				;
 	PUSH	BX				;
@@ -795,10 +819,11 @@ UC_Volume:
 	INT	21H				;
 	POP	BX				;
 	RET					;
+UC_Volume	endp
 ;===============================================================
 ;	0xA3	オクターブ
 ;===============================================================
-UC_Octave:
+UC_Octave	proc	near
 	MOV	Ah,ES:[BX]			;
 	inc	bx				
 	dec	ah				
@@ -806,20 +831,20 @@ UC_Octave:
 	mov	ah,9				
 	int	21h				
 	RET					;
-
+UC_Octave	endp
 ;===============================================================
 ;	0xA8	音量セーブ
 ;===============================================================
 UC_DATA_E	DB	?			;エクスプレッション
-UC_SAVE_E:
+UC_SAVE_E	proc	near
 	MOV	AL,ES:[BX]			;データ保存
 	MOV	CS:[UC_DATA_E],AL		;
 	RET					;
-
+UC_SAVE_E	endp
 ;===============================================================
 ;	0xA9	音量ロード
 ;===============================================================
-UC_LOAD_E:
+UC_LOAD_E	proc	near
 	MOV	AH,ES:[BX]			;データ読み込み
 	INC	BX				;
 	PUSH	DX				;
@@ -831,8 +856,9 @@ UC_LOAD_E:
 	INT	21H				;
 	POP	DX				;
 	RET					;
+UC_LOAD_E	endp
 ;---------------------------------------------------------------
-UC_LOAD_ES:
+UC_LOAD_ES	proc	near
 	PUSH	DX				;
 	MOV	AH,CS:[UC_DATA_E]		;
 	CALL	HEX2ASC8			;出力
@@ -840,18 +866,20 @@ UC_LOAD_ES:
 	INT	21H				;
 	POP	DX				;
 	RET					;
+UC_LOAD_ES	endp
 ;===============================================================
 ;	0xAA	パンポット・セーブ
 ;===============================================================
 UC_DATA_P	DB	?			;パンポット
-UC_SAVE_P:
+UC_SAVE_P	proc	near
 	MOV	AL,ES:[BX]			;データ保存
 	MOV	CS:[UC_DATA_P],AL		;
 	RET					;
+UC_SAVE_P	endp
 ;===============================================================
 ;	0xA9	パンポット・ロード
 ;===============================================================
-UC_LOAD_P:
+UC_LOAD_P	proc	near
 	MOV	AH,ES:[BX]			;データ読み込み
 	INC	BX				;
 	PUSH	DX				;
@@ -863,8 +891,9 @@ UC_LOAD_P:
 	INT	21H				;
 	POP	DX				;
 	RET					;
+UC_LOAD_P	endp
 ;---------------------------------------------------------------
-UC_LOAD_PS:
+UC_LOAD_PS	proc	near
 	PUSH	DX				;
 	MOV	AH,CS:[UC_DATA_P]		;
 	CALL	HEX2ASC8			;出力
@@ -872,14 +901,16 @@ UC_LOAD_PS:
 	INT	21H				;
 	POP	DX				;
 	RET					;
+UC_LOAD_PS	endp
 ;===============================================================
 ;	0xB4		Pitch Bend LFO
 ;===============================================================
 UC_LFO_PitchBend_delay	db	0
-UC_LFO_PitchBend_step	db	0
+UC_LFO_PitchBend_range	db	0
 UC_LFO_PitchBend_count	db	0
 UC_LFO_PitchBend_depth	db	0
-UC_LFO_PitchBend:
+
+UC_LFO_PitchBend	proc	near
 
 	mov	al,es:[bx]
 	inc	bx
@@ -887,38 +918,48 @@ UC_LFO_PitchBend:
 
 	mov	al,es:[bx]
 	inc	bx
-	mov	byte ptr cs:[UC_LFO_PitchBend_step],al
+	mov	byte ptr cs:[UC_LFO_PitchBend_range],al
 
 	mov	al,es:[bx]
 	inc	bx
 	mov	byte ptr cs:[UC_LFO_PitchBend_count],al
 
-	jmp	UC_LFO_PitchBend_Output
+	call	UC_LFO_PitchBend_Output
+	ret
+UC_LFO_PitchBend	endp
 ;===============================================================
 ;	0xB5		Pitch Bend LFO
 ;===============================================================
-UC_LFO_PitchBendDepth:
+UC_LFO_PitchBendDepth	proc	near
 
 	mov	al,es:[bx]
 	inc	bx
 	mov	byte ptr cs:[UC_LFO_PitchBend_depth],al
 
-;	jmp	UC_LFO_PitchBend_Output
+	call	UC_LFO_PitchBend_Output
+	ret
+UC_LFO_PitchBendDepth	endp
 ;---------------------------------------------------------------
-UC_LFO_PitchBend_Output:
+UC_LFO_PitchBend_Output	proc	near
 
 	;何かしらが0だったら終わる
 	cmp	byte ptr cs:[UC_LFO_PitchBend_depth],0
 	jz	UC_LFO_PitchBend_End
-	cmp	byte ptr cs:[UC_LFO_PitchBend_step],0
+	cmp	byte ptr cs:[UC_LFO_PitchBend_range],0
 	jz	UC_LFO_PitchBend_End
 	cmp	byte ptr cs:[UC_LFO_PitchBend_count],0
 	jz	UC_LFO_PitchBend_End
 
-	mov	ax,0
+	xor	ax,ax
 	mov	al,byte ptr cs:[UC_LFO_PitchBend_depth]
-	shl	ax,4		;
-	call	hex2asc16
+	shl	ax,3
+;	mov	ah,byte ptr cs:[UC_LFO_PitchBend_range]
+;	imul	ah		;
+;	mov	dx,8		;符号付きですよ？奥さん！！　多分
+;	imul	dx
+	cmp	ax,0
+	jz	UC_LFO_PitchBend_End
+	call	fh2a16
 	mov	ah,09h
 	int	21h
 
@@ -926,7 +967,7 @@ UC_LFO_PitchBend_Output:
 	MOV	AH,02H		;
 	INT	21H		;
 
-	mov	ah,byte ptr cs:[UC_LFO_PitchBend_step]
+	mov	ah,1
 	call	hex2asc8
 	mov	ah,09h
 	int	21h
@@ -944,9 +985,10 @@ UC_LFO_PitchBend_Output:
 	MOV	AH,02H		;
 	INT	21H		;
 
+	mov	ax,0
 	mov	al,byte ptr cs:[UC_LFO_PitchBend_count]
-	mov	ah,byte ptr cs:[UC_LFO_PitchBend_step]
-	mul	ah
+;	mov	ah,byte ptr cs:[UC_LFO_PitchBend_range]
+;	mul	ah
 	shl	ax,1		;
 	call	hex2asc16
 	mov	ah,09h
@@ -964,14 +1006,16 @@ UC_LFO_PitchBend_End:
 	int	21h
 
 	ret
+UC_LFO_PitchBend_Output	endp
 ;===============================================================
 ;	0xB8		Expression LFO
 ;===============================================================
 UC_LFO_Expression_delay	db	0
-UC_LFO_Expression_step	db	0
+UC_LFO_Expression_range	db	0
 UC_LFO_Expression_count	db	0
 UC_LFO_Expression_depth	db	0
-UC_LFO_Expression:
+
+UC_LFO_Expression	proc	near
 
 	mov	al,es:[bx]
 	inc	bx
@@ -979,37 +1023,48 @@ UC_LFO_Expression:
 
 	mov	al,es:[bx]
 	inc	bx
-	mov	byte ptr cs:[UC_LFO_Expression_step],al
+	mov	byte ptr cs:[UC_LFO_Expression_range],al
 
 	mov	al,es:[bx]
 	inc	bx
 	mov	byte ptr cs:[UC_LFO_Expression_count],al
 
-	jmp	UC_LFO_Expression_Output
+	call	UC_LFO_Expression_Output
+	ret
+UC_LFO_Expression	endp
 ;===============================================================
 ;	0xB9		Expression LFO
 ;===============================================================
-UC_LFO_ExpressionDepth:
+UC_LFO_ExpressionDepth	proc	near
 
 	mov	al,es:[bx]
 	inc	bx
 	mov	byte ptr cs:[UC_LFO_Expression_depth],al
 
-;	jmp	UC_LFO_Expression_Output
+	call	UC_LFO_Expression_Output
+	ret
+UC_LFO_ExpressionDepth	endp
 ;---------------------------------------------------------------
-UC_LFO_Expression_Output:
+UC_LFO_Expression_Output	proc	near
 
 	;何かしらが0だったら終わる
 	cmp	byte ptr cs:[UC_LFO_Expression_depth],0
 	jz	UC_LFO_Expression_End
-	cmp	byte ptr cs:[UC_LFO_Expression_step],0
+	cmp	byte ptr cs:[UC_LFO_Expression_range],0
 	jz	UC_LFO_Expression_End
 	cmp	byte ptr cs:[UC_LFO_Expression_count],0
 	jz	UC_LFO_Expression_End
 
+	xor	ax,ax
 	mov	ah,byte ptr cs:[UC_LFO_Expression_depth]
-	shr	ah,1		;
-	call	hex2asc8
+	shr	ah,1
+;	mov	ah,byte ptr cs:[UC_LFO_Expression_range]
+;	imul	ah
+;	mov	dx,2
+;	imul	dx
+	cmp	ah,0
+	jz	UC_LFO_Expression_End
+	call	fh2a8
 	mov	ah,09h
 	int	21h
 
@@ -1017,7 +1072,7 @@ UC_LFO_Expression_Output:
 	MOV	AH,02H		;
 	INT	21H		;
 
-	mov	ah,byte ptr cs:[UC_LFO_Expression_step]
+	mov	ah,1
 	call	hex2asc8
 	mov	ah,09h
 	int	21h
@@ -1035,9 +1090,10 @@ UC_LFO_Expression_Output:
 	MOV	AH,02H		;
 	INT	21H		;
 
+	mov	ax,0
 	mov	al,byte ptr cs:[UC_LFO_Expression_count]
-	mov	ah,byte ptr cs:[UC_LFO_Expression_step]
-	mul	ah
+;	mov	ah,byte ptr cs:[UC_LFO_Expression_range]
+;	mul	ah
 	shl	ax,1		;
 	call	hex2asc16
 	mov	ah,09h
@@ -1054,48 +1110,60 @@ UC_LFO_Expression_End:
 	int	21h
 
 	ret
+UC_LFO_Expression_Output	endp
 ;===============================================================
 ;	0xBC		Panpot LFO
 ;===============================================================
 UC_LFO_Panpot_delay	db	0
-UC_LFO_Panpot_step	db	0
+UC_LFO_Panpot_range	db	0
 UC_LFO_Panpot_count	db	0
 UC_LFO_Panpot_depth	db	0
-UC_LFO_Panpot:
+UC_LFO_Panpot		proc	near
 
 	mov	al,es:[bx]
 	inc	bx
-	mov	byte ptr cs:[UC_LFO_Panpot_step],al
+	mov	byte ptr cs:[UC_LFO_Panpot_range],al
 
 	mov	al,es:[bx]
 	inc	bx
 	mov	byte ptr cs:[UC_LFO_Panpot_count],al
 
-	jmp	UC_LFO_Panpot_Output
+	call	UC_LFO_Panpot_Output
+	ret
+UC_LFO_Panpot		endp
 ;===============================================================
 ;	0xBD		Panpot LFO
 ;===============================================================
-UC_LFO_PanpotDepth:
+UC_LFO_PanpotDepth	proc	near
 
 	mov	al,es:[bx]
 	inc	bx
 	mov	byte ptr cs:[UC_LFO_Panpot_depth],al
 
-;	jmp	UC_LFO_Panpot_Output
+	call	UC_LFO_Panpot_Output
+	ret
+UC_LFO_PanpotDepth	endp
 ;---------------------------------------------------------------
-UC_LFO_Panpot_Output:
+UC_LFO_Panpot_Output	proc	near
 
 	;何かしらが0だったら終わる
 	cmp	byte ptr cs:[UC_LFO_Panpot_depth],0
 	jz	UC_LFO_Panpot_End
-	cmp	byte ptr cs:[UC_LFO_Panpot_step],0
+	cmp	byte ptr cs:[UC_LFO_Panpot_range],0
 	jz	UC_LFO_Panpot_End
 	cmp	byte ptr cs:[UC_LFO_Panpot_count],0
 	jz	UC_LFO_Panpot_End
 
+	xor	ax,ax
 	mov	ah,byte ptr cs:[UC_LFO_Panpot_depth]
-	shr	ah,1		;
-	call	hex2asc8
+	shr	ah,1
+;	mov	ah,byte ptr cs:[UC_LFO_Panpot_range]
+;	imul	ah
+;	mov	dx,2
+;	imul	dx
+	cmp	ah,0
+	jz	UC_LFO_Panpot_End
+	call	fh2a8
 	mov	ah,09h
 	int	21h
 
@@ -1103,7 +1171,7 @@ UC_LFO_Panpot_Output:
 	MOV	AH,02H		;
 	INT	21H		;
 
-	mov	ah,byte ptr cs:[UC_LFO_Panpot_step]
+	mov	ah,1
 	call	hex2asc8
 	mov	ah,09h
 	int	21h
@@ -1121,9 +1189,10 @@ UC_LFO_Panpot_Output:
 	MOV	AH,02H		;
 	INT	21H		;
 
+	mov	ax,0
 	mov	al,byte ptr cs:[UC_LFO_Panpot_count]
-	mov	ah,byte ptr cs:[UC_LFO_Panpot_step]
-	mul	ah
+;	mov	ah,byte ptr cs:[UC_LFO_Panpot_range]
+;	mul	ah
 	shl	ax,1		;
 	call	hex2asc16
 	mov	ah,09h
@@ -1141,26 +1210,29 @@ UC_LFO_Panpot_End:
 	int	21h
 
 	ret
+UC_LFO_Panpot_Output	endp
 ;===============================================================
 ;	0xC8		ループ
 ;===============================================================
 UC_LoopCountData	dw	0
-UC_LoopCountInc:
+UC_LoopCountInc	proc	near
 	inc	word ptr cs:[UC_LoopCountData]
 	ret
+UC_LoopCountInc	endp
 ;===============================================================
 ;	0xC9,0xCA	ループ
 ;===============================================================
-UC_LoopCountDec:
+UC_LoopCountDec	proc	near
 	cmp	word ptr cs:[UC_LoopCountData],0
 	jz	UC_LoopCountDec_1
 	dec	word ptr cs:[UC_LoopCountData]
 UC_LoopCountDec_1:
 	ret
+UC_LoopCountDec	endp
 ;===============================================================
 ;	0xD8	ピッチベンド
 ;===============================================================
-UC_Detune:
+UC_Detune	proc	near
 	PUSH	DX				;
 	MOV	AH,ES:[BX]			;データ読み込み
 	inc	bx
@@ -1170,7 +1242,7 @@ UC_Detune:
 	INT	21H				;
 	POP	DX				;
 	RET					;
-
+UC_Detune	endp
 ;===============================================================
 ;	0xE8	テンポ
 ;===============================================================
@@ -1178,7 +1250,7 @@ UC_RelativeTempo_M:
 	db	't$'
 UC_Tempo_Work	dw	0
 
-UC_Tempo:
+UC_Tempo	proc	near
 	MOV	DX,OFFSET UC_RelativeTempo_M
 	MOV	AH,09H		;
 	INT	21H		;
@@ -1198,13 +1270,14 @@ UC_Tempo:
 	MOV	AH,09H		;
 	INT	21H		;そしてそれを表示
 	RET
+UC_Tempo	endp
 ;===============================================================
 ;	0xE9	相対テンポ
 ;===============================================================
 UC_RTempo_M0	db	'/*$'
 UC_RTempo_M1	db	'UT$'
 UC_RTempo_M2	db	'*/$'
-UC_RelativeTempo:
+UC_RelativeTempo	proc	near
 
 	MOV	DX,OFFSET UC_RTempo_M0
 	MOV	AH,09H		;
@@ -1236,13 +1309,14 @@ UC_RelativeTempo:
 	INT	21H		;
 
 	ret
+UC_RelativeTempo	endp
 ;===============================================================
 ;	0xEA	リバーブ
 ;===============================================================
 UC_UC_Reverb_M1	db	'/*Reverb($'
 UC_UC_Reverb_M2	db	')*/$'
-UC_Reverb:
 
+UC_Reverb		proc	near
 	MOV	DX,OFFSET UC_UC_Reverb_M1
 	MOV	AH,09H		;
 	INT	21H		;
@@ -1259,13 +1333,14 @@ UC_Reverb:
 	INT	21H		;
 
 	ret
+UC_Reverb		endp
 ;===============================================================
 ;	0xEB	相対リバーブ
 ;===============================================================
 UC_UC_Reverb_M8	db	'/*Reverb($'
 UC_UC_Reverb_M9	db	')*/$'
-UC_RelativeReverb:
 
+UC_RelativeReverb	proc	near
 	MOV	DX,OFFSET UC_UC_Reverb_M8
 	MOV	AH,09H		;
 	INT	21H		;
@@ -1292,11 +1367,13 @@ UC_RelativeReverb:
 	INT	21H		;
 
 	ret
+UC_RelativeReverb	endp
 ;===============================================================
 ;	0xEC	パーカッションon
 ;===============================================================
 UC_Perc_On	db	'1z$'
-UC_PercussionOn:
+
+UC_PercussionOn		proc	near
 
 	MOV	DL,24H		;'$'の出力
 	MOV	AH,02H		;
@@ -1307,12 +1384,13 @@ UC_PercussionOn:
 	INT	21H		;
 
 	ret
+UC_PercussionOn		endp
 ;===============================================================
 ;	0xED	パーカッションoff
 ;===============================================================
 UC_Perc_Off	db	'0z$'
-UC_PercussionOff:
 
+UC_PercussionOff	proc	near
 	MOV	DL,24H		;'$'の出力
 	MOV	AH,02H		;
 	INT	21H		;
@@ -1322,6 +1400,7 @@ UC_PercussionOff:
 	INT	21H		;
 
 	ret
+UC_PercussionOff	endp
 ;===============================================================
 ;	0xEE	無限ループ
 ;===============================================================
@@ -1329,8 +1408,7 @@ UCDFF_M06_1	DB	']2/*L*/$'
 UCDFF_M06_2	DB	']1/*L*/$'
 UCDFF_M06_bx	Dw	0
 
-UC_PermanentLoop:
-
+UC_PermanentLoop	proc	near
 UCDFF_L06_1:			;
 	cmp	word ptr cs:[UC_LoopCountData],0
 	jz	UCDFF_L06_1_LoopOk
@@ -1372,15 +1450,16 @@ UCDFF_L06_3:			;
 	XCHG	BX,DX		;
 	MOV	BX,SP		;
 	MOV	AX,OFFSET UCMO_LQQ
-	MOV	SS:[BX],AX	;
-	XCHG	BX,DX		;
-	RET			;
+	MOV	SS:[BX],AX	;今更ながら、数年前のソースって
+	XCHG	BX,DX		;すごいことしてるなぁ～。
+	RET			;	by 2008年 秋
+UC_PermanentLoop	endp
 ;===============================================================
 ;	0xF0	ループ抜け
 ;===============================================================
-UC_ExitLoop_M1	db	'/*ExitAdr$'
+UC_ExitLoop_M1	db	'/*Adr=$'
 UC_ExitLoop_M2	db	'*/:$'
-UC_ExitLoop:
+UC_ExitLoop		proc	near
 
 	MOV	DX,OFFSET UC_ExitLoop_M1
 	MOV	AH,09H		;
@@ -1404,20 +1483,20 @@ UC_ExitLoop:
 	INT	21H		;
 
 	ret			;
+UC_ExitLoop		endp
 ;===============================================================
 ;	0xFE系コマンドの処理
 ;===============================================================
 ;---------------------------------------
 ;	開始
 ;---------------------------------------
-UCDFF_LSTART:
+UCDFF_LSTART		proc	near
 	MOV	AL,ES:[BX]	;データ読み込み
 	INC	BX		;
 	jmp	UCDFF_L00	
 ;---------------------------------------
 ;	0x00	テンポ
 ;---------------------------------------
-UCDFF_M00	DB	't$'
 UCDFF_L00:
 	CMP	AL,00h		;テンポ命令
 	jnz	UCDFF_L02	;
@@ -1602,3 +1681,4 @@ UCDFF_LQQ:
 
 	RET			;
 
+UCDFF_LSTART	endp

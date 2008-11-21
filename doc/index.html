@@ -7,7 +7,7 @@
 	<meta http-equiv='Content-Type' content='text/html;charset=Shift_JIS'>
 	<meta http-equiv='Content-Style-Type' content='text/css'>
 	<link rel='stylesheet' type='text/css' href='doc.css'>
-	<title>FF8MML</title>
+	<title>Akao2MML</title>
 </head>
 
 <BODY>
@@ -17,7 +17,7 @@
 <div id='header'>
 
 <table>
-<tr><td width='640pt'><i>FF8MML</i></td></tr>
+<tr><td width='640pt'><i>Akao2MML</i></td></tr>
 </table>
 <!--（↑このコンテンツの位置。）-->
 
@@ -31,8 +31,16 @@
 <!--─────────────────────────────-->
 このアプリケーションは、SQUARE ENIX社（旧SQUARE社）のAKAOフォーマットを
 <a href='http://platz.jp/~mml2mid/'>MML2MID</a>仕様のMML(Music Macro Language)に逆コンパイルします。<br>
-
-
+<br>
+<h3>FF7MML.COM</h3>
+初期のPlaystation用SQUAREソフト用です。
+<li>FINAL FANTASY 7<br>
+<li>Saga Frontia<br>
+<br>
+<h3>FF8MML.COM</h3>
+<li>FINAL FANTASY 8<br>
+<li>FINAL FANTASY 9<br>
+<br>
 
 <br><br>
 <h2>動作条件</h2>
@@ -59,6 +67,7 @@
 コマンドラインに、次の通りに打ち込んでください。<br>
 尚、（）内は省略可能です。<br>
 <br>
+FF7MML <var>ファイル名１（.SND）</var> （><var>ファイル名２.MML</var>）<br>
 FF8MML <var>ファイル名１（.SND）</var> （><var>ファイル名２.MML</var>）<br>
 <br>
 <var>ファイル名１(.SND)</var>は、逆コンパイルする元ファイルを指定します。<br>
@@ -69,7 +78,11 @@ FF8MML <var>ファイル名１（.SND）</var> （><var>ファイル名２.MML</var>）<br>
 ><var>ファイル名２.MML</var>を指定した場合、指定したファイルに逆コンパイルしたMMLを出力します。<br>
 省略した場合は、MS-DOSに設定されている標準出力（通常は画面）に出力します。<br>
 MMLの文法は、別途、<a href='http://platz.jp/~mml2mid/'>MML2MID</a>のドキュメントを参照して下さい。<br>
-
+<br>
+チャンネル17～32は、MIDIポート2番に吐きます。<br>
+17チャンネルを超えるデータは、2ポート以上に対応したSMFプレイヤーが必要です。<br>
+Microsoft Media Playerは、1ポートのみしか対応していないため、チャンネル1～16しか再生されません。<br>
+又、２ポート分のMIDI音源が必要です。<br>
 
 <br><br>
 <h2>参考資料</h2>
@@ -92,7 +105,7 @@ MMLの文法は、別途、<a href='http://platz.jp/~mml2mid/'>MML2MID</a>のドキュメント
 <div id='footer'>
 
 <table>
-<tr><td width='640pt' colspan='4'><i>FF8MML</i><br></td></tr>
+<tr><td width='640pt' colspan='4'><i>Akao2MML</i><br></td></tr>
 </table>
 
 </div>

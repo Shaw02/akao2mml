@@ -1,59 +1,3 @@
-;|==============================================================|
-;|	ＦＩＮＡＬ　ＦＡＮＴＡＳＹ　VIII			|
-;|		逆ＭＭＬコンパイラ				|
-;|								|
-;|				Programmed By			|
-;|					－－－－		|
-;|								|
-;===============================================================|
-
-
-assume	cs:code,ds:code,es:code,ss:code
-
-code	segment
-
-.186
-
-	org	0100h
-
-ff8mml_:	
-	JMP	START
-;************************************************************************
-;*									*
-;*		定義部							*
-;*									*
-;************************************************************************
-ifdef	ff7	;------------------------
-;FINAL FANTASY 7
-PARTF_ADDRESS	equ	0010h		
-VOICE_ADDRESS	EQU	0000H		
-RIHTM_ADDRESS	EQU	0000H		
-MUSIC_ADDRESS	EQU	0014H		
-MUSIC_ADDRESSa	equ	+2
-endif	;--------------------------------
-
-ifdef	ff8	;------------------------
-;FINAL FANTASY 2,8,9
-PARTF_ADDRESS	equ	0020h		
-VOICE_ADDRESS	EQU	0030H		
-RIHTM_ADDRESS	EQU	0034H		
-MUSIC_ADDRESS	EQU	0040H		
-MUSIC_ADDRESSa	equ	0
-endif	;--------------------------------
-
-;************************************************************************
-;*									*
-;*		データ部						*
-;*									*
-;************************************************************************
-BSTACK		EQU	0400H		;スタックバッファ
-F_ADD		DW	?		;ファイル名格納アドレス
-FILE_H		DW	?		;ファイルハンドル
-DATSEG		DW	?		;割り当てたメモリのセグメント
-;
-;	逆ＭＭＬ変換情報
-;
-INCLUDE	AKAO2MML.INC			;情報
 ;************************************************************************
 ;*									*
 ;*		逆ＭＭＬ部						*
@@ -62,11 +6,12 @@ INCLUDE	AKAO2MML.INC			;情報
 ;---------------------------------------------------------------|
 ;		逆ＭＭＬ部メインルーチン			|
 ;---------------------------------------------------------------|
-UN_MML_COMPAILE:		;
+UN_MML_COMPAILE	proc	near	;
 	CALL	UC_START	;初期設定
 	CALL	UC_MML_OUTPUT	;ＭＭＬ出力部
 	CALL	UC_Instrument	;後期設定
 	RET			;RETURN
+UN_MML_COMPAILE	endp
 ;---------------------------------------------------------------|
 ;		初期変換					|
 ;---------------------------------------------------------------|
@@ -151,7 +96,7 @@ ifdef	ff7	;------------------------
 endif	;--------------------------------
 	db	0dh,0ah,24h
 
-UC_START:
+UC_START	proc	near
 	MOV	DX,OFFSET MML2MID_HED	;
 	MOV	AH,09H			;
 	INT	21H			;
@@ -224,6 +169,7 @@ UC_START_2:
 
 	pop	cx
 	RET				;
+UC_START	endp
 ;---------------------------------------------------------------|
 ;		後期変換					|
 ;---------------------------------------------------------------|
@@ -331,7 +277,7 @@ UCE_VOICE_5F	DB	'5f	k127	H0,3	@',24h
 UCE_VOICE_6F	DB	'6f	k127	H0,3	@',24h
 UCE_VOICE_7F	DB	'7f	k127	H0,3	@',24h
 UCE_VOICE_cr	db	0dh,0ah,24h
-UC_Instrument:
+UC_Instrument	proc	near
 	XOR	CX,CX			;CL←0
 	MOV	BX,VOICE_ADDRESS	;従属音色情報アドレス
 	cmp	bx,0
@@ -411,6 +357,7 @@ UC_END_LE:
 	INT	21H			;出力
 
 	RET
+UC_Instrument	endp
 ;---------------------------------------------------------------|
 ;		ＭＭＬ出力部					|
 ;---------------------------------------------------------------|
@@ -471,12 +418,12 @@ UCMO_COMMAND_SIZE:				;
 	DB	0,0,0,0, 9,9,9,9, 9,9,9,9, 9,9,9,0	;80h-8Fh
 	DB	0,0,0,0, 0,0,0,0, 0,0,1,1, 1,1,1,1	;90h-9Fh
 	DB	0,2,2,2, 3,2,1,1, 2,3,2,3, 2,2,2,2	;A0h-AFh
-	DB	1,2,2,1, 4,2,1,1, 4,2,1,1, 3,2,1,1	;B0h-BFh
-	DB	1,1,1,1, 1,1,1,1, 1,2,1,1, 1,1,1,1	;C0h-CFh
-	DB	1,1,1,1, 1,1,1,1, 2,1,2,1, 1,1,3,1	;D0h-DFh
+	DB	3,2,2,1, 4,2,1,2, 4,2,1,2, 3,2,1,2	;B0h-BFh
+	DB	2,2,1,1, 1,1,1,1, 1,2,1,1, 1,1,1,1	;C0h-CFh
+	DB	1,1,2,2, 1,1,1,1, 2,2,3,1, 2,3,3,3	;D0h-DFh
 ifdef	ff7	;------------------------
-	DB	0,0,0,0, 0,0,0,0, 3,1,1,1, 1,1,8,1	;E0h-EFh
-	DB	1,1,1,1, 1,1,1,1, 1,1,0,0, 0,3,3,0	;F0h-FFh
+	DB	1,1,1,1, 1,1,1,1, 3,4,3,4, 3,1,8,4	;E0h-EFh
+	DB	4,4,2,1, 3,1,2,3, 2,2,1,1, 3,3,3,1	;F0h-FFh
 endif	;--------------------------------
 ifdef	ff8	;------------------------
 	DB	1,1,1,1, 1,1,3,1, 1,1,1,1, 1,1,1,1	;E0h-EFh
@@ -490,7 +437,9 @@ UCMO_LOOP_OUTPUT:			;
 	DB	'/*L1*/[$'		;
 UCMO_LOOP_OUTPUT2:			;
 	DB	'/*L2*/[$'		;
-UC_MML_OUTPUT:
+
+
+UC_MML_OUTPUT	proc	near		;
 	MOV	CL,CS:[UC_PART]		;CL←使用パート数
 ;	mov	cl,32
 	MOV	CH,0			;CH←現在のパート
@@ -536,6 +485,7 @@ UCMO_L00_2:
 	MOV	BX,ES:[BX]		;BX←演奏アドレス（相対）
 	add	bx,MUSIC_ADDRESSa	;
 	ADD	BX,AX			;BX←演奏アドレス
+
 	CALL	UCMO_LOOP_SEARCH	;
 UCMO_L01:
 	mov	byte ptr cs:[UCMO_ComStartFlag],1
@@ -601,7 +551,7 @@ UCMO_L11:
 UCMO_L12:
 	CMP	AL,12h			
 	JNZ	UCMO_L13		
-	PUSH	DX			;
+	PUSH	DX
 	MOV	AX,ES:[BX]		;データ読み込み
 	INC	BX			;ポインタインクリメント
 	INC	BX			;ポインタインクリメント
@@ -645,6 +595,13 @@ UCMO_L20:
 	mov	ah,02h			;
 	int	21h			;
 
+	mov	dl,cs:[bx+1]		;
+	cmp	dl,'+'			;
+	jnz	UCMO_L20_sharp		;
+	inc	bx			;1文字表示
+	mov	ah,02h			;
+	int	21h			;
+UCMO_L20_sharp:
 	mov	dl,'%'
 	mov	ah,02h			;
 	int	21h			;
@@ -738,6 +695,7 @@ UCMO_LF0:
 UCMO_LFF:
 	CMP	AL,0FFh			;
 	JNZ	UCMO_LQQ		;
+
 	PUSH	DX			;
 	PUSH	BX			;
 	MOV	BX,DX			;
@@ -745,6 +703,7 @@ UCMO_LFF:
 	POP	BX			;
 	CALL	DX			;
 	POP	DX			;
+
 	INC	DX			;
 	INC	DX			;
 	JMP	UCMO_L02		;
@@ -763,12 +722,16 @@ UCMO_LQQ:
 	JMP	UCMO_L00		;
 UCMO_END:				;
 	RET				;RETURN
+UC_MML_OUTPUT	endp
 ;---------------------------------------------------------------|
 ;		無限ループ解析					|
 ;---------------------------------------------------------------|
 ;	処理							|
 ;		無限ループアドレスを検索する。			|
 ;---------------------------------------------------------------|
+UCMOLS_LOOP_msg1	DB	'/*Loop=$'
+UCMOLS_LOOP_msg2	DB	'*/$'
+
 UCMOLS_START_ADDRESS	DW	?
 UCMOLS_LOOP_ADDRESS	DW	0000H
 UCMOLS_LOOP_ADDRESS2	DW	0000H
@@ -776,9 +739,15 @@ UCMOLS_LOOP_flag	DB	00
 UCMOLS_LOOP_flag1	DB	00
 UCMOLS_LOOP_flag2	DB	00
 UCMOLS_LOOP_bxwork	dw	0000h
-UCMO_LOOP_SEARCH:
+
+UCMO_LOOP_SEARCH	proc	near
 	PUSH	BX				;
 	PUSH	CX				;レジスタ保存
+
+;	デバッグ用
+	mov	dx,offset UCMOLS_LOOP_msg1
+	mov	ah,09h
+	int	21h
 
 UCMOL_0:MOV	AX,BX				;
 	MOV	CS:[UCMOLS_START_ADDRESS],AX	;先頭アドレス保存
@@ -788,8 +757,10 @@ UCMOL_0:MOV	AX,BX				;
 	mov	byte ptr cs:[UCMOLS_LOOP_flag1],00h
 	mov	byte ptr cs:[UCMOLS_LOOP_flag2],00h
 
-UCMOL_1:XOR	AX,AX			;
+UCMOL_1:
+	XOR	AX,AX			;
 	MOV	AL,ES:[BX]		;データ読み込み　曲
+
 	MOV	DX,OFFSET UCMO_COMMAND_SIZE
 	ADD	DX,AX			;
 	MOV	AH,AL			;AH←コマンド
@@ -802,6 +773,7 @@ UCMOL_1:XOR	AX,AX			;
 	JZ	UCMOL_KEY		;
 	JMP	UCMOL_2			;
 UCMOL_KEY:
+
 	MOV	AL,1			;・0F?h以外のコマンド
 	CMP	AH,0F0h			;AL←1
 	JC	UCMOL_K			;・0F?hのコマンド
@@ -810,7 +782,8 @@ UCMOL_K:CMP	AH,0A0h			;・0A0hのコマンド
 	JNZ	UCMOL_2			;パート終了
 	JMP	UCMOL_EE		;
 
-UCMOL_2:CMP	AL,8			;
+UCMOL_2:
+	CMP	AL,8			;
 	JNZ	UCMOL_3			;
 ifdef	ff7	;------------------------
 	ADD	BX,1				;
@@ -837,6 +810,7 @@ UCMOL_2_1:				;
 	JMP	UCMOL_1			;
 endif	;--------------------------------
 UCMOL_3:				;
+
 	MOV	AH,0			;
 	ADD	BX,AX			;
 	JMP	UCMOL_1			;
@@ -879,554 +853,28 @@ UCMOL_E3:
 	MOV	AX,BX				;
 	MOV	CS:[UCMOLS_LOOP_ADDRESS],AX	;ループアドレスリセット
 UCMOL_EE:
+
+
+;	デバッグ用
+	MOV	ax,CS:[UCMOLS_LOOP_ADDRESS]	;
+	call	hex2asc16
+	mov	ah,09h
+	int	21h
+
+	mov	dl,2ch
+	mov	ah,02
+	int	21h
+
+	MOV	ax,CS:[UCMOLS_LOOP_ADDRESS2]	;
+	call	hex2asc16
+	mov	ah,09h
+	int	21h
+
+	mov	dx,offset UCMOLS_LOOP_msg2
+	mov	ah,09h
+	int	21h
+
 	POP	CX			;
 	POP	BX			;
 	RET
-;************************************************************************
-;*									*
-;*		数値変換部						*
-;*									*
-;************************************************************************
-;---------------------------------------------------------------|
-;		１６進数コード～ASCII CODE(255)			|
-;---------------------------------------------------------------|
-;	処理							|
-;		１６進コードを１０進のアスキーコードに変換	|
-;	引数							|
-;		AH←変換したい数値				|
-;	返り値							|
-;		DX←変換した文字列の先頭アドレス		|
-;---------------------------------------------------------------|
-	DB	'-'			;符号
-ASC_8	DB	'$$$$$'			;
-HEX2ASC8:
-	PUSH	AX			
-	PUSH	BX			
-	PUSH	CX			;レジスタ保存
-	MOV	BX,OFFSET ASC_8		
-	MOV	AL,'$'			
-	MOV	CS:[BX],AL		
-	INC	BX			
-	MOV	CS:[BX],AL		
-	INC	BX			
-	MOV	CS:[BX],AL		
-	INC	BX			
-	MOV	CS:[BX],AL		
-	INC	BX			
-	MOV	CS:[BX],AL		
-
-	MOV	BX,OFFSET ASC_8		
-	MOV	AL,' '			;
-	CMP	AH,100			;
-	JC	H2A8L3			;１００の位ある？
-	
-	MOV	AL,AH			
-	XOR	AH,AH			
-	MOV	CH,100			
-	DIV	CH			
-	ADD	AL,30H			
-	MOV	CS:[BX],AL		
-	INC	BX			
-H2A8L3:	
-	CMP	AL,' '			;AL=" "だったら１００の位は無かった
-	JNZ	H2A8E2			
-	CMP	AH,10			;１０の位ある？
-	JC	H2A8L2			
-	
-H2A8E2:	MOV	AL,AH			
-	XOR	AH,AH			
-	MOV	CH,10			
-	DIV	CH			
-	ADD	AL,30H			
-	MOV	CS:[BX],AL		
-	INC	BX			
-H2A8L2:	
-	ADD	AH,30H			;一の位は必ず書く
-	MOV	CS:[BX],AH		;
-	
-	MOV	DX,OFFSET ASC_8		;アドレス
-	POP	CX			
-	POP	BX			
-	POP	AX			
-	RET				
-;---------------------------------------------------------------|
-;		１６進数コード～ASCII CODE(65535)		|
-;---------------------------------------------------------------|
-;	処理							|
-;		１６進コードを１０進のアスキーコードに変換	|
-;	引数							|
-;		AX←変換したい数値				|
-;	返り値							|
-;		DX←変換した文字列の先頭アドレス		|
-;---------------------------------------------------------------|
-	DB	'-'			;符号
-ASC_16	DB	'$$$$$$$'
-HEX2ASC16:
-	PUSH	AX			
-	PUSH	BX			
-	PUSH	CX			
-
-	PUSH	AX			
-	MOV	BX,OFFSET ASC_16	
-	MOV	AL,'$'			
-	MOV	CS:[BX],AL		
-	INC	BX			
-	MOV	CS:[BX],AL		
-	INC	BX			
-	MOV	CS:[BX],AL		
-	INC	BX			
-	MOV	CS:[BX],AL		
-	INC	BX			
-	MOV	CS:[BX],AL		
-	INC	BX			
-	MOV	CS:[BX],AL		
-	INC	BX			
-	MOV	CS:[BX],AL		
-;	INC	BX			
-;	MOV	CS:[BX],AL		
-	POP	AX			
-
-	MOV	BX,OFFSET ASC_16	
-	MOV	CL,' '			
-	MOV	DX,AX			
-	CMP	DX,10000		;１００００の位はある？
-	JC	H2A6L5			
-	
-	XOR	DX,DX			
-	MOV	CX,10000		
-	DIV	CX			
-	ADD	AL,30H			
-	MOV	CL,AL			
-	MOV	CS:[BX],CL		
-	INC	BX			
-H2A6L5:	
-	CMP	CL,' '			
-	JNZ	H2A6E4			
-	CMP	DX,1000			;１０００の位は？
-	JC	H2A6L4			
-	
-H2A6E4:	MOV	AX,DX			
-	XOR	DX,DX			
-	MOV	CX,1000			
-	DIV	CX			
-	ADD	AL,30H			
-	MOV	CL,AL			
-	MOV	CS:[BX],CL		
-	INC	BX			
-H2A6L4:	
-	CMP	CL,' '			
-	JNZ	H2A6E3			
-	CMP	DX,100			;１００の位
-	JC	H2A6L3			
-	
-H2A6E3:	MOV	AX,DX			
-	XOR	DX,DX			
-	MOV	CX,100			
-	DIV	CX			
-	ADD	AL,30H			
-	MOV	CL,AL			
-	MOV	CS:[BX],CL		
-	INC	BX			
-H2A6L3:	
-	CMP	CL,' '			
-	JNZ	H2A6E2			
-	CMP	DX,10			;１０の位は？
-	JC	H2A6L2			
-
-H2A6E2:	MOV	AX,DX			
-	XOR	DX,DX			
-	MOV	CX,10			
-	DIV	CX			
-	ADD	AL,30H			
-	MOV	CL,AL			
-	MOV	CS:[BX],CL		
-	INC	BX			
-H2A6L2:	
-	MOV	AX,DX			
-	ADD	AL,30H			
-	MOV	CS:[BX],AL		;１の位は必ず書く
-	
-	MOV	DX,OFFSET ASC_16	
-	POP	CX			
-	POP	BX			
-	POP	AX			
-	RET				
-;---------------------------------------------------------------|
-;		１６進数コード～ASCII CODE(255)	（符号付き）	|
-;---------------------------------------------------------------|
-;	処理							|
-;		１６進コードを１０進のアスキーコードに変換	|
-;	引数							|
-;		AH←変換したい数値				|
-;	返り値							|
-;		DX←変換した文字列の先頭アドレス		|
-;---------------------------------------------------------------|
-FH2A8:
-	PUSH	AX			
-	PUSH	BX			
-	PUSH	CX			
-	
-	TEST	AH,80H			
-	JZ	F2A8L0			
-	NEG	AH			
-	CALL	HEX2ASC8		
-	DEC	DX			
-	PUSH	AX			
-	PUSH	BX			
-	MOV	BX,DX			
-	MOV	AL,'-'			
-	MOV	CS:[BX],AL		
-	POP	BX			
-	POP	AX			
-	JMP	F2A8L2			
-F2A8L0:	CALL	HEX2ASC8		
-	DEC	DX			
-	PUSH	AX			
-	PUSH	BX			
-	MOV	BX,DX			
-	MOV	AL,'+'			
-	MOV	CS:[BX],AL		
-	POP	BX			
-	POP	AX			
-F2A8L2:	
-	POP	CX			
-	POP	BX			
-	POP	AX			
-	RET				
-;---------------------------------------------------------------|
-;		１６進数コード～ASCII CODE(65535)（符号付き）	|
-;---------------------------------------------------------------|
-;	処理							|
-;		１６進コードを１０進のアスキーコードに変換	|
-;	引数							|
-;		AH←変換したい数値				|
-;	返り値							|
-;		DX←変換した文字列の先頭アドレス		|
-;---------------------------------------------------------------|
-FH2A16:
-	PUSH	AX			
-	PUSH	BX			
-	PUSH	CX			
-	
-	TEST	AH,80H			
-	JZ	F2A6L0			
-	NEG	AX			
-	CALL	HEX2ASC16		
-	DEC	DX			
-	PUSH	AX			
-	PUSH	BX			
-	MOV	BX,DX			
-	MOV	AL,'-'			
-	MOV	CS:[BX],AL		
-	POP	BX			
-	POP	AX			
-	JMP	F2A6L2			
-F2A6L0:
-	CALL	HEX2ASC16		
-	DEC	DX			
-	PUSH	AX			
-	PUSH	BX			
-	MOV	BX,DX			
-	MOV	AL,'+'			
-	MOV	CS:[BX],AL		
-	POP	BX			
-	POP	AX			
-F2A6L2:	
-	POP	CX			
-	POP	BX			
-	POP	AX			
-	RET				
-;---------------------------------------------------------------|
-;		１６進数コード～ASCII CODE(255)			|
-;---------------------------------------------------------------|
-;	処理							|
-;		１６進コードを１０進のアスキーコードに変換	|
-;	引数							|
-;		AH←変換したい数値				|
-;	返り値							|
-;		DX←変換した文字列の先頭アドレス		|
-;---------------------------------------------------------------|
-H2A8:
-	PUSH	AX			
-	PUSH	BX			
-	PUSH	CX			
-	MOV	BX,OFFSET ASC_8		
-	MOV	CH,' '			
-	MOV	CS:[BX],CH		
-	INC	BX			
-	
-	MOV	AL,' '			
-	CMP	AH,100			
-	JC	H2A8L03			
-	
-	MOV	AL,AH			
-	XOR	AH,AH			
-	MOV	CH,100			
-	DIV	CH			
-	ADD	AL,30H			
-H2A8L03:MOV	CS:[BX],AL		
-	INC	BX			
-	
-	CMP	AL,' '			
-	JNZ	H2A8E02			
-	CMP	AH,10			
-	JC	H2A8L02			
-	
-H2A8E02:MOV	AL,AH			
-	XOR	AH,AH			
-	MOV	CH,10			
-	DIV	CH			
-	ADD	AL,30H			
-H2A8L02:MOV	CS:[BX],AL		
-
-	INC	BX			
-	
-	ADD	AH,30H			
-	MOV	CS:[BX],AH		
-	
-	MOV	DX,OFFSET ASC_8		
-	POP	CX			
-	POP	BX			
-	POP	AX			
-	RET				
-;************************************************************************
-;*									*
-;*		ファイルアクセス関係ルーチン				*
-;*									*
-;************************************************************************
-;---------------------------------------------------------------|
-;		ファイルのオープン				|
-;---------------------------------------------------------------|
-FILE_OPEN:				;
-	MOV	BX,0081H		;
-	MOV	CH,CS:[BX - 1]		;
-	ADD	BL,CH			;
-	MOV	CS:[BX],BH		;
-	MOV	BX,0081H		;
-FLOOP:	CMP	CH,0			;
-	JNZ	FL001			;
-	JMP	FILE_NAME_NOTHING	;
-FL001:	DEC	CH			;
-	INC	BX			;
-	CMP	BYTE PTR CS:[BX],21H	;
-	JC	FLOOP			;
-	MOV	DX,BX			;
-	MOV	CS:[F_ADD],BX		;ファイル名先頭アドレスの保存
-
-FLOP1:	CMP	CH,0			;拡張子指定のない場合
-	JNZ	FL012			;'.SND'とする。
-	MOV	AH,'.'			;
-	MOV	CS:[BX],AH		;
-	INC	BX			;
-	MOV	AH,'S'			;
-	MOV	CS:[BX],AH		;
-	INC	BX			;
-	MOV	AH,'N'			;
-	MOV	CS:[BX],AH		;
-	INC	BX			;
-	MOV	AH,'D'			;
-	MOV	CS:[BX],AH		;
-	INC	BX			;
-	MOV	AH,00			;
-	MOV	CS:[BX],AH		;
-	
-	JMP	FL020			;
-FL012:	DEC	CH			;
-	INC	BX			;
-	CMP	BYTE PTR CS:[BX],'.'	;
-	JNZ	FLOP1			;
-
-FL020:	MOV	AX,3D00H		;ファイルのオープン
-	INT	21H			;
-	JNC	FL002			;
-	JMP	FILE_OPEN_ERROR		;
-FL002:	MOV	WORD PTR CS:[FILE_H],AX	;
-	RET				;
-;---------------------------------------------------------------|
-;		ファイル→メモリ転送（OPN Data）		|
-;---------------------------------------------------------------|
-FILE_READ:				;
-	PUSH	DS			;
-	MOV	AX,CS:[DATSEG]		;
-	MOV	DS,AX			;
-	MOV	DX,0000H		;
-	MOV	CX,0FFFFH		;
-	MOV	BX,WORD PTR CS:[FILE_H]	;
-	MOV	AH,3FH			;
-	INT	21H			;
-	POP	DS			;
-	JNC	FL003			;
-	JMP	FILE_READ_ERROR		;
-FL003:	RET				;
-;---------------------------------------------------------------|
-;		ファイルのクローズ				|
-;---------------------------------------------------------------|
-FILE_CLOSE:				;
-	MOV	BX,WORD PTR CS:[FILE_H]	;
-	MOV	AH,3EH			;
-	INT	21H			;
-	JNC	FL004			;
-	JMP	FILE_CLOSE_ERROR	;
-FL004:	RET				;
-;************************************************************************
-;*									*
-;*		メモリ関係						*
-;*									*
-;************************************************************************
-;---------------------------------------------------------------|
-;		メモリ確保（OPN Data）				|
-;---------------------------------------------------------------|
-MEMORY_OPEN:				;
-	MOV	AH,48H			;
-	MOV	BX,1000H		;64KByte のデータ領域の確保
-	INT	21H			;
-	JNC	NOPERR			;割り当て失敗時に飛ぶ。
-	JMP	MEMORY_OPEN_ERROR	;
-NOPERR:	MOV	CS:[DATSEG],AX		;割り当てたセグメントアドレスの保存。
-	MOV	ES,AX			;
-	RET				;
-;---------------------------------------------------------------|
-;		メモリ開放（OPN Data）				|
-;---------------------------------------------------------------|
-MEMORY_CLOSE:				;
-	MOV	AX,CS:[DATSEG]		;
-	MOV	ES,AX			;セグメントを読む。
-	MOV	AH,49H			;
-	INT	21H			;データ領域の開放
-	JNC	MCLRET			;
-	JMP	MEMORY_CLOSE_ERROR	;
-MCLRET:	RET				;
-;---------------------------------------------------------------|
-;								|
-;		ＣＯＭファイルのメモリー最小化			|
-;---------------------------------------------------------------|
-;	処理							|
-;		ＣＯＭプログラム実行時にメモリーを		|
-;		最小限にする					|
-;	引数							|
-;		無し						|
-;	返り値							|
-;		DS←CS						|
-;	◎	Cy←'L' のとき。（正常終了）			|
-;		BX←変更したメモリーの大きさ。			|
-;	◎	Cy←'H' のとき。（エラー）			|
-;		BX←変更できる最大の大きさ			|
-;		AX←INT21H ﾌｧﾝｸｼｮﾝ4AH参照			|
-;---------------------------------------------------------------|
-SMLME7	DB	"プログラムによるメモリー中のデーターの破壊。",0DH,0AH,"$"
-SMLME8	DB	"十分な空きメモリーが無い。",0DH,0AH,"$"
-SMLME9	DB	"不正なメモリーブロックの使用。",0DH,0AH,"$"
-COMSML:				;メモリーの最小化
-	PUSH	DX		;
-	PUSH	CX		;レジスタの保存
-	
-	MOV	ES,CS:[002CH]		;環境セグメントの開放
-	MOV	AH,49H			;
-	INT	21H			;
-	
-	MOV	AX,CS		;
-	MOV	DS,AX		;DS←CS
-	MOV	ES,AX		;ES←CS
-	MOV	BX,OFFSET CEND+BSTACK
-	MOV	CL,4		;
-	SHR	BX,CL		;
-	INC	BX		;BX←プログラムの大きさ（パラグラフ単位）
-	MOV	AH,04AH		;
-	INT	21H		;最小化
-	PUSH	BX		;
-	PUSH	AX		;返り値の保存
-	JC	SMLERR		;エラー時に飛ぶ
-	CLC			;Cy←'L'
-	JMP	SMLRET		;RETURN
-;===============================================================|
-SMLERR:				;ファンクション4AH のＥＲＲＯＲ
-	CMP	AX,07H		;
-	JNZ	SMLER8		;ERROR CODE=07H
-	MOV	AH,09H		;
-	MOV	DX,OFFSET SMLME7
-	INT	21H		;メッセージの表示
-	STC			;Cy←'H'
-	JMP	SMLRET		;RETURN
-SMLER8:
-	CMP	AX,08H		;
-	JNZ	SMLER9		;ERROR CODE=08H
-	MOV	AH,09H		;
-	MOV	DX,OFFSET SMLME8
-	INT	21H		;メッセージの表示
-	STC			;Cy←'L'
-	JMP	SMLRET		;RETURN
-SMLER9:
-	MOV	AH,09H		;ERROR CODE=09H
-	MOV	DX,OFFSET SMLME9
-	INT	21H		;メッセージの表示
-	STC			;Cy←'H'
-	JMP	SMLRET		;RETURN
-;===============================================================|
-SMLRET:				;ＲＥＴＵＲＮ
-	POP	AX		;
-	POP	BX		;
-	POP	CX		;レジスターの復帰
-	POP	DX		;
-	RET			;RETURN
-;************************************************************************
-;*									*
-;*		メインルーチン						*
-;*									*
-;************************************************************************
-START:	
-	MOV	AX,OFFSET CEND + BSTACK	;
-	MOV	SP,AX			;
-
-	MOV	AX,CS			;
-	MOV	DS,AX			;
-	MOV	ES,AX			;セグメントがえへへへ。
-	MOV	SS,AX			;
-
-	CALL	COMSML			;メモリの最小化
-
-	CALL	MEMORY_OPEN		;メモリの確保
-	CALL	FILE_OPEN		;ファイルを開く
-	CALL	FILE_READ		;ファイルの読み込み
-	CALL	FILE_CLOSE		;ファイルを閉じる
-	CALL	UN_MML_COMPAILE		;逆ＭＭＬコンパイル部
-	CALL	MEMORY_CLOSE		;メモリの解放
-COMEND:					;
-	STI				;割り込み許可
-	MOV	AX,04C00H		;
-	INT	21H			;MS-DOS RET
-;---------------------------------------------------------------|
-;		エラー処理					|
-;---------------------------------------------------------------|
-FILE_OPEN_ERR_MES	DB	'File not found',0DH,0AH,'$'
-FILE_NAME_NOTHING_MES	DB	'FF8MML filename[.snd] [>filename.mml]',0DH,0AH,'$'
-FILE_READ_ERR_MES	DB	'ファイルを読めませんでした。',0DH,0AH,24H
-FILE_CLOSE_ERR_MES	DB	'ファイルクローズに失敗しました',0DH,0AH,'$'
-MEMORY_OPEN_ERR_MES	DB	'メモリが足りません。',0DH,0AH,24H
-MEMORY_CLOSE_ERR_MES	DB	'メモリの解放に失敗しました',0DH,0AH,'$'
-PRINT:					;
-	PUSH	CS			;
-	POP	DS			;DS←CS
-	MOV	AH,09H			;
-	INT	21H			;表示
-	JMP	COMEND			;
-FILE_OPEN_ERROR:
-	MOV	DX,OFFSET FILE_OPEN_ERR_MES
-	JMP	PRINT
-FILE_NAME_NOTHING:
-	MOV	DX,OFFSET FILE_NAME_NOTHING_MES
-	JMP	PRINT
-FILE_READ_ERROR:
-	MOV	DX,OFFSET FILE_READ_ERR_MES
-	JMP	PRINT
-FILE_CLOSE_ERROR:
-	MOV	DX,OFFSET FILE_CLOSE_ERR_MES
-	JMP	PRINT
-MEMORY_OPEN_ERROR:
-	MOV	DX,OFFSET MEMORY_OPEN_ERR_MES
-	JMP	PRINT
-MEMORY_CLOSE_ERROR:
-	MOV	DX,OFFSET MEMORY_CLOSE_ERR_MES
-	JMP	PRINT
-CEND:
-CODE	ENDS
-	END	ff8mml_
+UCMO_LOOP_SEARCH	endp
