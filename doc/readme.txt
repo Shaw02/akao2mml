@@ -17,6 +17,7 @@
 	・FINAL FANTASY 7	(ff7mml)
 	・FINAL FANTASY 8	(ff8mml)
 	・FINAL FANTASY 9	(ff8mml)
+	・VAGRANT STORY		(ff8mml)
 	のデータを逆コンパイル出来ることを確認しております。
 	※一部のデータは、正常に逆コンパイル出来ません。
 

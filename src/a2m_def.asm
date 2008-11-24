@@ -472,8 +472,9 @@ UC_DA2	DB	0ffH			;次の音符の音長指定
 UC_DA3	DB	' v$',0FFh		;音量（ただしリニア）
 	DW	OFFSET UC_Volume	
 	DB	00h			
-UC_DA4	DB	' /*A4,$',10h,' ,$', 11h,' */$',00h	;ポルタメント
-;UC_DA4	DB	' y5,$',10h,' y84,$',10h,00h
+UC_DA4	DB	' UB1,$',0ffh		;ポルタメント
+	dw	offset UC_portamento	;
+	db	00h			;
 UC_DA5	DB	' o$',0FFh		;オクターブ
 	DW	offset UC_Octave	
 	DB	0
@@ -689,6 +690,8 @@ UC_INIT		proc	near
 	mov	word ptr cs:[UC_LoopCountData],ax
 	mov	word ptr cs:[UC_Tempo_Work],ax
 
+	mov	byte ptr cs:[UC_Detune_D],64	;
+
 	ret
 
 UC_INIT		endp
@@ -832,6 +835,47 @@ UC_Octave	proc	near
 	int	21h				
 	RET					;
 UC_Octave	endp
+;===============================================================
+;	0xA4	ポルタメント
+;===============================================================
+UC_portamento_D	db	0			;一応、2byteで保存する
+UC_portamento	proc	near
+	mov	al,byte ptr cs:[UC_portamento_D]
+	mov	ah,8				;
+	imul	ah				;
+	call	fh2a16				;
+	mov	ah,09h				;
+	int	21h				;初期変位出力
+
+	MOV	DL,2CH				;','の出力
+	MOV	AH,02H				;
+	INT	21H				;
+
+	MOV	DL,'%'				;'%'の出力
+	MOV	AH,02H				;
+	INT	21H				;
+
+	MOV	Ah,ES:[BX]			;
+	inc	bx				
+	call	hex2asc8			;
+	mov	ah,09h				;
+	int	21h				;ステップの出力
+
+	MOV	DL,2CH				;','の出力
+	MOV	AH,02H				;
+	INT	21H				;
+
+	MOV	Al,ES:[BX]			;
+	inc	bx				;
+	add	byte ptr cs:[UC_portamento_D],al
+	mov	ah,8				;
+	imul	ah				;
+	call	fh2a16				;
+	mov	ah,09h				;
+	int	21h				;ステップの出力
+
+	ret
+UC_portamento	endp
 ;===============================================================
 ;	0xA8	音量セーブ
 ;===============================================================
@@ -1057,7 +1101,7 @@ UC_LFO_Expression_Output	proc	near
 
 	xor	ax,ax
 	mov	ah,byte ptr cs:[UC_LFO_Expression_depth]
-	shr	ah,1
+	shr	ah,3
 ;	mov	ah,byte ptr cs:[UC_LFO_Expression_range]
 ;	imul	ah
 ;	mov	dx,2
@@ -1156,7 +1200,7 @@ UC_LFO_Panpot_Output	proc	near
 
 	xor	ax,ax
 	mov	ah,byte ptr cs:[UC_LFO_Panpot_depth]
-	shr	ah,1
+	shr	ah,3
 ;	mov	ah,byte ptr cs:[UC_LFO_Panpot_range]
 ;	imul	ah
 ;	mov	dx,2
@@ -1232,11 +1276,13 @@ UC_LoopCountDec	endp
 ;===============================================================
 ;	0xD8	ピッチベンド
 ;===============================================================
+UC_Detune_D	db	64
 UC_Detune	proc	near
 	PUSH	DX				;
 	MOV	AH,ES:[BX]			;データ読み込み
 	inc	bx
 	add	ah,64				;
+	mov	byte ptr cs:[UC_Detune_D],ah	;
 	CALL	HEX2ASC8			;出力
 	MOV	AH,09H				;
 	INT	21H				;
@@ -1625,10 +1671,25 @@ UCDFF_L16_1:
 UCDFF_L1C:
 ;	CMP	AL,1Ch		;不明
 ;	JZ	UCDFF_L1C_1	;
-	jmp	UCDFF_LQQ
+	jmp	UCDFF_L1F
 UCDFF_L1C_1:
 	INC	BX		;
 	INC	BX		;
+	RET			;
+;---------------------------------------
+;	0x1F
+;---------------------------------------
+UCDFF_M1F_1	DB	'/*FE,1F*/$'
+UCDFF_L1F:
+	CMP	AL,1Fh		;不明
+	JZ	UCDFF_L1F_1	;
+	jmp	UCDFF_LQQ
+UCDFF_L1F_1:
+	
+	MOV	DX,OFFSET UCDFF_M1F_1
+	MOV	AH,09H		;
+	INT	21H		;
+
 	RET			;
 ;---------------------------------------
 ;	other

@@ -647,26 +647,73 @@ UCMO_L21_1:				;
 	MOV	AL,CS:[BX]		;データ読み込み　解析情報
 	XCHG	BX,DX			;
 	CMP	AL,0			;０：解析終了
-	JZ	UCMO_L21_E		;
+	JZ	UCMO_L21_e_reset		;
 	CMP	AL,9			;９：次の音程とタイで繋ぐ。
 	JNZ	UCMO_L21_2		;
 	MOV	DX,OFFSET UCMO_TAI_OUTPUT
 	MOV	AH,09H			;
 	INT	21H			;
 	JMP	UCMO_L21_E		;
+UCMO_L21_e_reset:			;ソフトエンベロープリセット
+
+	cmp	byte ptr cs:[UC_portamento_D],0
+	jz	UCMO_L21_e_reset_01		;
+	mov	dl,'B'				;
+	mov	ah,02h				;
+	int	21h				;
+	mov	dl,'S'				;
+	mov	ah,02h				;
+	int	21h				;
+	mov	ax,0				;
+	mov	ah,byte ptr cs:[UC_Detune_D]	;
+;	add	ah,byte ptr cs:[UC_portamento_D]
+	mov	byte ptr cs:[UC_portamento_D],0
+	CALL	HEX2ASC8			;出力
+	MOV	AH,09H				;
+	INT	21H				;ピッチベンドのリセット
+UCMO_L21_e_reset_01:			;
+
+
+	jmp	UCMO_L21_E		;
 UCMO_L21_2:				;
 	CMP	AL,8			;
 	JNZ	UCMO_L21_3		;
 	MOV	AX,ES:[BX]		;
 	CMP	AX,006FEH		;
 	JZ	UCMO_L21_E		;
-	CMP	AX,004FEH		;
-	JNZ	UCMO_L21_2_1		;
-	ADD	BX,2			;
+
+	cmp	ax,004FEh		;
+	jz	UCMO_L21_2_2		;
+	cmp	ax,01fFEh		;
+	jz	UCMO_L21_2_2		;
+
+	cmp	ax,014FEh		;
+	jz	UCMO_L21_2_3		;
+
+	cmp	ax,007FEh		;
+	jz	UCMO_L21_2_5		;
+	cmp	ax,009FEh		;
+	jz	UCMO_L21_2_5		;
+
+	JMP	UCMO_L21_2_4		;
+
+UCMO_L21_2_2:				;
+	ADD	BX,2			;04h,1fh
 	JMP	UCMO_L21_1		;
-UCMO_L21_2_1:				;
+
+UCMO_L21_2_3:				;14h
+	ADD	BX,3			;
+	JMP	UCMO_L21_1		;
+
+UCMO_L21_2_4:				;other
 	ADD	BX,4			;
 	JMP	UCMO_L21_1		;
+
+UCMO_L21_2_5:				;07h,09h
+	ADD	BX,5			;
+	JMP	UCMO_L21_1		;
+
+
 UCMO_L21_3:				;
 	MOV	AH,0			;
 	ADD	BX,AX			;
@@ -801,13 +848,37 @@ ifdef	ff8	;------------------------
 	JZ	UCMOL_7			;
 	CMP	AX,006FEH		;
 	JZ	UCMOL_E			;
-	CMP	AX,004FEH		;
-	JNZ	UCMOL_2_1		;
+
+	cmp	ax,004FEh		;
+	jz	UCMOL_2_2		;
+	cmp	ax,01fFEh		;
+	jz	UCMOL_2_2		;
+
+	cmp	ax,014FEh		;
+	jz	UCMOL_2_3		;
+
+	cmp	ax,009FEh		;
+	jz	UCMOL_2_5		;
+
+	JMP	UCMOL_2_4		;
+
+UCMOL_2_2:				;
 	ADD	BX,2			;
 	JMP	UCMOL_1			;
-UCMOL_2_1:				;
+
+UCMOL_2_3:				;
+	ADD	BX,3			;
+	JMP	UCMOL_1			;
+
+UCMOL_2_4:				;
 	ADD	BX,4			;
 	JMP	UCMOL_1			;
+
+UCMOL_2_5:				;
+	ADD	BX,5			;
+	JMP	UCMOL_1			;
+
+
 endif	;--------------------------------
 UCMOL_3:				;
 
