@@ -28,7 +28,7 @@ ifdef	ff8	;------------------------
 	DB	'#timebase 48',0dh,0ah
 	DB	0dh,0ah
 	DB	0dh,0ah
-	DB	'0A	EX x41,x10,x42,x12,{x40,x00,x7f,x00},xf7',0DH,0AH
+	DB	'0A	EX x41,x10,x42,x12,{x40,x00,x7f,x00},xf7	BT4,4',0DH,0AH
 	DB	0dh,0ah
 	DB	'0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D'
 	DB	'0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	r1',0DH,0AH
@@ -71,9 +71,9 @@ ifdef	ff8	;------------------------
 endif	;--------------------------------
 	DB	24h
 
-MML2MID_HED0:
-	db	'0z',0dh,0ah
-	db	0dh,0ah,24h
+MML2MID_HED0:						;全パートを
+	db	'0z',0dh,0ah				;メロディーにする為。
+	db	0dh,0ah,24h				;
 
 MML2MID_HED1:
 ifdef	ff7	;------------------------
@@ -94,7 +94,7 @@ ifdef	ff7	;------------------------
 	db	0dh,0ah
 	DB	'#include "define.mml"',0dh,0ah
 endif	;--------------------------------
-	db	0dh,0ah,24h
+	db	0dh,0ah,24h		;改行は、ff8mmlでも出力する。
 
 UC_START	proc	near
 	MOV	DX,OFFSET MML2MID_HED	;
@@ -128,14 +128,22 @@ endif	;--------------------------------
 	MOV	AH,09H			;
 	INT	21H			;
 	
+
+;---------------------------------------
+;	チャンネル数のチェック
+
+;	このアルゴリズムでは、一部の曲で検出不可能。
 ;	MOV	AX,ES:[MUSIC_ADDRESS]	;使用パート数
 ;	add	ax,MUSIC_ADDRESSa
 ;	SHR	AX,1			;AX←AX/2
 
 
-;
-;	チャンネル数のチェック
-;
+;	dword pre es:[PARTF_ADDRESS"]について、
+;	ビットが"Hi"の数をチェックする。＝チャンネル数。
+;	※注意※
+;	ビットが飛び飛びになっていても、
+;	チャンネルデータのヘッダーは飛び飛びにならない。
+
 	push	cx
 
 	mov	cl,0			;Counter
@@ -162,10 +170,10 @@ UC_START_2:
 	MOV	CS:[UC_PART],cl		;
 
 ;	Debug用
-;	mov	ah,cl
-;	call	hex2asc8
-;	mov	ah,09h
-;	int	21h
+;	mov	ah,cl			;検出チャンネル数を出力
+;	call	hex2asc8		;
+;	mov	ah,09h			;
+;	int	21h			;
 
 	pop	cx
 	RET				;
@@ -193,7 +201,7 @@ UC_END_VOICE_ADD:
 		DW	OFFSET UCE_VOICE_5B	
 		DW	OFFSET UCE_VOICE_6B	
 		DW	OFFSET UCE_VOICE_7B	
-
+ifdef	ff8	;------------------------
 		DW	OFFSET UCE_VOICE_0C	
 		DW	OFFSET UCE_VOICE_1C	
 		DW	OFFSET UCE_VOICE_2C	
@@ -226,57 +234,60 @@ UC_END_VOICE_ADD:
 		DW	OFFSET UCE_VOICE_5F	
 		DW	OFFSET UCE_VOICE_6F	
 		DW	OFFSET UCE_VOICE_7F	
+endif	;--------------------------------
 
-UCE_VOICE_0A	DB	'0a	k127	H0,2	@48',0dh,0ah,24h
-UCE_VOICE_1A	DB	'1a	k127	H0,3	@1 ',0dh,0ah,24h
-UCE_VOICE_2A	DB	'2a	k127	H0,3	@2 ',0dh,0ah,24h
-UCE_VOICE_3A	DB	'3a	k127	H0,3	@3 ',0dh,0ah,24h
-UCE_VOICE_4A	DB	'4a	k127	H0,3	@4 ',0dh,0ah,24h
-UCE_VOICE_5A	DB	'5a	k127	H0,3	@5 ',0dh,0ah,24h
-UCE_VOICE_6A	DB	'6a	k127	H0,3	@6 ',0dh,0ah,24h
-UCE_VOICE_7A	DB	'7a	k127	H0,3	@7 ',0dh,0ah,24h
-UCE_VOICE_0B	DB	'0b	k127	H0,3	@8 ',0dh,0ah,24h
-UCE_VOICE_1B	DB	'1b	k127	H0,3	@9 ',0dh,0ah,24h
-UCE_VOICE_2B	DB	'2b	k127	H0,3	@10',0dh,0ah,24h
-UCE_VOICE_3B	DB	'3b	k127	H0,3	@11',0dh,0ah,24h
-UCE_VOICE_4B	DB	'4b	k127	H0,3	@12',0dh,0ah,24h
-UCE_VOICE_5B	DB	'5b	k127	H0,3	@13',0dh,0ah,24h
-UCE_VOICE_6B	DB	'6b	k127	H0,3	@14',0dh,0ah,24h
-UCE_VOICE_7B	DB	'7b	k127	H0,3	@15',0dh,0ah,24h
-
-UCE_VOICE_0C	DB	'0c	k127	H0,3	@',24h
-UCE_VOICE_1C	DB	'1c	k127	H0,3	@',24h
-UCE_VOICE_2C	DB	'2c	k127	H0,3	@',24h
-UCE_VOICE_3C	DB	'3c	k127	H0,3	@',24h
-UCE_VOICE_4C	DB	'4c	k127	H0,3	@',24h
-UCE_VOICE_5C	DB	'5c	k127	H0,3	@',24h
-UCE_VOICE_6C	DB	'6c	k127	H0,3	@',24h
-UCE_VOICE_7C	DB	'7c	k127	H0,3	@',24h
-UCE_VOICE_0D	DB	'0d	k127	H0,3	@',24h
-UCE_VOICE_1D	DB	'1d	k127	H0,3	@',24h
-UCE_VOICE_2D	DB	'2d	k127	H0,3	@',24h
-UCE_VOICE_3D	DB	'3d	k127	H0,3	@',24h
-UCE_VOICE_4D	DB	'4d	k127	H0,3	@',24h
-UCE_VOICE_5D	DB	'5d	k127	H0,3	@',24h
-UCE_VOICE_6D	DB	'6d	k127	H0,3	@',24h
-UCE_VOICE_7D	DB	'7d	k127	H0,3	@',24h
-UCE_VOICE_0E	DB	'0e	k127	H0,3	@',24h
-UCE_VOICE_1E	DB	'1e	k127	H0,3	@',24h
-UCE_VOICE_2E	DB	'2e	k127	H0,3	@',24h
-UCE_VOICE_3E	DB	'3e	k127	H0,3	@',24h
-UCE_VOICE_4E	DB	'4e	k127	H0,3	@',24h
-UCE_VOICE_5E	DB	'5e	k127	H0,3	@',24h
-UCE_VOICE_6E	DB	'6e	k127	H0,3	@',24h
-UCE_VOICE_7E	DB	'7e	k127	H0,3	@',24h
-UCE_VOICE_0F	DB	'0f	k127	H0,3	@',24h
-UCE_VOICE_1F	DB	'1f	k127	H0,3	@',24h
-UCE_VOICE_2F	DB	'2f	k127	H0,3	@',24h
-UCE_VOICE_3F	DB	'3f	k127	H0,3	@',24h
-UCE_VOICE_4F	DB	'4f	k127	H0,3	@',24h
-UCE_VOICE_5F	DB	'5f	k127	H0,3	@',24h
-UCE_VOICE_6F	DB	'6f	k127	H0,3	@',24h
-UCE_VOICE_7F	DB	'7f	k127	H0,3	@',24h
+UCE_VOICE_0A	DB	'0a		k127	y100,2	y101,0	y6,64	H0,2	@48',0dh,0ah,24h
+UCE_VOICE_1A	DB	'1a		k127	y100,2	y101,0	y6,64	H0,3	@1 ',0dh,0ah,24h
+UCE_VOICE_2A	DB	'2a		k127	y100,2	y101,0	y6,64	H0,3	@2 ',0dh,0ah,24h
+UCE_VOICE_3A	DB	'3a		k127	y100,2	y101,0	y6,64	H0,3	@3 ',0dh,0ah,24h
+UCE_VOICE_4A	DB	'4a		k127	y100,2	y101,0	y6,64	H0,3	@4 ',0dh,0ah,24h
+UCE_VOICE_5A	DB	'5a		k127	y100,2	y101,0	y6,64	H0,3	@5 ',0dh,0ah,24h
+UCE_VOICE_6A	DB	'6a		k127	y100,2	y101,0	y6,64	H0,3	@6 ',0dh,0ah,24h
+UCE_VOICE_7A	DB	'7a		k127	y100,2	y101,0	y6,64	H0,3	@7 ',0dh,0ah,24h
+UCE_VOICE_0B	DB	'0b		k127	y100,2	y101,0	y6,64	H0,3	@8 ',0dh,0ah,24h
+UCE_VOICE_1B	DB	'1b		k127	y100,2	y101,0	y6,64	H0,3	@9 ',0dh,0ah,24h
+UCE_VOICE_2B	DB	'2b		k127	y100,2	y101,0	y6,64	H0,3	@10',0dh,0ah,24h
+UCE_VOICE_3B	DB	'3b		k127	y100,2	y101,0	y6,64	H0,3	@11',0dh,0ah,24h
+UCE_VOICE_4B	DB	'4b		k127	y100,2	y101,0	y6,64	H0,3	@12',0dh,0ah,24h
+UCE_VOICE_5B	DB	'5b		k127	y100,2	y101,0	y6,64	H0,3	@13',0dh,0ah,24h
+UCE_VOICE_6B	DB	'6b		k127	y100,2	y101,0	y6,64	H0,3	@14',0dh,0ah,24h
+UCE_VOICE_7B	DB	'7b		k127	y100,2	y101,0	y6,64	H0,3	@15',0dh,0ah,24h
+ifdef	ff8	;------------------------
+UCE_VOICE_0C	DB	'0c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_1C	DB	'1c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_2C	DB	'2c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_3C	DB	'3c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_4C	DB	'4c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_5C	DB	'5c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_6C	DB	'6c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_7C	DB	'7c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_0D	DB	'0d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_1D	DB	'1d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_2D	DB	'2d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_3D	DB	'3d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_4D	DB	'4d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_5D	DB	'5d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_6D	DB	'6d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_7D	DB	'7d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_0E	DB	'0e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_1E	DB	'1e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_2E	DB	'2e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_3E	DB	'3e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_4E	DB	'4e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_5E	DB	'5e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_6E	DB	'6e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_7E	DB	'7e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_0F	DB	'0f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_1F	DB	'1f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_2F	DB	'2f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_3F	DB	'3f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_4F	DB	'4f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_5F	DB	'5f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_6F	DB	'6f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+UCE_VOICE_7F	DB	'7f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
+endif	;--------------------------------
 UCE_VOICE_cr	db	0dh,0ah,24h
+
 UC_Instrument	proc	near
 	XOR	CX,CX			;CL←0
 	MOV	BX,VOICE_ADDRESS	;従属音色情報アドレス
@@ -312,7 +323,6 @@ UC_END_L0:
 UC_END_L1:
 
 ifdef	ff8	;------------------------
-
 	XOR	CX,CX			;CL←0
 	MOV	BX,OFFSET UC_VOICE	;
 UC_END_L2:
@@ -348,7 +358,6 @@ UC_END_L2:
 	INC	BX			;
 	INC	CX			;
 	JMP	UC_END_L2		;
-
 endif	;--------------------------------
 
 UC_END_LE:
@@ -672,12 +681,16 @@ UCMO_L21_e_reset:			;ソフトエンベロープリセット
 	MOV	AH,09H				;
 	INT	21H				;ピッチベンドのリセット
 UCMO_L21_e_reset_01:			;
-
-
 	jmp	UCMO_L21_E		;
+
+
 UCMO_L21_2:				;
 	CMP	AL,8			;
-	JNZ	UCMO_L21_3		;
+	JNZ	UCMO_L21_3		;8じゃなかったら、bx加算処理へ。
+ifdef	ff7	;------------------------
+	jmp	UCMO_L21_E		;ff7は、無条件で終わり
+endif	;--------------------------------
+ifdef	ff8	;------------------------
 	MOV	AX,ES:[BX]		;
 	CMP	AX,006FEH		;
 	JZ	UCMO_L21_E		;
@@ -712,6 +725,8 @@ UCMO_L21_2_4:				;other
 UCMO_L21_2_5:				;07h,09h
 	ADD	BX,5			;
 	JMP	UCMO_L21_1		;
+endif	;--------------------------------
+
 
 
 UCMO_L21_3:				;
@@ -833,14 +848,14 @@ UCMOL_2:
 	CMP	AL,8			;
 	JNZ	UCMOL_3			;
 ifdef	ff7	;------------------------
-	ADD	BX,1				;
-	MOV	AX,ES:[BX]			;
-	ADD	bx,2
-	TEST	AX,AX				;
-	JZ	UCMOL_EE			;If AX=0 Then Return
-	ADD	AX,BX				;AX←ループ先アドレス
-	MOV	BX,AX				;BX←AX
-	jmp	UCMOL_E3
+	ADD	BX,1			;
+	MOV	AX,ES:[BX]		;
+	ADD	bx,2			;
+	TEST	AX,AX			;
+	JZ	UCMOL_EE		;If AX=0 Then Return
+	ADD	AX,BX			;AX←ループ先アドレス
+	MOV	BX,AX			;BX←AX
+	jmp	UCMOL_E3		;
 endif	;--------------------------------
 ifdef	ff8	;------------------------
 	MOV	AX,ES:[BX]		;
@@ -877,11 +892,10 @@ UCMOL_2_4:				;
 UCMOL_2_5:				;
 	ADD	BX,5			;
 	JMP	UCMOL_1			;
-
-
 endif	;--------------------------------
-UCMOL_3:				;
 
+
+UCMOL_3:				;
 	MOV	AH,0			;
 	ADD	BX,AX			;
 	JMP	UCMOL_1			;

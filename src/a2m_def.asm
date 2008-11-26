@@ -620,8 +620,12 @@ UC_DF9	DB	' /*F9,$',010h,' */$',00h	;不明
 UC_DFA	DB	' /*FA*/$',80h,00h
 UC_DFB	DB	' /*FB*/$',80h,00h
 UC_DFC	DB	' /*FC,$',010h,' ,$',010h,' */$',00h	;不明
-UC_DFD	DB	' /*FD,$',010h,' ,$',010h,' */$',00h	;不明
-UC_DFE	DB	' /*FE,$',010h,' ,$',010h,' */$',00h	;不明
+UC_DFD	DB	0ffh				;拍子
+	dw	offset UC_Beat			;
+	db	0				;
+UC_DFE	DB	0ffh				;リハーサル番号
+	dw	offset UC_Measures		;
+	db	0				;
 UC_DFF	DB	' /*FF*/$',80h,00h
 endif	;--------------------------------
 ifdef	ff8	;------------------------
@@ -739,6 +743,11 @@ UC_VOICE_OUTPUT	proc	near
 
 	MOV	DX,OFFSET UC_VOICE_NAME		;
 
+ifdef	ff7	;------------------------
+	add	dx,ax				;
+	add	dx,ax				;
+	add	dx,ax				;DX←Address + ax *3
+endif	;--------------------------------
 ifdef	ff8	;------------------------
 	XOR	BX,BX				;BX←0
 UC_VOICE_OUTPUT_L1:				;
@@ -758,11 +767,6 @@ UC_VOICE_OUTPUT_L3:				;表示
 	ADD	DX,BX				;
 	ADD	DX,BX				;
 	ADD	DX,BX				;DX←Address + BX *3
-endif	;--------------------------------
-ifdef	ff7	;------------------------
-	add	dx,ax				;
-	add	dx,ax				;
-	add	dx,ax				;DX←Address + ax *3
 endif	;--------------------------------
 
 	MOV	AH,09H				;
@@ -1493,12 +1497,12 @@ UCDFF_L06_2:			;
 
 UCDFF_L06_3:			;
 	POP	DX		;ダミー
-	XCHG	BX,DX		;
-	MOV	BX,SP		;
-	MOV	AX,OFFSET UCMO_LQQ
-	MOV	SS:[BX],AX	;今更ながら、数年前のソースって
-	XCHG	BX,DX		;すごいことしてるなぁ～。
-	RET			;	by 2008年 秋
+	XCHG	BX,DX		;今更ながら、数年前のソースって
+	MOV	BX,SP		;すごいことしてるなぁ～。
+	MOV	AX,OFFSET UCMO_LQQ	;	by 2008年 秋
+	MOV	SS:[BX],AX	;
+	XCHG	BX,DX		;スタックを"UCMO_LQQ"に書き換え。
+	RET			;RET命令で、↑に戻る。（チャンネル終了）
 UC_PermanentLoop	endp
 ;===============================================================
 ;	0xF0	ループ抜け
@@ -1531,8 +1535,83 @@ UC_ExitLoop		proc	near
 	ret			;
 UC_ExitLoop		endp
 ;===============================================================
-;	0xFE系コマンドの処理
+;	0xFD	拍子
 ;===============================================================
+UC_Beat_M	db	'BT$'
+UC_Beat			proc	near
+
+	mov	dx,offset UC_Beat_M
+	mov	ah,09h
+	int	21h
+
+	mov	al,es:[bx]	;
+	inc	bx		;
+	mov	ah,es:[bx]	;
+	inc	bx		;
+
+	cmp	al,0		;
+	jnz	UC_Beat_1	;
+	mov	al,48		;
+UC_Beat_1:			;
+	cmp	ah,0		;0除算エラー防止
+	jnz	UC_Beat_2	;
+	mov	ah,4		;
+UC_Beat_2:			;
+
+	push	ax
+
+	call	hex2asc8
+	mov	ah,09h
+	int	21h
+
+	mov	dl,','
+	mov	ah,02h
+	int	21h
+
+	pop	ax
+
+	mov	dl,al		;dl←al（times）
+	mov	ax,192		;（timebase × 4）
+	div	dl		;al←192 ÷ dl（times）
+	mov	ah,al		;
+	call	hex2asc8	;
+	mov	ah,09h		;
+	int	21h		;
+
+	ret
+UC_Beat			endp
+;===============================================================
+;	0xFE	小節（リハーサル）番号
+;===============================================================
+UC_Measures_M	db	'WC$'
+UC_Measures		proc	near
+
+	mov	dx,offset UC_Measures_M
+	mov	ah,09h
+	int	21h
+
+	mov	dl,'"'
+	mov	ah,02h
+	int	21h
+
+	mov	ax,es:[bx]
+	inc	bx
+	inc	bx
+
+	call	hex2asc16
+	mov	ah,09h
+	int	21h
+
+	mov	dl,'"'
+	mov	ah,02h
+	int	21h
+
+	ret
+UC_Measures		endp
+;===============================================================
+;	0xFE系コマンドの処理	(AKAO32)
+;===============================================================
+ifdef	ff8	;------------------------
 ;---------------------------------------
 ;	開始
 ;---------------------------------------
@@ -1647,26 +1726,18 @@ UCDFF_L14:
 ;	0x15
 ;---------------------------------------
 UCDFF_L15:
-;	CMP	AL,15h		;不明
-;	jz	UCDFF_L15_1
-	Jmp	UCDFF_L16
-UCDFF_L15_1:
-	INC	BX		;
-	INC	BX		;
-	RET			;
+	CMP	AL,15h		;不明
+	jnz	UCDFF_L16
+	jmp	UC_Beat
 ;---------------------------------------
 ;	0x16
 ;---------------------------------------
 UCDFF_L16:
-;	CMP	AL,16h		;不明
-;	jmp	UCDFF_L16_1	;
-	JMP	UCDFF_L1C	;
-UCDFF_L16_1:
-	INC	BX		;
-	INC	BX		;
-	RET			;
+	CMP	AL,16h		;不明
+	jnz	UCDFF_L1C	;
+	jmp	UC_Measures
 ;---------------------------------------
-;	0x17
+;	0x1C
 ;---------------------------------------
 UCDFF_L1C:
 ;	CMP	AL,1Ch		;不明
@@ -1743,3 +1814,4 @@ UCDFF_LQQ:
 	RET			;
 
 UCDFF_LSTART	endp
+endif	;--------------------------------

@@ -184,7 +184,7 @@ $7o		$0z		H0,3	@127	k127	y100,2	y101,0	y6,64	;@127
 ;-------+-------+-------+-------+-------+-------+-------+-------+-------
 #timebase 48
 
-0A	EX x41,x10,x42,x12,{x40,x00,x7f,x00},xf7		;GS System on
+0A	EX x41,x10,x42,x12,{x40,x00,x7f,x00},xf7	BT4,4	;GS System on
 
 0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D	r1		;GS System onの為に、
 0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	r1		;全chに一分休符を配置する。

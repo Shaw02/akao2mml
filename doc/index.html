@@ -33,14 +33,19 @@
 <a href='http://platz.jp/~mml2mid/'>MML2MID</a>仕様のMML(Music Macro Language)に逆コンパイルします。<br>
 <br>
 <h3>FF7MML.COM</h3>
-初期のPlaystation用SQUAREソフト用です。
+初期のPlaystation用SQUAREソフト用です。<br>
+<ul>
 <li>FINAL FANTASY 7<br>
 <li>Saga Frontia<br>
+</ul>
 <br>
 <h3>FF8MML.COM</h3>
+後期のPlaystation用SQUAREソフト用です。<br>
+<ul>
 <li>FINAL FANTASY 8<br>
 <li>FINAL FANTASY 9<br>
 <li>VAGRANT STORY<br>
+</ul>
 <br>
 
 <br><br>
@@ -80,10 +85,52 @@ FF8MML <var>ファイル名１（.SND）</var> （><var>ファイル名２.MML</var>）<br>
 省略した場合は、MS-DOSに設定されている標準出力（通常は画面）に出力します。<br>
 MMLの文法は、別途、<a href='http://platz.jp/~mml2mid/'>MML2MID</a>のドキュメントを参照して下さい。<br>
 <br>
-チャンネル17～32は、MIDIポート2番に吐きます。<br>
-17チャンネルを超えるデータは、2ポート以上に対応したSMFプレイヤーが必要です。<br>
-Microsoft Media Playerは、1ポートのみしか対応していないため、チャンネル1～16しか再生されません。<br>
-又、２ポート分のMIDI音源が必要です。<br>
+
+
+<br><br>
+<h2>仕様</h2>
+<!--─────────────────────────────-->
+<ul>
+<li>ヘッダーに"AKAO"の文字列がある曲データを、逆MMLコンパイルします。<br>
+	（PSFファイルそのものには使用できません。）<br>
+<li>ゲームCD-ROM内の拡張子『.SND』は、曲データですのでそのままで使えます。<br>
+	しかしながら、殆どの曲データは、CD-ROM内の様々なファイルに格納されています。<br>
+	従って、曲データ単体への切り出しが必要になります。<br>
+	尚、圧縮されているファイルが多いので、その場合は切り出し前に圧縮の解凍が必要になります。<br>
+	（別手段として、拡張子が*.EXEファイルのPSFファイルから、切り出せるそうです。）<br>
+<li>チャンネル17～32は、MIDIポート2番用に出力します。<br>
+<li>17チャンネルを超えるデータは、2ポート以上に対応したSMFプレイヤーが必要です。<br>
+	Microsoft Media Playerは、1ポートのみしか対応していないため、
+	チャンネル1～16しか再生されません。<br>
+	又、２ポート分のMIDI音源が必要です。<br>
+<li>各チャンネルの逆MMLコンパイル前に、無限ループの解析をします。<br>
+	ループアドレスの解析結果に基づいて、２回ループさせるように設計しています。<br>
+	解析結果は、『/*Loop=<var>addr1</var>,<var>addr2</var>*/』と、コメントアウトして各チャンネルの先頭に出力されます。<br>
+	<var>addr1</var>は、無限ループコマンドが示す絶対アドレスです。<br>
+	<var>addr2</var>は、チャンネル内で無限ループコマンドが２回使われた時のアドレスを示します（条件ジャンプコマンド（0xFE 0x07）があった場合）。<br>
+<li>未解析のコマンド及び非対応のコマンドは、『/* ～ */』でコメントアウトしてMMLファイルに出力します。<br>
+	主に、解析が目的です。何のコマンドか解ったら、是非教えてください。<br>
+</ul>
+<br>
+
+<h3>FF7MML.COM</h3>
+初期のPlaystation用SQUAREソフト用です。<br>
+<ul>
+<li>"define.mml"にて、MIDI音源の初期設定及び、音色を定義できます。<br>
+<li>定義の文法については、<a href='http://platz.jp/~mml2mid/'>MML2MID</a>の取扱説明書及び、
+	MIDI規格（<a href="http://www.amei.or.jp/">AMEI</a>より発刊）を参照して下さい。<br>
+</ul>
+<br>
+
+<h3>FF8MML.COM</h3>
+後期のPlaystation用SQUAREソフト用です。<br>
+<ul>
+<li>曲データ毎に音色番号に割り当てられる音色が異なる為、"define.mml"は使用しません。
+<li>出力後のMMLファイルの最後尾に、音色定義用のマクロを出力しますので、
+	そちらを曲データ毎に編集して下さい。<br>
+</ul>
+<br>
+
 
 <br><br>
 <h2>参考資料</h2>
