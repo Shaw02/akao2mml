@@ -24,75 +24,78 @@ MML2MID_HED:
 	DB	'#title     ""',0dh,0ah
 	DB	'#copyright "(c)SQUARE"',0dh,0ah
 	db	0dh,0ah
-ifdef	ff8	;------------------------
-	DB	'#timebase 48',0dh,0ah
-	DB	0dh,0ah
-	DB	0dh,0ah
-	DB	'0A	EX x41,x10,x42,x12,{x40,x00,x7f,x00},xf7	BT4,4',0DH,0AH
-	DB	0dh,0ah
-	DB	'0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D'
-	DB	'0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	r1',0DH,0AH
-	DB	0dh,0ah
-	DB	'0A			C1 ',0Dh,0ah
-	DB	'1A			C2 ',0Dh,0ah
-	DB	'2A			C3 ',0Dh,0ah
-	DB	'3A			C4 ',0Dh,0ah
-	DB	'0B			C5 ',0Dh,0ah
-	DB	'1B			C6 ',0Dh,0ah
-	DB	'2B			C7 ',0Dh,0ah
-	DB	'3B			C8 ',0Dh,0ah
-	DB	'0C			C9 ',0Dh,0ah
-	DB	'1C			C10',0Dh,0Ah
-	DB	'2C			C11',0Dh,0ah
-	DB	'3C			C12',0Dh,0ah
-	DB	'0D			C13',0Dh,0ah
-	DB	'1D			C14',0Dh,0ah
-	DB	'2D			C15',0Dh,0ah
-	DB	'3D			C16',0Dh,0ah
-	DB	'0E	EExff,x21,1,1	C1 ',0Dh,0ah
-	DB	'1E	EExff,x21,1,1	C2 ',0Dh,0ah
-	DB	'2E	EExff,x21,1,1	C3 ',0Dh,0ah
-	DB	'3E	EExff,x21,1,1	C4 ',0Dh,0ah
-	DB	'0F	EExff,x21,1,1	C5 ',0Dh,0ah
-	DB	'1F	EExff,x21,1,1	C6 ',0Dh,0ah
-	DB	'2F	EExff,x21,1,1	C7 ',0Dh,0ah
-	DB	'3F	EExff,x21,1,1	C8 ',0Dh,0ah
-	DB	'0G	EExff,x21,1,1	C9 ',0Dh,0ah
-	DB	'1G	EExff,x21,1,1	C10',0Dh,0Ah
-	DB	'2G	EExff,x21,1,1	C11',0Dh,0ah
-	DB	'3G	EExff,x21,1,1	C12',0Dh,0ah
-	DB	'0H	EExff,x21,1,1	C13',0Dh,0ah
-	DB	'1H	EExff,x21,1,1	C14',0Dh,0ah
-	DB	'2H	EExff,x21,1,1	C15',0Dh,0ah
-	DB	'3H	EExff,x21,1,1	C16',0Dh,0ah
-	DB	0dh,0ah
-	DB	'0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D'
-	DB	'0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	v127	E127	p64	BR8'
-endif	;--------------------------------
+;ifdef	ff8	;------------------------
+;	DB	'#timebase 48',0dh,0ah
+;	DB	0dh,0ah
+;	DB	0dh,0ah
+;	DB	'0A	EX x41,x10,x42,x12,{x40,x00,x7f,x00},xf7	BT4,4',0DH,0AH
+;	DB	0dh,0ah
+;	DB	'0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D'
+;	DB	'0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	r1',0DH,0AH
+;	DB	0dh,0ah
+;	DB	'0A			C1 ',0Dh,0ah
+;	DB	'1A			C2 ',0Dh,0ah
+;	DB	'2A			C3 ',0Dh,0ah
+;	DB	'3A			C4 ',0Dh,0ah
+;	DB	'0B			C5 ',0Dh,0ah
+;	DB	'1B			C6 ',0Dh,0ah
+;	DB	'2B			C7 ',0Dh,0ah
+;	DB	'3B			C8 ',0Dh,0ah
+;	DB	'0C			C9 ',0Dh,0ah
+;	DB	'1C			C10',0Dh,0Ah
+;	DB	'2C			C11',0Dh,0ah
+;	DB	'3C			C12',0Dh,0ah
+;	DB	'0D			C13',0Dh,0ah
+;	DB	'1D			C14',0Dh,0ah
+;	DB	'2D			C15',0Dh,0ah
+;	DB	'3D			C16',0Dh,0ah
+;	DB	'0E	EExff,x21,1,1	C1 ',0Dh,0ah
+;	DB	'1E	EExff,x21,1,1	C2 ',0Dh,0ah
+;	DB	'2E	EExff,x21,1,1	C3 ',0Dh,0ah
+;	DB	'3E	EExff,x21,1,1	C4 ',0Dh,0ah
+;	DB	'0F	EExff,x21,1,1	C5 ',0Dh,0ah
+;	DB	'1F	EExff,x21,1,1	C6 ',0Dh,0ah
+;	DB	'2F	EExff,x21,1,1	C7 ',0Dh,0ah
+;	DB	'3F	EExff,x21,1,1	C8 ',0Dh,0ah
+;	DB	'0G	EExff,x21,1,1	C9 ',0Dh,0ah
+;	DB	'1G	EExff,x21,1,1	C10',0Dh,0Ah
+;	DB	'2G	EExff,x21,1,1	C11',0Dh,0ah
+;	DB	'3G	EExff,x21,1,1	C12',0Dh,0ah
+;	DB	'0H	EExff,x21,1,1	C13',0Dh,0ah
+;	DB	'1H	EExff,x21,1,1	C14',0Dh,0ah
+;	DB	'2H	EExff,x21,1,1	C15',0Dh,0ah
+;	DB	'3H	EExff,x21,1,1	C16',0Dh,0ah
+;	DB	0dh,0ah
+;	DB	'0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D'
+;	DB	'0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	v127	E127	p64	BR8'
+;endif	;--------------------------------
 	DB	24h
-
-MML2MID_HED0:						;全パートを
-	db	'0z',0dh,0ah				;メロディーにする為。
-	db	0dh,0ah,24h				;
+;
+;MML2MID_HED0:						;全パートを
+;	db	'0z',0dh,0ah				;メロディーにする為。
+;	db	0dh,0ah,24h				;
 
 MML2MID_HED1:
-ifdef	ff7	;------------------------
+;ifdef	ff7	;------------------------
 	db	'8z	@0	/*Instrument of percussion 1z*/'		,0dh,0ah,24h
-endif	;--------------------------------
-ifdef	ff8	;------------------------
-	db	'0z	EX x41,x10,x42,x12,{x40,x10+R,x15,0},xF7	J0'	,0dh,0ah,24h
-endif	;--------------------------------
+;endif	;--------------------------------
+;ifdef	ff8	;------------------------
+;	db	'0z	EX x41,x10,x42,x12,{x40,x10+R,x15,0},xF7	J0'	,0dh,0ah,24h
+;endif	;--------------------------------
 MML2MID_HED2:
-ifdef	ff7	;------------------------
+;ifdef	ff7	;------------------------
 	db	'9z	@0	/*Instrument of percussion 2z*/'		,0dh,0ah,24h
+;endif	;--------------------------------
+;ifdef	ff8	;------------------------
+;	db	'1z	EX x41,x10,x42,x12,{x40,x10+R,x15,1},xF7	H0,3	@0'	,0dh,0ah,24h
+;endif	;--------------------------------
+MML2MID_HED3:
+	db	0dh,0ah
+ifdef	ff7	;------------------------
+	DB	'#include "define.mml"',0dh,0ah
 endif	;--------------------------------
 ifdef	ff8	;------------------------
-	db	'1z	EX x41,x10,x42,x12,{x40,x10+R,x15,1},xF7	H0,3	@0'	,0dh,0ah,24h
-endif	;--------------------------------
-MML2MID_HED3:
-ifdef	ff7	;------------------------
-	db	0dh,0ah
-	DB	'#include "define.mml"',0dh,0ah
+	DB	'#include "init.mml"',0dh,0ah
 endif	;--------------------------------
 	db	0dh,0ah,24h		;改行は、ff8mmlでも出力する。
 
@@ -101,14 +104,14 @@ UC_START	proc	near
 	MOV	AH,09H			;
 	INT	21H			;
 
-ifdef	ff8	;------------------------
-	mov	dl,24h			;$の表示
-	mov	ah,02h			;
-	int	21h			;
-	MOV	DX,OFFSET MML2MID_HED0	;
-	MOV	AH,09H			;
-	INT	21H			;
-endif	;--------------------------------
+;ifdef	ff8	;------------------------
+;	mov	dl,24h			;$の表示
+;	mov	ah,02h			;
+;	int	21h			;
+;	MOV	DX,OFFSET MML2MID_HED0	;
+;	MOV	AH,09H			;
+;	INT	21H			;
+;endif	;--------------------------------
 
 	mov	dl,24h			;$の表示
 	mov	ah,02h			;
@@ -236,7 +239,7 @@ ifdef	ff8	;------------------------
 		DW	OFFSET UCE_VOICE_7F	
 endif	;--------------------------------
 
-UCE_VOICE_0A	DB	'0a		k127	y100,2	y101,0	y6,64	H0,2	@48',0dh,0ah,24h
+UCE_VOICE_0A	DB	'0a		k127	y100,2	y101,0	y6,64	H1,3	@48',0dh,0ah,24h
 UCE_VOICE_1A	DB	'1a		k127	y100,2	y101,0	y6,64	H0,3	@1 ',0dh,0ah,24h
 UCE_VOICE_2A	DB	'2a		k127	y100,2	y101,0	y6,64	H0,3	@2 ',0dh,0ah,24h
 UCE_VOICE_3A	DB	'3a		k127	y100,2	y101,0	y6,64	H0,3	@3 ',0dh,0ah,24h
@@ -702,6 +705,8 @@ ifdef	ff8	;------------------------
 
 	cmp	ax,014FEh		;
 	jz	UCMO_L21_2_3		;
+	cmp	ax,01CFEh		;
+	jz	UCMO_L21_2_3		;
 
 	cmp	ax,007FEh		;
 	jz	UCMO_L21_2_5		;
@@ -870,6 +875,8 @@ ifdef	ff8	;------------------------
 	jz	UCMOL_2_2		;
 
 	cmp	ax,014FEh		;
+	jz	UCMOL_2_3		;
+	cmp	ax,01CFEh		;
 	jz	UCMOL_2_3		;
 
 	cmp	ax,009FEh		;

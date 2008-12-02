@@ -1739,13 +1739,27 @@ UCDFF_L16:
 ;---------------------------------------
 ;	0x1C
 ;---------------------------------------
+UCDFF_M1C_1	DB	'/*FE,1C,$'
+UCDFF_M1C_2	DB	'*/$'
 UCDFF_L1C:
-;	CMP	AL,1Ch		;•s–¾
-;	JZ	UCDFF_L1C_1	;
+	CMP	AL,1Ch		;•s–¾
+	JZ	UCDFF_L1C_1	;
 	jmp	UCDFF_L1F
 UCDFF_L1C_1:
-	INC	BX		;
-	INC	BX		;
+	mov	dx,offset UCDFF_M1C_1
+	mov	ah,09h
+	int	21h
+
+	mov	ah,es:[bx]
+	inc	bx
+	call	hex2asc8
+	mov	ah,09h
+	int	21h
+
+	mov	dx,offset UCDFF_M1C_2
+	mov	ah,09h
+	int	21h
+
 	RET			;
 ;---------------------------------------
 ;	0x1F
