@@ -76,7 +76,7 @@ $9f		$0z		H0,3	@55		k127	y100,2	y101,0	y6,64	;@39	Orchstra Hit
 
 $0g		$0z		H0,3	@00		k127	y100,2	y101,0	y6,76	;@40	Bass
 $1g		$0z		H8,3	@116	k127	y100,2	y101,0	y6,40	;@41	Orchestra B.Drum
-$2g		$0z		H0,3	@48		k127	y100,2	y101,0	y6,64	;@42	Strings
+$2g		$0z		H1,3	@48		k127	y100,2	y101,0	y6,64	;@42	Bright Strings
 $3g		$0z		H1,3	@50		k127	y100,2	y101,0	y6,52	;@43	Synth String
 $4g		$0z		H0,3	@52		k127	y100,2	y101,0	y6,64	;@44	Aha
 $5g		$0z		H0,3	@47		k127	y100,2	y101,0	y6,76	;@45	Timpani
@@ -96,10 +96,13 @@ $7h		$0z		H0,3	@27		k127	y100,2	y101,0	y6,64	;@57	Guiter?		セフィロス声？
 $8h		$0z		H0,3	@110	k127	y100,2	y101,0	y6,76	;@58	Fidle
 $9h		$0z		H0,3	@12		k127	y100,2	y101,0	y6,64	;@59	Marinba
 
-$0i		$0z		H0,3	@49		k127	y100,2	y101,0	y6,76	;@60	Slow Strings?
-$1i		$0z		H0,3	@50		k127	y100,2	y101,0	y6,64	;@61	Synth Strings
-$2i		$0z		H17,3	@62		k127	y100,2	y101,0	y6,76	;@62	Synth Brass
-$3i		$0z		H0,3	@51		k127	y100,2	y101,0	y6,64	;@63	Synth Strings
+$0i		$0z		H0,3	@48		k127	y100,2	y101,0	y6,76	;@60	Slow Strings
+$1i		$0z		H0,3	@48		k127	y100,2	y101,0	y6,64	;@61	Slow Strings
+$2i		$0z		H0,3	@48		k127	y100,2	y101,0	y6,76	;@62	Slow Strings
+$3i		$0z		H0,3	@48		k127	y100,2	y101,0	y6,64	;@63	Slow Strings
+;$1i	$0z		H0,3	@50		k127	y100,2	y101,0	y6,64	;@61	Synth Strings
+;$2i	$0z		H17,3	@62		k127	y100,2	y101,0	y6,76	;@62	Synth Brass
+;$3i	$0z		H0,3	@51		k127	y100,2	y101,0	y6,64	;@63	Synth Strings
 $4i		$1z				J36		k127	y100,2	y101,0	y6,64	;@64	Std. S.Bass
 $5i		$1z				J49		k127	y100,2	y101,0	y6,64	;@65	Std. Cymbal
 $6i		$1z				J38		k127	y100,2	y101,0	y6,64	;@66	Std. S.Drum 1
@@ -121,7 +124,7 @@ $9j		$0z		H0,3	@79		k127	y100,2	y101,0	y6,64	;@79
 $0k		$0z		H0,3	@80		k127	y100,2	y101,0	y6,64	;@80
 $1k		$0z		H0,3	@81		k127	y100,2	y101,0	y6,64	;@81
 $2k		$1z				J26		k127	y100,2	y101,0	y6,64	;@82	finger?
-$3k		$0z		H1,3	@48		k127	y100,2	y101,0	y6,76	;@83	Stings
+$3k		$0z		H24,3	@48		k127	y100,2	y101,0	y6,76	;@83	Stings
 $4k		$0z		H1,3	@94		k127	y100,2	y101,0	y6,76	;@84	Voice
 $5k		$0z		H0,3	@85		k127	y100,2	y101,0	y6,64	;@85
 $6k		$0z		H8,3	@30		k127	y100,2	y101,0	y6,52	;@86	Dist Guiter

@@ -432,7 +432,7 @@ UCMO_COMMAND_SIZE:				;
 	DB	0,2,2,2, 3,2,1,1, 2,3,2,3, 2,2,2,2	;A0h-AFh
 	DB	3,2,2,1, 4,2,1,2, 4,2,1,2, 3,2,1,2	;B0h-BFh
 	DB	2,2,1,1, 1,1,1,1, 1,2,1,1, 1,1,1,1	;C0h-CFh
-	DB	1,1,2,2, 1,1,1,1, 2,2,3,1, 2,3,3,3	;D0h-DFh
+	DB	1,1,2,2, 1,1,1,1, 2,2,2,1, 2,3,3,3	;D0h-DFh
 ifdef	ff7	;------------------------
 	DB	1,1,1,1, 1,1,1,1, 3,4,3,4, 3,1,8,4	;E0h-EFh
 	DB	4,4,2,1, 3,1,2,3, 2,2,1,1, 3,3,3,1	;F0h-FFh
@@ -700,9 +700,15 @@ ifdef	ff8	;------------------------
 
 	cmp	ax,004FEh		;
 	jz	UCMO_L21_2_2		;
+	cmp	ax,01dFEh		;
+	jz	UCMO_L21_2_2		;
+	cmp	ax,01eFEh		;
+	jz	UCMO_L21_2_2		;
 	cmp	ax,01fFEh		;
 	jz	UCMO_L21_2_2		;
 
+	cmp	ax,010FEh		;
+	jz	UCMO_L21_2_3		;
 	cmp	ax,014FEh		;
 	jz	UCMO_L21_2_3		;
 	cmp	ax,01CFEh		;
@@ -871,9 +877,15 @@ ifdef	ff8	;------------------------
 
 	cmp	ax,004FEh		;
 	jz	UCMOL_2_2		;
+	cmp	ax,01DFEh		;
+	jz	UCMOL_2_2		;
+	cmp	ax,01EFEh		;
+	jz	UCMOL_2_2		;
 	cmp	ax,01fFEh		;
 	jz	UCMOL_2_2		;
 
+	cmp	ax,010FEh		;
+	jz	UCMOL_2_3		;
 	cmp	ax,014FEh		;
 	jz	UCMOL_2_3		;
 	cmp	ax,01CFEh		;

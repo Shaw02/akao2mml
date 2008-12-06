@@ -566,7 +566,7 @@ UC_DD8	DB	' BS$',0FFh		;ディチューン
 	DW	offset UC_Detune
 	DB	00h
 UC_DD9	DB	' BS$',11h,00h		;相対ディチューン
-UC_DDA	DB	' /*DA,$',010h,' ,$',010h,' */$',00h	;不明
+UC_DDA	DB	' /*DA,$',010h,' */$',00h	;不明
 UC_DDB	DB	' /*DB*/$',00h
 UC_DDC	DB	' /*DC,$',010h,' */$',00h	;不明
 UC_DDD	DB	' /*DD,$',012h,' */$',00h	;
@@ -1487,13 +1487,18 @@ UCDFF_L06_2:			;
 	MOV	AH,09H		;
 	INT	21H		;
 
+ifdef	ff8	;------------------------
 	cmp	byte ptr cs:[UCMOLS_LOOP_flag2],01h	;
 	jnz	UCDFF_L06_3
 	mov	byte ptr cs:[UCMOLS_LOOP_flag2],00h	;
-	mov	ax,cs:[UCDFF_M06_bx]
-	mov	bx,ax
-	add	bx,2
+;	mov	ax,cs:[UCDFF_M06_bx]
+;	mov	bx,ax
+;	add	bx,2
+
+	mov	bx,word ptr cs:[UCDFF_M07_Adr]		;条件ジャンプ先にゴー
+
 	ret
+endif	;--------------------------------
 
 UCDFF_L06_3:			;
 	POP	DX		;ダミー
@@ -1650,7 +1655,8 @@ UCDFF_L06:
 ;---------------------------------------
 ;	0x07	条件ジャンプ
 ;---------------------------------------
-UCDFF_M07_1	DB	'/*FE,7,$'
+UCDFF_M07_Adr	dw	?
+UCDFF_M07_1	DB	'/*FE,07h,$'
 UCDFF_M07_2	DB	'*/:$'
 UCDFF_L07:
 	CMP	AL,07h		;データ終了
@@ -1667,8 +1673,12 @@ UCDFF_L07_1:
 	MOV	AH,09H		;
 	INT	21H		;
 
+	mov	word ptr cs:[UCDFF_M07_Adr],bx
 	MOV	AX,ES:[BX]	;
-	call	FH2A16
+	inc	bx		;
+	inc	bx		;
+	add	word ptr cs:[UCDFF_M07_Adr],ax
+	call	FH2A16		;
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -1676,8 +1686,6 @@ UCDFF_L07_1:
 	MOV	AH,09H		;
 	INT	21H		;
 
-	inc	bx
-	inc	bx
 
 	ret			;
 ;---------------------------------------
@@ -1685,8 +1693,33 @@ UCDFF_L07_1:
 ;---------------------------------------
 UCDFF_L09:
 	CMP	AL,09h		;
-	jnz	UCDFF_L14	;
+	jnz	UCDFF_L10	;
 	jmp	UC_ExitLoop	
+;---------------------------------------
+;	0x10
+;---------------------------------------
+UCDFF_M10_1	DB	'/*FE,10h,$'
+UCDFF_M10_2	DB	'*/$'
+UCDFF_L10:
+	CMP	AL,10h		;不明
+	jnz	UCDFF_L14	;
+UCDFF_L10_1:
+	
+	MOV	DX,OFFSET UCDFF_M10_1
+	MOV	AH,09H		;
+	INT	21H		;
+
+	mov	ah,es:[bx]
+	inc	bx
+	call	hex2asc8
+	mov	ah,09h
+	int	21h
+
+	MOV	DX,OFFSET UCDFF_M10_2
+	MOV	AH,09H		;
+	INT	21H		;
+
+	RET			;
 ;---------------------------------------
 ;	0x14	音色
 ;---------------------------------------
@@ -1726,25 +1759,25 @@ UCDFF_L14:
 ;	0x15
 ;---------------------------------------
 UCDFF_L15:
-	CMP	AL,15h		;不明
-	jnz	UCDFF_L16
-	jmp	UC_Beat
+	CMP	AL,15h		;拍子
+	jnz	UCDFF_L16	;
+	jmp	UC_Beat		;
 ;---------------------------------------
 ;	0x16
 ;---------------------------------------
 UCDFF_L16:
-	CMP	AL,16h		;不明
+	CMP	AL,16h		;リハーサル番号
 	jnz	UCDFF_L1C	;
-	jmp	UC_Measures
+	jmp	UC_Measures	;
 ;---------------------------------------
 ;	0x1C
 ;---------------------------------------
-UCDFF_M1C_1	DB	'/*FE,1C,$'
+UCDFF_M1C_1	DB	'/*FE,1Ch,$'
 UCDFF_M1C_2	DB	'*/$'
 UCDFF_L1C:
 	CMP	AL,1Ch		;不明
 	JZ	UCDFF_L1C_1	;
-	jmp	UCDFF_L1F
+	jmp	UCDFF_L1D
 UCDFF_L1C_1:
 	mov	dx,offset UCDFF_M1C_1
 	mov	ah,09h
@@ -1762,9 +1795,37 @@ UCDFF_L1C_1:
 
 	RET			;
 ;---------------------------------------
+;	0x1D	(29)
+;---------------------------------------
+UCDFF_M1D_1	DB	'/*FE,1Dh*/$'
+UCDFF_L1D:
+	CMP	AL,1Dh		;不明
+	jnz	UCDFF_L1E	;
+UCDFF_L1D_1:
+	
+	MOV	DX,OFFSET UCDFF_M1D_1
+	MOV	AH,09H		;
+	INT	21H		;
+
+	RET			;
+;---------------------------------------
+;	0x1E	(30)
+;---------------------------------------
+UCDFF_M1E_1	DB	'/*FE,1Eh*/$'
+UCDFF_L1E:
+	CMP	AL,1Eh		;不明
+	jnz	UCDFF_L1F	;
+UCDFF_L1E_1:
+	
+	MOV	DX,OFFSET UCDFF_M1E_1
+	MOV	AH,09H		;
+	INT	21H		;
+
+	RET			;
+;---------------------------------------
 ;	0x1F
 ;---------------------------------------
-UCDFF_M1F_1	DB	'/*FE,1F*/$'
+UCDFF_M1F_1	DB	'/*FE,1Fh*/$'
 UCDFF_L1F:
 	CMP	AL,1Fh		;不明
 	JZ	UCDFF_L1F_1	;
