@@ -1,23 +1,32 @@
 
 
 本アプリケーションは、
-MASM（Microsoft Macro Assembler） version 6.11でアセンブルされています。
-が、多分、MASM ver,5.0でもアセンブル出来ると思います。
-MASM ver,6.11につきましては、ＭＳＤＮの購読にて入手可能ですが、
-MASM ver 8.0が、Microsoftから公式に、無償で公開されているようです。
-が、ダウンロードしたものの、自分には使い方がよくわかりませんでした。
+MASM6.11（Microsoft (R) Macro Assembler Version 6.11)
+MASM9.00（Microsoft (R) Macro Assembler Version 9.00)
+
+でアセンブル出来る事を確認しています。
+MASM 8.00は試していませんが、多分可能です。
+てか、9.00もフリーなんだから、9.00ダウンロードしれ。
+
+MASM 6.11につきましては、ＭＳＤＮの購読にて入手可能です。
+MASM 9.00は、以下のソフトウェアに含まれて居ます。
+　・"Microsoft (R) Visual Studio 2008"			（有料）
+　・"Microsoft (R) Visual C++ 2008 Express Edition"	（無料）
+　　→http://www.microsoft.com/japan/msdn/vstudio/express/default.aspx
+
+
 
 なお、MASM ver,6.11に含まれるLink.EXE（リンカー）は、
 Windows Vistaでは使えない事を確認しており、
 以下の16bit版リンカーが別途必要です。
 
-Visual C++.NETに含まれるLink.exeも32bit版であり、
+Visual C++.2008に含まれるLink.exeも32bit版であり、
 MS-DOSのtinyモデル(*.COM)形式のファイルを生成出来ない為、使えません。
-MASM8.0を使う場合についても、以下の16bit版リンカーが別途必要です。
+MASM9.00を使う場合についても、以下の16bit版リンカーが別途必要です。
 
 
 
 ■16bit版 リンカー
-※Microsoft Visual C ver2.0時代のリンカーのようです。
-ftp://ftp.microsoft.com/softlib/mslfiles/lnk563.exe
+別途、16bit実行ファイルをアセンブルする為に、16bit版のリンカーが必要です。
+→ftp://ftp.microsoft.com/softlib/mslfiles/lnk563.exe
 

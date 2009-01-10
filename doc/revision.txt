@@ -6,6 +6,32 @@
 
 
 
+version 1.16		2009. 1. 9
+	◆MASM9.0（Microsoft (R) Macro Assembler Version 9.00）
+	　でアセンブルできるように、ソースファイルを手直しした。
+	　MASM9.0は、以下のソフトウェアに含まれて居ます。
+	　・"Microsoft (R) Visual Studio 2008"			（有料）
+	　・"Microsoft (R) Visual C++ 2008 Express Edition"	（無料）
+	　　→http://www.microsoft.com/japan/msdn/vstudio/express/default.aspx
+	　※別途、16bit実行ファイルをアセンブルする為に、16bit版のリンカーが必要です。
+	　　→ftp://ftp.microsoft.com/softlib/mslfiles/lnk563.exe
+	◆コマンド関連
+	・以下のコマンドに対応
+		0xFC　（AKAO24）	拡張音色に対応
+					但し、こちらは曲データ毎に番号に統一性無いため、
+					音色割り当ては、各MMLファイルを直接編集要です。
+					（FF7では使われない。サガフロンティアで多用されている。）
+	・以下のコマンドを修正
+		0xEE　（AKAO24）	無限ループ命令によるジャンプに再対応（バグ修正）
+		0xFE06（AKAO32）	無限ループ命令によるジャンプに再対応（バグ修正）
+					※version 1.01の時点で元々できていたのだが、
+					　0xFE07命令の対応時に、正常動作しなくなっていた。
+					　そのバグの修正。
+					（FF8や、サガフロでSMFコンパイルできなかった曲の対応）
+
+
+
+
 version 1.15		2008.12.6
 	・以下のコマンドに対応
 		0xDA			引数は1Byteだった。（今まで2Byteにしてた）

@@ -292,84 +292,355 @@ endif	;--------------------------------
 UCE_VOICE_cr	db	0dh,0ah,24h
 
 UC_Instrument	proc	near
+
 	XOR	CX,CX			;CL←0
+
+ifdef	ff7	;------------------------
+	MOV	BX,OFFSET UC_VoiceExWork
+endif	;--------------------------------
+ifdef	ff8	;------------------------
 	MOV	BX,VOICE_ADDRESS	;従属音色情報アドレス
-	cmp	bx,0
-	JZ	UC_END_L1		;無かったら終わり。
 	MOV	DX,ES:[BX]		;
-	CMP	DX,0000H		;従属音色有り？
-	JZ	UC_END_L1		;無かったら終わり。
-	ADD	BX,DX			;BX←従属音色情報先頭アドレス
-UC_END_L0:
-	MOV	AX,ES:[BX]		;読み込み
-	CMP	AX,0FFFFH		;最後？
-	JZ	UC_END_L1		;
-	cmp	cx,16			;
-	jz	UC_END_L1		;16個変換したら最後
-	
-	PUSH	BX			;
-	MOV	BX,OFFSET UC_END_VOICE_ADD
-	ADD	BX,CX			;
-	ADD	BX,CX			;
-	MOV	AH,02H			;'$'の表示
-	MOV	DL,24H			;
-	INT	21H			;
-	MOV	DX,CS:[BX]		;DX←出力すべき文字列のアドレス
-	MOV	AH,09H			;
-	INT	21H			;出力
-	POP	BX			;
-	
-	INC	BX			;
-	INC	BX			;アドレスインクリメント
-	INC	CX			;
-	JMP	UC_END_L0		;
-UC_END_L1:
+	.if	(dx==0000h)
+		mov	cx,16
+	.else
+		add	bx,dx		;BX←従属音色情報先頭アドレス
+	.endif
+
+endif	;--------------------------------
+
+	.while	(cx<16)
+
+ifdef	ff7	;------------------------
+		mov	ax,cs:[bx]		;AL←音色登録情報
+endif	;--------------------------------
+ifdef	ff8	;------------------------
+		mov	ax,es:[bx]		;AL←音色登録情報
+endif	;--------------------------------
+		.break	.if	(ax==0ffffh)
+		
+		PUSH	BX			;
+
+		MOV	AH,02H			;'$'の表示
+		MOV	DL,24H			;
+		INT	21H			;
+
+		MOV	BX,OFFSET UC_END_VOICE_ADD
+		ADD	BX,CX			;
+		ADD	BX,CX			;
+		MOV	DX,CS:[BX]		;DX←出力すべき文字列のアドレス
+		MOV	AH,09H			;
+		INT	21H			;出力
+
+		POP	BX			;
+		
+		INC	BX			;
+		INC	BX			;アドレスインクリメント
+		INC	CX			;
+
+	.endw
+
 
 ifdef	ff8	;------------------------
 	XOR	CX,CX			;CL←0
 	MOV	BX,OFFSET UC_VOICE	;
 UC_END_L2:
-	MOV	AL,CS:[BX]		;AL←音色登録情報
-	CMP	AL,0FFh			;情報終了検査
-	JZ	UC_END_LE		;
-	cmp	cx,64			;
-	jz	UC_END_L1		;64個変換したら最後
 
-	PUSH	BX			;
-	push	ax
-	MOV	BX,OFFSET UC_END_VOICE_ADD
-	ADD	BX,32			;
-	ADD	BX,CX			;
-	ADD	BX,CX			;
-	MOV	AH,02H			;'$'の表示
-	MOV	DL,24H			;
-	INT	21H			;
-	MOV	DX,CS:[BX]		;DX←出力すべき文字列のアドレス
-	MOV	AH,09H			;
-	INT	21H			;出力
-	pop	ax
-	mov	ah,al
-	call	hex2asc8
-	MOV	AH,09H			;
-	INT	21H			;出力
+	.while	(cx<64)
 
-	mov	dx,offset UCE_VOICE_cr
-	MOV	AH,09H			;
-	INT	21H			;出力
+		mov	al,cs:[bx]		;AL←音色登録情報
+		.break	.if	(al==0ffh)
 
-	POP	BX			;
-	INC	BX			;
-	INC	CX			;
-	JMP	UC_END_L2		;
+		PUSH	BX			;
+		push	ax
+
+		MOV	AH,02H			;'$'の表示
+		MOV	DL,24H			;
+		INT	21H			;
+
+		MOV	BX,OFFSET UC_END_VOICE_ADD
+		ADD	BX,32			;
+		ADD	BX,CX			;
+		ADD	BX,CX			;
+		MOV	DX,CS:[BX]		;DX←出力すべき文字列のアドレス
+		MOV	AH,09H			;
+		INT	21H			;出力
+
+		pop	ax
+
+		mov	ah,al
+		call	hex2asc8
+		MOV	AH,09H			;
+		INT	21H			;出力
+
+		mov	dx,offset UCE_VOICE_cr
+		MOV	AH,09H			;
+		INT	21H			;出力
+
+		POP	BX			;
+
+		INC	BX			;
+		INC	CX			;
+
+	.endw
+
 endif	;--------------------------------
 
-UC_END_LE:
 	mov	dx,offset UCE_VOICE_cr
 	MOV	AH,09H			;
 	INT	21H			;出力
 
 	RET
 UC_Instrument	endp
+;---------------------------------------------------------------|
+;		コマンド変換					|
+;---------------------------------------------------------------|
+;	処理							|
+;		１コマンドだけ、MMLにデコードして出力する	|
+;	引数							|
+;		ds	＝csである事				|
+;		es:bx	コマンドのポインタ			|
+;	返値							|
+;		es:bx	次のコマンドのポインタ			|
+;	破壊							|
+;		ほぼ全てのレジスタ				|
+;---------------------------------------------------------------|
+;コメントアウト用
+c_CommentOut0	db	'/*$'
+c_CommentOut1	db	'*/$'
+
+UCMO_TAI_OUTPUT:			;
+	DB	'&$'			;
+
+c_decode	proc	near
+
+	local	UCMO_ComStartFlag:byte
+
+	mov	UCMO_ComStartFlag,1
+
+	;コマンド読み込み
+	XOR	AX,AX			;
+	MOV	AL,ES:[BX]		;データ読み込み
+	INC	BX			;ポインタインクリメント
+
+	SHL	AX,1			;
+	PUSH	BX			;
+	MOV	BX,OFFSET UC_DATA_ADDRESS
+	ADD	BX,AX			;BX←変換情報アドレス格納アドレス
+	MOV	DX,CS:[BX]		;DX←変換情報アドレス
+	POP	BX			;
+
+	;EoCじゃない間だったら、無限ループ。
+	.while	(byte ptr cs:[c_Command_EoC]==00h)
+
+	XCHG	BX,DX			;
+	MOV	AL,CS:[BX]		;変換情報読み込み
+	INC	BX			;
+	XCHG	BX,DX			;
+
+	.if	(al==00h)
+		;変換情報に0x00があったら、.break
+		.break				;End
+
+	.elseif	(al==10h)
+		PUSH	DX			;
+		MOV	AH,ES:[BX]		;データ読み込み
+		INC	BX			;ポインタインクリメント
+		CALL	HEX2ASC8		;
+		MOV	AH,09H			;
+		INT	21H			;
+		POP	DX			;
+
+	.elseif	(al==11h)
+		PUSH	DX			;
+		MOV	AH,ES:[BX]		;データ読み込み
+		INC	BX			;ポインタインクリメント
+		CALL	FH2A8			;
+		MOV	AH,09H			;
+		INT	21H			;
+		POP	DX			;
+
+	.elseif	(al==12h)
+		PUSH	DX
+		MOV	AX,ES:[BX]		;データ読み込み
+		INC	BX			;ポインタインクリメント
+		INC	BX			;ポインタインクリメント
+		CALL	HEX2ASC16		;
+		MOV	AH,09H			;
+		INT	21H			;
+		POP	DX			;
+
+	.elseif	(al==13h)
+		PUSH	DX			;
+		MOV	AX,ES:[BX]		;データ読み込み
+		INC	BX			;ポインタインクリメント
+		INC	BX			;ポインタインクリメント
+		CALL	FH2A16			;
+		MOV	AH,09H			;
+		INT	21H			;
+		POP	DX			;
+
+	.elseif	(al==20h)
+
+		.if	((UCMO_ComStartFlag==1)&&(byte ptr es:[bx-1]<9ah)&&(byte ptr cs:[UC_Step_work]!=0))
+
+			XCHG	BX,DX			;
+			push	dx
+
+			mov	dl,cs:[bx]		;1文字表示
+			mov	ah,02h			;
+			int	21h			;
+
+			mov	dl,cs:[bx+1]		;
+			.if	(dl=='+')
+				inc	bx		;1
+				mov	ah,02h		;
+				int	21h		;文字表示
+			.endif
+			mov	dl,'%'
+			mov	ah,02h			;
+			int	21h			;
+
+			mov	ah,byte ptr cs:[UC_Step_work]
+			call	hex2asc8
+			mov	ah,09h
+			int	21h			;
+
+			mov	byte ptr cs:[UC_Step_work],0
+
+			pop	dx			;
+			XCHG	BX,DX			;
+
+		.else
+
+			PUSH	DX			;
+			MOV	AH,09H			;表示
+			INT	21H			;
+			POP	DX			;
+
+		.endif
+
+		.repeat
+			XCHG	BX,DX			;
+			MOV	AL,CS:[BX]		;変換情報読み込み
+			INC	BX			;
+			XCHG	BX,DX			;
+		.until	(al=='$')
+
+	;次の音符が、タイ付きか検索する。
+	.elseif	(al==21h)
+
+		PUSH	BX			;
+		PUSH	DX			;
+
+		.repeat
+
+		XOR	AX,AX			;
+		MOV	AL,ES:[BX]		;データ読み込み　曲
+		MOV	DX,OFFSET UCMO_COMMAND_SIZE
+		ADD	DX,AX			;
+		XCHG	BX,DX			;
+		MOV	AL,CS:[BX]		;データ読み込み　解析情報
+		XCHG	BX,DX			;
+
+		.if	(al==0)			;０：解析終了（音符 or 休符）
+			.if	(byte ptr cs:[UC_portamento_D]!=0)
+				mov	dl,'B'		;
+				mov	ah,02h		;
+				int	21h		;
+				mov	dl,'S'		;
+				mov	ah,02h		;
+				int	21h		;
+				mov	ax,0		;
+				mov	ah,byte ptr cs:[UC_Detune_D]	;
+				mov	byte ptr cs:[UC_portamento_D],0
+				CALL	HEX2ASC8	;出力
+				MOV	AH,09H		;
+				INT	21H		;ピッチベンドのリセット
+			.endif
+			.break
+
+		.elseif	(al==8)			;８：解析終了（End of Channel）
+ifdef	ff7	;------------------------
+			.break
+endif	;--------------------------------
+ifdef	ff8	;------------------------
+			MOV	AX,ES:[BX]
+
+			.if	(ax==006FEh)
+				.break
+			.elseif	((ax==004FEh)||(ax==01DFEh)||(ax==01EFEh)||(ax==01FFEh))
+				add	bx,2
+			.elseif	((ax==010FEh)||(ax==014FEh)||(ax==01CFEh))
+				add	bx,3
+			.elseif	((ax==007FEh)||(ax==009FEh))
+				add	bx,5
+			.else
+				add	bx,4
+			.endif
+endif	;--------------------------------
+
+		.elseif	(al==9)			;９：次の音程とタイで繋ぐ。
+			mov	dl,'&'		;
+			mov	ah,02h		;
+			int	21h		;
+			.break
+
+		.else				;その他のケースは、加算
+			MOV	AH,0		;
+			ADD	BX,AX		;
+
+		.endif
+
+		.until	0
+
+		POP	DX			;
+		POP	BX			;
+
+
+	.elseif	(al==24h)
+		;次の1Byteを出力する。
+		XCHG	BX,DX			;
+		PUSH	DX			;
+		MOV	AH,02H			;
+		MOV	DL,CS:[BX]		;表示情報読み込み
+		INT	21H			;表示
+		INC	BX			;
+		POP	DX			;
+		XCHG	BX,DX			;
+
+	.elseif	(al==0f0h)
+		;ポインタを進めるだけ
+		INC	BX			;ポインタインクリメント
+
+	.elseif	(al==0ffh)
+		;次のwordに示されるAddressをcallする。
+		PUSH	DX			;
+		PUSH	BX			;
+		MOV	BX,DX			;
+		MOV	DX,CS:[BX]		;
+		POP	BX			;
+		CALL	DX			;
+		POP	DX			;
+
+		INC	DX			;
+		INC	DX			;
+
+		.break	.if	(byte ptr cs:[c_Command_EoC]==01h)
+
+	.else
+		;その他のコードが出てきたら、そのチャンネルの逆MML終了
+		mov	byte ptr cs:[c_Command_EoC],01h
+		.break
+
+	.endif
+
+	mov	UCMO_ComStartFlag,0
+
+	.endw
+
+	ret
+c_decode	endp
 ;---------------------------------------------------------------|
 ;		ＭＭＬ出力部					|
 ;---------------------------------------------------------------|
@@ -411,77 +682,26 @@ UC_PART_ASC	DB	'0A	$'	;1ch
 		DB	'1H	$'	;14ch
 		DB	'2H	$'	;15ch
 		DB	'3H	$'	;16ch
-;
-;			検索情報
-;	0　	( Search End )
-;	1-4	Address Add
-;	8	If 0FE06h THEN Search END
-;	9	Output '&$' ( and Search END )
-;
-UCMO_COMMAND_SIZE:				;
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;00h-0Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;10h-1Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;20h-2Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;30h-3Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;40h-4Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;50h-5Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;60h-6Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;70h-7Fh
-	DB	0,0,0,0, 9,9,9,9, 9,9,9,9, 9,9,9,0	;80h-8Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,1,1, 1,1,1,1	;90h-9Fh
-	DB	0,2,2,2, 3,2,1,1, 2,3,2,3, 2,2,2,2	;A0h-AFh
-	DB	3,2,2,1, 4,2,1,2, 4,2,1,2, 3,2,1,2	;B0h-BFh
-	DB	2,2,1,1, 1,1,1,1, 1,2,1,1, 1,1,1,1	;C0h-CFh
-	DB	1,1,2,2, 1,1,1,1, 2,2,2,1, 2,3,3,3	;D0h-DFh
-ifdef	ff7	;------------------------
-	DB	1,1,1,1, 1,1,1,1, 3,4,3,4, 3,1,8,4	;E0h-EFh
-	DB	4,4,2,1, 3,1,2,3, 2,2,1,1, 3,3,3,1	;F0h-FFh
-endif	;--------------------------------
-ifdef	ff8	;------------------------
-	DB	1,1,1,1, 1,1,3,1, 1,1,1,1, 1,1,1,1	;E0h-EFh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 9,0,8,1	;F0h-FFh
-endif	;--------------------------------
-UCMO_ComStartFlag:
-	db	0
-UCMO_TAI_OUTPUT:			;
-	DB	'&$'			;
 UCMO_LOOP_OUTPUT:			;
 	DB	'/*L1*/[$'		;
 UCMO_LOOP_OUTPUT2:			;
 	DB	'/*L2*/[$'		;
 
+c_Command_EoC	db	?		;End of Channel
 
-UC_MML_OUTPUT	proc	near		;
+UC_MML_OUTPUT	proc	near		;proc にはしない。
+
+;---------------------------------------
 	MOV	CL,CS:[UC_PART]		;CL←使用パート数
-;	mov	cl,32
 	MOV	CH,0			;CH←現在のパート
 
-UCMO_L00:				;
+	;チャンネル毎のdo～while()文
+	.while	(cl!=ch)
+
 	push	cx			;
 
 	call	UC_INIT			;変数初期化
 
-;	mov	dx,0000h		;
-;	mov	ax,0001h		;dx:axで、32bit幅とする。
-
-UCMO_L00_0:				;当該パートがあるかチェック
-;	cmp	ch,0			;
-;	jz	UCMO_L00_1		;
-;	shl	ax,1			;
-;	rcl	dx,1			;
-;	dec	ch			;cxの数だけループ
-;	jmp	UCMO_L00_0		;
-
-UCMO_L00_1:
-;	pop	cx			;
-;	PUSH	CX			;
-;	test	word ptr es:[PARTF_ADDRESS+0],ax
-;	jnz	UCMO_L00_2		;
-;	test	word ptr es:[PARTF_ADDRESS+2],dx
-;	jnz	UCMO_L00_2		;
-;	jmp	UCMO_LQQ		;無かったら、次のパートへゴー
-
-UCMO_L00_2:
 	XOR	DX,DX			;
 	MOV	DL,CH			;
 	SHL	DX,1			;
@@ -499,288 +719,35 @@ UCMO_L00_2:
 	ADD	BX,AX			;BX←演奏アドレス
 
 	CALL	UCMO_LOOP_SEARCH	;
-UCMO_L01:
-	mov	byte ptr cs:[UCMO_ComStartFlag],1
 
-	MOV	AX,CS:[UCMOLS_LOOP_ADDRESS]	;ループアドレスリセット
-	CMP	AX,BX				;同一？
-	JNZ	UCMO_L01_1			;
-	MOV	DX,OFFSET UCMO_LOOP_OUTPUT	;
-	MOV	AH,09H				;
-	INT	21H				;
-UCMO_L01_1:
-	cmp	cs:[UCMOLS_LOOP_flag],01h	;
-	jnz	UCMO_L01_2
-	MOV	AX,CS:[UCMOLS_LOOP_ADDRESS2]	;ループアドレスリセット
-	CMP	AX,BX				;同一？
-	JNZ	UCMO_L01_2			;
-	MOV	DX,OFFSET UCMO_LOOP_OUTPUT2	;
-	MOV	AH,09H				;
-	INT	21H				;
-UCMO_L01_2:
-	XOR	AX,AX			;
-	MOV	AL,ES:[BX]		;データ読み込み
-	INC	BX			;ポインタインクリメント
-	SHL	AX,1			;
-	PUSH	BX			;
-	MOV	BX,OFFSET UC_DATA_ADDRESS
-	ADD	BX,AX			;BX←変換情報アドレス格納アドレス
-	MOV	DX,CS:[BX]		;DX←変換情報アドレス
-	POP	BX			;
-	jmp	UCMO_L03
-UCMO_L02:
-	mov	byte ptr cs:[UCMO_ComStartFlag],0
-UCMO_L03:
-	XCHG	BX,DX			;
-	MOV	AL,CS:[BX]		;変換情報読み込み
-	INC	BX			;
-	XCHG	BX,DX			;
+;---------------------------------------
 
-	CMP	AL,00h			
-	JZ	UCMO_L01		
-UCML_L10:
-	CMP	AL,10h			
-	JNZ	UCMO_L11		
-	PUSH	DX			;
-	MOV	AH,ES:[BX]		;データ読み込み
-	INC	BX			;ポインタインクリメント
-	CALL	HEX2ASC8		
-	MOV	AH,09H			
-	INT	21H			
-	POP	DX			;
-	JMP	UCMO_L02		
-UCMO_L11:
-	CMP	AL,11h			
-	JNZ	UCMO_L12		
-	PUSH	DX			;
-	MOV	AH,ES:[BX]		;データ読み込み
-	INC	BX			;ポインタインクリメント
-	CALL	FH2A8			
-	MOV	AH,09H			
-	INT	21H			
-	POP	DX			;
-	JMP	UCMO_L02		
-UCMO_L12:
-	CMP	AL,12h			
-	JNZ	UCMO_L13		
-	PUSH	DX
-	MOV	AX,ES:[BX]		;データ読み込み
-	INC	BX			;ポインタインクリメント
-	INC	BX			;ポインタインクリメント
-	CALL	HEX2ASC16		
-	MOV	AH,09H			
-	INT	21H			
-	POP	DX			;
-	JMP	UCMO_L02		
-UCMO_L13:
-	CMP	AL,13h			
-	JNZ	UCMO_L20		
-	PUSH	DX			;
-	MOV	AX,ES:[BX]		;データ読み込み
-	INC	BX			;ポインタインクリメント
-	INC	BX			;ポインタインクリメント
-	CALL	FH2A16			
-	MOV	AH,09H			
-	INT	21H			
-	POP	DX			;
-	JMP	UCMO_L02		
-UCMO_L20:
-	CMP	AL,20h			;
-	JNZ	UCMO_L21		;
+	mov	byte ptr cs:[c_Command_EoC],00h
 
-	cmp	byte ptr cs:[UCMO_ComStartFlag],1
-	jnz	UCMO_L20_2
+	;"End of Channel"が来るまでのwhile()文	
+	.while	(byte ptr cs:[c_Command_EoC]==00h)
 
-	;----------------------------------------
-	mov	ah,es:[bx-1]		;コマンドが0x9A未満だったら
-	cmp	ah,9ah			;
-	jnc	UCMO_L20_2		;
+		;無限ループの開始点であるかチェック
+		MOV	AX,CS:[UCMOLS_LOOP_ADDRESS]	;ループアドレス同一？
+		.if	(ax==bx)			;
+			MOV	DX,OFFSET UCMO_LOOP_OUTPUT
+			MOV	AH,09H			;
+			INT	21H			;
+		.endif
+		MOV	AX,CS:[UCMOLS_LOOP_ADDRESS2]	;ループアドレス同一？
+		.if	((ax==bx)&&(cs:[UCMOLS_LOOP_flag]==01h))
+			MOV	DX,OFFSET UCMO_LOOP_OUTPUT2
+			MOV	AH,09H			;
+			INT	21H			;
+		.endif
 
-	mov	ah,byte ptr cs:[UC_Step_work]
-	cmp	ah,0			;音長設定の有無チェック
-	jz	UCMO_L20_2		;
+		call	c_decode
 
-	XCHG	BX,DX			;
-	push	dx
+	.endw
 
-	mov	dl,cs:[bx]		;1文字表示
-	mov	ah,02h			;
-	int	21h			;
+;---------------------------------------
+;チャンネルの終了
 
-	mov	dl,cs:[bx+1]		;
-	cmp	dl,'+'			;
-	jnz	UCMO_L20_sharp		;
-	inc	bx			;1文字表示
-	mov	ah,02h			;
-	int	21h			;
-UCMO_L20_sharp:
-	mov	dl,'%'
-	mov	ah,02h			;
-	int	21h			;
-
-	mov	ah,byte ptr cs:[UC_Step_work]
-	call	hex2asc8
-	mov	ah,09h
-	int	21h			;
-
-	mov	byte ptr cs:[UC_Step_work],0
-
-	pop	dx			;
-	XCHG	BX,DX			;
-
-	jmp	UCMO_L20_1
-	;----------------------------------------
-UCMO_L20_2:
-	PUSH	DX			;
-	MOV	AH,09H			;表示
-	INT	21H			;
-	POP	DX			;
-UCMO_L20_1:
-	XCHG	BX,DX			;
-	MOV	AL,CS:[BX]		;変換情報読み込み
-	INC	BX			;
-	XCHG	BX,DX			;
-	CMP	AL,'$'			;
-	JNZ	UCMO_L20_1		;
-	JMP	UCMO_L02		;
-UCMO_L21:
-	CMP	AL,21h			;
-	JZ	UCMO_L21_0		;
-	JMP	UCMO_L24		;
-UCMO_L21_0:				;
-	PUSH	BX			;
-	PUSH	DX			;
-UCMO_L21_1:				;
-	XOR	AX,AX			;
-	MOV	AL,ES:[BX]		;データ読み込み　曲
-	MOV	DX,OFFSET UCMO_COMMAND_SIZE
-	ADD	DX,AX			;
-	XCHG	BX,DX			;
-	MOV	AL,CS:[BX]		;データ読み込み　解析情報
-	XCHG	BX,DX			;
-	CMP	AL,0			;０：解析終了
-	JZ	UCMO_L21_e_reset		;
-	CMP	AL,9			;９：次の音程とタイで繋ぐ。
-	JNZ	UCMO_L21_2		;
-	MOV	DX,OFFSET UCMO_TAI_OUTPUT
-	MOV	AH,09H			;
-	INT	21H			;
-	JMP	UCMO_L21_E		;
-UCMO_L21_e_reset:			;ソフトエンベロープリセット
-
-	cmp	byte ptr cs:[UC_portamento_D],0
-	jz	UCMO_L21_e_reset_01		;
-	mov	dl,'B'				;
-	mov	ah,02h				;
-	int	21h				;
-	mov	dl,'S'				;
-	mov	ah,02h				;
-	int	21h				;
-	mov	ax,0				;
-	mov	ah,byte ptr cs:[UC_Detune_D]	;
-;	add	ah,byte ptr cs:[UC_portamento_D]
-	mov	byte ptr cs:[UC_portamento_D],0
-	CALL	HEX2ASC8			;出力
-	MOV	AH,09H				;
-	INT	21H				;ピッチベンドのリセット
-UCMO_L21_e_reset_01:			;
-	jmp	UCMO_L21_E		;
-
-
-UCMO_L21_2:				;
-	CMP	AL,8			;
-	JNZ	UCMO_L21_3		;8じゃなかったら、bx加算処理へ。
-ifdef	ff7	;------------------------
-	jmp	UCMO_L21_E		;ff7は、無条件で終わり
-endif	;--------------------------------
-ifdef	ff8	;------------------------
-	MOV	AX,ES:[BX]		;
-	CMP	AX,006FEH		;
-	JZ	UCMO_L21_E		;
-
-	cmp	ax,004FEh		;
-	jz	UCMO_L21_2_2		;
-	cmp	ax,01dFEh		;
-	jz	UCMO_L21_2_2		;
-	cmp	ax,01eFEh		;
-	jz	UCMO_L21_2_2		;
-	cmp	ax,01fFEh		;
-	jz	UCMO_L21_2_2		;
-
-	cmp	ax,010FEh		;
-	jz	UCMO_L21_2_3		;
-	cmp	ax,014FEh		;
-	jz	UCMO_L21_2_3		;
-	cmp	ax,01CFEh		;
-	jz	UCMO_L21_2_3		;
-
-	cmp	ax,007FEh		;
-	jz	UCMO_L21_2_5		;
-	cmp	ax,009FEh		;
-	jz	UCMO_L21_2_5		;
-
-	JMP	UCMO_L21_2_4		;
-
-UCMO_L21_2_2:				;
-	ADD	BX,2			;04h,1fh
-	JMP	UCMO_L21_1		;
-
-UCMO_L21_2_3:				;14h
-	ADD	BX,3			;
-	JMP	UCMO_L21_1		;
-
-UCMO_L21_2_4:				;other
-	ADD	BX,4			;
-	JMP	UCMO_L21_1		;
-
-UCMO_L21_2_5:				;07h,09h
-	ADD	BX,5			;
-	JMP	UCMO_L21_1		;
-endif	;--------------------------------
-
-
-
-UCMO_L21_3:				;
-	MOV	AH,0			;
-	ADD	BX,AX			;
-	JMP	UCMO_L21_1		;
-UCMO_L21_E:				;
-	POP	DX			;
-	POP	BX			;
-	JMP	UCMO_L02		;
-UCMO_L24:
-	CMP	AL,24h			;
-	JNZ	UCMO_LF0		;
-	XCHG	BX,DX			;
-	PUSH	DX			;
-	MOV	AH,02H			;
-	MOV	DL,CS:[BX]		;表示情報読み込み
-	INT	21H			;表示
-	INC	BX			;
-	POP	DX			;
-	XCHG	BX,DX			;
-	JMP	UCMO_L02		;
-UCMO_LF0:
-	CMP	AL,0F0h			
-	JNZ	UCMO_LFF		
-	INC	BX			;ポインタインクリメント
-	JMP	UCMO_L02		;
-UCMO_LFF:
-	CMP	AL,0FFh			;
-	JNZ	UCMO_LQQ		;
-
-	PUSH	DX			;
-	PUSH	BX			;
-	MOV	BX,DX			;
-	MOV	DX,CS:[BX]		;
-	POP	BX			;
-	CALL	DX			;
-	POP	DX			;
-
-	INC	DX			;
-	INC	DX			;
-	JMP	UCMO_L02		;
-UCMO_LQQ:
 	MOV 	DX,OFFSET UC_CR		;
 	MOV	AH,09H	 		;
 	INT	21H			;改行
@@ -790,10 +757,11 @@ UCMO_LQQ:
 
 	POP	CX			;
 	INC	CH			;パート番号インクリメント
-	CMP	CL,CH			;パート終了？
-	JZ	UCMO_END		;
-	JMP	UCMO_L00		;
-UCMO_END:				;
+
+	.endw
+
+;---------------------------------------
+c_Command_END:				;
 	RET				;RETURN
 UC_MML_OUTPUT	endp
 ;---------------------------------------------------------------|
@@ -859,14 +827,19 @@ UCMOL_2:
 	CMP	AL,8			;
 	JNZ	UCMOL_3			;
 ifdef	ff7	;------------------------
+	mov	dx,bx			;
 	ADD	BX,1			;
 	MOV	AX,ES:[BX]		;
 	ADD	bx,2			;
-	TEST	AX,AX			;
-	JZ	UCMOL_EE		;If AX=0 Then Return
-	ADD	AX,BX			;AX←ループ先アドレス
-	MOV	BX,AX			;BX←AX
-	jmp	UCMOL_E3		;
+
+	jmp	UCMOL_E0
+
+;	TEST	AX,AX			;
+;	JZ	UCMOL_EE		;If AX=0 Then Return
+;	ADD	AX,BX			;AX←ループ先アドレス
+;	MOV	BX,AX			;BX←AX
+;	jmp	UCMOL_E3		;
+
 endif	;--------------------------------
 ifdef	ff8	;------------------------
 	MOV	AX,ES:[BX]		;
@@ -930,6 +903,8 @@ UCMOL_E:				;
 	MOV	DX,BX				;DX←FE06hコマンドのアドレス
 	ADD	BX,2				;
 	MOV	AX,ES:[BX]			;
+
+UCMOL_E0:
 	TEST	AX,AX				;
 	JZ	UCMOL_EE			;If AX=0 Then Return
 	ADD	AX,BX				;AX←ループ先アドレス

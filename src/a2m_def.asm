@@ -21,6 +21,36 @@ MUSIC_ADDRESS	EQU	0040H
 MUSIC_ADDRESSa	equ	0
 endif	;--------------------------------
 
+;
+;			検索情報
+;	0　	( Search End )
+;	1-4	Address Add
+;	8	If 0FE06h THEN Search END
+;	9	Output '&$' ( and Search END )
+;
+UCMO_COMMAND_SIZE:				;
+	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;00h-0Fh
+	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;10h-1Fh
+	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;20h-2Fh
+	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;30h-3Fh
+	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;40h-4Fh
+	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;50h-5Fh
+	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;60h-6Fh
+	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;70h-7Fh
+	DB	0,0,0,0, 9,9,9,9, 9,9,9,9, 9,9,9,0	;80h-8Fh
+	DB	0,0,0,0, 0,0,0,0, 0,0,1,1, 1,1,1,1	;90h-9Fh
+	DB	0,2,2,2, 3,2,1,1, 2,3,2,3, 2,2,2,2	;A0h-AFh
+	DB	3,2,2,1, 4,2,1,2, 4,2,1,2, 3,2,1,2	;B0h-BFh
+	DB	2,2,1,1, 1,1,1,1, 1,2,1,1, 1,1,1,1	;C0h-CFh
+	DB	1,1,2,2, 1,1,1,1, 2,2,2,1, 2,3,3,3	;D0h-DFh
+ifdef	ff7	;------------------------
+	DB	1,1,1,1, 1,1,1,1, 3,4,3,4, 3,1,8,4	;E0h-EFh
+	DB	4,4,2,1, 3,1,2,3, 2,2,1,1, 3,3,3,1	;F0h-FFh
+endif	;--------------------------------
+ifdef	ff8	;------------------------
+	DB	1,1,1,1, 1,1,3,1, 1,1,1,1, 1,1,1,1	;E0h-EFh
+	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 9,0,8,1	;F0h-FFh
+endif	;--------------------------------
 
 ;************************************************************************
 ;*									*
@@ -619,7 +649,9 @@ UC_DF8	DB	' /*F8,$',010h,' */$',00h	;不明
 UC_DF9	DB	' /*F9,$',010h,' */$',00h	;不明
 UC_DFA	DB	' /*FA*/$',80h,00h
 UC_DFB	DB	' /*FB*/$',80h,00h
-UC_DFC	DB	' /*FC,$',010h,' ,$',010h,' */$',00h	;不明
+UC_DFC	DB	0FFh				;拡張音色
+	DW	offset UC_VoiceEx		;
+	DB	00h				;
 UC_DFD	DB	0ffh				;拍子
 	dw	offset UC_Beat			;
 	db	0				;
@@ -705,7 +737,9 @@ UC_INIT		endp
 ;
 ;		音色マクロ変換　（まだ暫定的に'@0x' を出力）
 ;
+ifdef	ff8	;------------------------
 UC_VOICE	DB	64	DUP	(0FFh)	
+endif	;--------------------------------
 UC_VOICE_NAME:	
 ifdef	ff7	;------------------------
 		DB	'0c$','1c$','2c$','3c$','4c$','5c$','6c$','7c$','8c$','9c$'
@@ -749,35 +783,33 @@ ifdef	ff7	;------------------------
 	add	dx,ax				;DX←Address + ax *3
 endif	;--------------------------------
 ifdef	ff8	;------------------------
-	XOR	BX,BX				;BX←0
-UC_VOICE_OUTPUT_L1:				;
-	MOV	AH,CS:[UC_VOICE + BX]		;使用登録済み音色読み込み
-	CMP	AH,0FFh				;登録情報終了検査
-	JZ	UC_VOICE_OUTPUT_L2		;
-	
-	CMP	AH,AL				;音色一致検査
-	JZ	UC_VOICE_OUTPUT_L3		;存在した。
-	INC	BX				;
-	JMP	UC_VOICE_OUTPUT_L1		;
 
-UC_VOICE_OUTPUT_L2:				;
-	MOV	CS:[UC_VOICE + BX],AL		;登録
+	xor	bx,bx				;BX←0
+	.repeat
+	   mov	ah,cs:[UC_VOICE + BX]		;使用登録済み音色読み込み
+	   .if	(ah==0ffh)
+		MOV	CS:[UC_VOICE + BX],AL	;登録
+		.break
+	   .elseif	(ah==al)
+		.break
+	   .endif
 
-UC_VOICE_OUTPUT_L3:				;表示
-	ADD	DX,BX				;
-	ADD	DX,BX				;
-	ADD	DX,BX				;DX←Address + BX *3
+	   inc	bx
+	.until	0
+
+	add	dx,bx				;
+	add	dx,bx				;
+	add	dx,bx				;DX←Address + BX *3
 endif	;--------------------------------
 
 	MOV	AH,09H				;
 	INT	21H				;
 
-UC_VOICE_OUTPUT_LE:				;終わり
-	POP	DX				;
+	POP	DX				;終わり
 	POP	CX				;
 	POP	BX				;
-	RET					;
 
+	RET					;
 UC_VOICE_OUTPUT	endp
 ;===============================================================
 ;	0xA2	次の音符・休符の音長
@@ -1456,57 +1488,53 @@ UC_PercussionOff	endp
 ;===============================================================
 UCDFF_M06_1	DB	']2/*L*/$'
 UCDFF_M06_2	DB	']1/*L*/$'
-UCDFF_M06_bx	Dw	0
 
 UC_PermanentLoop	proc	near
-UCDFF_L06_1:			;
-	cmp	word ptr cs:[UC_LoopCountData],0
-	jz	UCDFF_L06_1_LoopOk
-	mov	dx,offset UCDFF_M06_2
-	mov	ah,09h		;
-	int	21h		;
-	dec	word ptr cs:[UC_LoopCountData]
-	jmp	UCDFF_L06_1	;
-UCDFF_L06_1_LoopOk:		;
-	mov	ax,bx		;
-	mov	cs:[UCDFF_M06_bx],ax
-	MOV	AX,ES:[BX]	;
-	TEST	AX,AX		;
-	JNZ	UCDFF_L06_4	;
-	JMP	UCDFF_L06_3	;
-UCDFF_L06_4:			
-	ADD	BX,AX		;BX←ループ先アドレス
-	MOV	AX,CS:[UCMOLS_LOOP_ADDRESS]	;検索したループ先アドレス
-;	CMP	AX,BX		;同一
-;	JZ	UCDFF_L06_2	;
-;	RET			;でないならば、ジャンプ
-UCDFF_L06_2:			;
-	TEST	AX,AX		;
-	JZ	UCDFF_L06_3	;
-	MOV	DX,OFFSET UCDFF_M06_1
-	MOV	AH,09H		;
-	INT	21H		;
 
-ifdef	ff8	;------------------------
-	cmp	byte ptr cs:[UCMOLS_LOOP_flag2],01h	;
-	jnz	UCDFF_L06_3
-	mov	byte ptr cs:[UCMOLS_LOOP_flag2],00h	;
-;	mov	ax,cs:[UCDFF_M06_bx]
-;	mov	bx,ax
-;	add	bx,2
 
-	mov	bx,word ptr cs:[UCDFF_M07_Adr]		;条件ジャンプ先にゴー
+	local	tmp_bx:word
 
-	ret
+	mov	tmp_bx,bx
+
+	mov	byte ptr cs:[c_Command_EoC],01h		;デフォルトは、終わる
+
+	;-----------------------
+	;有限ループが残ってる場合、解消する
+	.while	(word ptr cs:[UC_LoopCountData]!=0)
+		mov	dx,offset UCDFF_M06_2
+		mov	ah,09h		;
+		int	21h		;
+		dec	word ptr cs:[UC_LoopCountData]
+	.endw
+
+	;-----------------------
+	;無限ループ処理
+	mov	ax,es:[bx]		;ax←ループ先
+	add	bx,ax			;bx←ループ先アドレス
+ifdef	ff7	;------------------------
+	add	bx,+2
 endif	;--------------------------------
 
-UCDFF_L06_3:			;
-	POP	DX		;ダミー
-	XCHG	BX,DX		;今更ながら、数年前のソースって
-	MOV	BX,SP		;すごいことしてるなぁ～。
-	MOV	AX,OFFSET UCMO_LQQ	;	by 2008年 秋
-	MOV	SS:[BX],AX	;
-	XCHG	BX,DX		;スタックを"UCMO_LQQ"に書き換え。
+	.if	(ax!=0)
+		mov	ax,cs:[UCMOLS_LOOP_ADDRESS2]	;
+		mov	dx,ax				;検索したループ先アドレス2
+		mov	ax,cs:[UCMOLS_LOOP_ADDRESS]	;検索したループ先アドレス1
+		.if	((bx==ax)||(bx==dx))
+			MOV	DX,OFFSET UCDFF_M06_1
+			MOV	AH,09H		;
+			INT	21H		;
+ifdef	ff8	;------------------------
+			.if	(byte ptr cs:[UCMOLS_LOOP_flag2]==01h)	;
+				mov	byte ptr cs:[UCMOLS_LOOP_flag2],00h
+				mov	bx,word ptr cs:[UCDFF_M07_Adr]	;条件ジャンプ先にゴー
+				mov	byte ptr cs:[c_Command_EoC],00h	;終わらないからリセット
+			.endif
+endif	;--------------------------------
+		.else	;無限ループ先と違う場合
+			mov	byte ptr cs:[c_Command_EoC],00h	;終わらないからリセット
+		.endif
+	.endif
+
 	RET			;RET命令で、↑に戻る。（チャンネル終了）
 UC_PermanentLoop	endp
 ;===============================================================
@@ -1539,6 +1567,81 @@ UC_ExitLoop		proc	near
 
 	ret			;
 UC_ExitLoop		endp
+;===============================================================
+;	0xFC	拡張音色
+;===============================================================
+ifdef	ff7	;------------------------
+UC_VoiceExWork	dw	16	DUP	(0FFFFh)
+endif	;--------------------------------
+
+UC_VoiceEx_Name	DB	'0a$'			;音色マクロ名
+		DB	'1a$'
+		DB	'2a$'
+		DB	'3a$'
+		DB	'4a$'
+		DB	'5a$'
+		DB	'6a$'
+		DB	'7a$'
+		DB	'0b$'
+		DB	'1b$'
+		DB	'2b$'
+		DB	'3b$'
+		DB	'4b$'
+		DB	'5b$'
+		DB	'6b$'
+		DB	'7b$'
+
+UC_VoiceEx	proc	near
+
+	PUSH	DX				;
+
+	MOV	DL,24H		;'$'の出力
+	MOV	AH,02H		;
+	INT	21H		;
+
+ifdef	ff7	;------------------------
+	mov	ax,es:[bx]			;ax←データ読み込み
+	inc	bx
+	inc	bx
+	add	ax,bx
+	mov	dx,ax				;cx←音色のアドレス
+
+	PUSH	BX				;
+	xor	bx,bx				;BX←0
+	.repeat
+	   mov	ax,cs:[UC_VoiceExWork + BX]		;使用登録済み音色読み込み
+	   .if	(ax==0ffffh)
+		MOV	CS:[UC_VoiceExWork + BX],dx	;登録
+		.break
+	   .elseif	(ax==dx)
+		.break
+	   .endif
+
+	   inc	bx
+	   inc	bx
+	.until	0
+	mov	ax,bx
+	shr	ax,1
+	POP	BX
+endif	;--------------------------------
+
+ifdef	ff8	;------------------------
+	XOR	AX,AX
+	MOV	AL,ES:[BX]
+	INC	BX
+endif	;--------------------------------
+
+	MOV	DX,OFFSET UC_VoiceEx_Name	;
+	ADD	dx,ax				;
+	ADD	dx,ax				;
+	ADD	dx,ax				;
+	MOV	AH,09H				;マクロ番号表示
+	INT	21H				;
+
+	POP	DX				;終わり
+
+	ret					;
+UC_VoiceEx	endp
 ;===============================================================
 ;	0xFD	拍子
 ;===============================================================
@@ -1723,38 +1826,10 @@ UCDFF_L10_1:
 ;---------------------------------------
 ;	0x14	音色
 ;---------------------------------------
-UCDFF_M14_1	DB	'0a$'			;音色マクロ名
-		DB	'1a$'
-		DB	'2a$'
-		DB	'3a$'
-		DB	'4a$'
-		DB	'5a$'
-		DB	'6a$'
-		DB	'7a$'
-		DB	'0b$'
-		DB	'1b$'
-		DB	'2b$'
-		DB	'3b$'
-		DB	'4b$'
-		DB	'5b$'
-		DB	'6b$'
-		DB	'7b$'
 UCDFF_L14:
 	CMP	AL,14h		;音色
-	JNZ	UCDFF_L15	;
-	MOV	DL,24H		;'$'の出力
-	MOV	AH,02H		;
-	INT	21H		;
-	XOR	AX,AX		;
-	MOV	AL,ES:[BX]	;
-	INC	BX		;
-	MOV	DX,OFFSET UCDFF_M14_1
-	ADD	DX,AX		;
-	ADD	DX,AX		;
-	ADD	DX,AX		;
-	MOV	AH,09H		;マクロ番号表示
-	INT	21H		;
-	RET			;
+	jnz	UCDFF_L15	;
+	jmp	UC_VoiceEx
 ;---------------------------------------
 ;	0x15
 ;---------------------------------------
