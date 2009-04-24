@@ -4,394 +4,301 @@
 ;*									*
 ;************************************************************************
 ;---------------------------------------------------------------|
-;		逆ＭＭＬ部メインルーチン			|
-;---------------------------------------------------------------|
-UN_MML_COMPAILE	proc	near	;
-	CALL	UC_START	;初期設定
-	CALL	UC_MML_OUTPUT	;ＭＭＬ出力部
-	CALL	UC_Instrument	;後期設定
-	RET			;RETURN
-UN_MML_COMPAILE	endp
-;---------------------------------------------------------------|
-;		初期変換					|
+;		音長出力					|
 ;---------------------------------------------------------------|
 ;	処理							|
-;	１．タイトル、作曲、タイムベースの表示			|
-;	２．データ解析						|
-;		(1) 使用パート数				|
+;		音長（～～分音符）と、				|
+;		それに、付点が何個付くかを計算する。		|
+;	引数							|
+;		ax	音長					|
+;	コメント						|
+;		昔書いたこのアルゴリズムだが、			|
+;		最近見たら、何やってるのか解らなかったぜ。	|
+;		ちゃんと、コメント書いておいた。		|
+;		＆Ｃ言語ライクに書き直した			|
 ;---------------------------------------------------------------|
-MML2MID_HED:
-	DB	'#title     ""',0dh,0ah
-	DB	'#copyright "(c)SQUARE"',0dh,0ah
-	db	0dh,0ah
-;ifdef	ff8	;------------------------
-;	DB	'#timebase 48',0dh,0ah
-;	DB	0dh,0ah
-;	DB	0dh,0ah
-;	DB	'0A	EX x41,x10,x42,x12,{x40,x00,x7f,x00},xf7	BT4,4',0DH,0AH
-;	DB	0dh,0ah
-;	DB	'0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D'
-;	DB	'0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	r1',0DH,0AH
-;	DB	0dh,0ah
-;	DB	'0A			C1 ',0Dh,0ah
-;	DB	'1A			C2 ',0Dh,0ah
-;	DB	'2A			C3 ',0Dh,0ah
-;	DB	'3A			C4 ',0Dh,0ah
-;	DB	'0B			C5 ',0Dh,0ah
-;	DB	'1B			C6 ',0Dh,0ah
-;	DB	'2B			C7 ',0Dh,0ah
-;	DB	'3B			C8 ',0Dh,0ah
-;	DB	'0C			C9 ',0Dh,0ah
-;	DB	'1C			C10',0Dh,0Ah
-;	DB	'2C			C11',0Dh,0ah
-;	DB	'3C			C12',0Dh,0ah
-;	DB	'0D			C13',0Dh,0ah
-;	DB	'1D			C14',0Dh,0ah
-;	DB	'2D			C15',0Dh,0ah
-;	DB	'3D			C16',0Dh,0ah
-;	DB	'0E	EExff,x21,1,1	C1 ',0Dh,0ah
-;	DB	'1E	EExff,x21,1,1	C2 ',0Dh,0ah
-;	DB	'2E	EExff,x21,1,1	C3 ',0Dh,0ah
-;	DB	'3E	EExff,x21,1,1	C4 ',0Dh,0ah
-;	DB	'0F	EExff,x21,1,1	C5 ',0Dh,0ah
-;	DB	'1F	EExff,x21,1,1	C6 ',0Dh,0ah
-;	DB	'2F	EExff,x21,1,1	C7 ',0Dh,0ah
-;	DB	'3F	EExff,x21,1,1	C8 ',0Dh,0ah
-;	DB	'0G	EExff,x21,1,1	C9 ',0Dh,0ah
-;	DB	'1G	EExff,x21,1,1	C10',0Dh,0Ah
-;	DB	'2G	EExff,x21,1,1	C11',0Dh,0ah
-;	DB	'3G	EExff,x21,1,1	C12',0Dh,0ah
-;	DB	'0H	EExff,x21,1,1	C13',0Dh,0ah
-;	DB	'1H	EExff,x21,1,1	C14',0Dh,0ah
-;	DB	'2H	EExff,x21,1,1	C15',0Dh,0ah
-;	DB	'3H	EExff,x21,1,1	C16',0Dh,0ah
-;	DB	0dh,0ah
-;	DB	'0A1A2A3A0B1B2B3B0C1C2C3C0D1D2D3D'
-;	DB	'0E1E2E3E0F1F2F3F0G1G2G3G0H1H2H3H	v127	E127	p64	BR8'
-;endif	;--------------------------------
-	DB	24h
-;
-;MML2MID_HED0:						;全パートを
-;	db	'0z',0dh,0ah				;メロディーにする為。
-;	db	0dh,0ah,24h				;
+timebase	equ	48
+c_output_length	proc	near
 
-MML2MID_HED1:
-;ifdef	ff7	;------------------------
-	db	'8z	@0	/*Instrument of percussion 1z*/'		,0dh,0ah,24h
-;endif	;--------------------------------
-;ifdef	ff8	;------------------------
-;	db	'0z	EX x41,x10,x42,x12,{x40,x10+R,x15,0},xF7	J0'	,0dh,0ah,24h
-;endif	;--------------------------------
-MML2MID_HED2:
-;ifdef	ff7	;------------------------
-	db	'9z	@0	/*Instrument of percussion 2z*/'		,0dh,0ah,24h
-;endif	;--------------------------------
-;ifdef	ff8	;------------------------
-;	db	'1z	EX x41,x10,x42,x12,{x40,x10+R,x15,1},xF7	H0,3	@0'	,0dh,0ah,24h
-;endif	;--------------------------------
-MML2MID_HED3:
-	db	0dh,0ah
-ifdef	ff7	;------------------------
-	DB	'#include "define.mml"',0dh,0ah
-endif	;--------------------------------
-ifdef	ff8	;------------------------
-	DB	'#include "init.mml"',0dh,0ah
-endif	;--------------------------------
-	db	0dh,0ah,24h		;改行は、ff8mmlでも出力する。
+	local	c_output_length_Now:word
 
-UC_START	proc	near
-	MOV	DX,OFFSET MML2MID_HED	;
-	MOV	AH,09H			;
-	INT	21H			;
+	pusha
 
-;ifdef	ff8	;------------------------
-;	mov	dl,24h			;$の表示
-;	mov	ah,02h			;
-;	int	21h			;
-;	MOV	DX,OFFSET MML2MID_HED0	;
-;	MOV	AH,09H			;
-;	INT	21H			;
-;endif	;--------------------------------
+	mov	c_output_length_Now,ax
+	xor	cx,cx			;まず、付点個数＝０
 
-	mov	dl,24h			;$の表示
-	mov	ah,02h			;
-	int	21h			;
-	MOV	DX,OFFSET MML2MID_HED1	;
-	MOV	AH,09H			;
-	INT	21H			;
+	.if	(ax!=0)
 
-	mov	dl,24h			;$の表示
-	mov	ah,02h			;
-	int	21h			;
-	MOV	DX,OFFSET MML2MID_HED2	;
-	MOV	AH,09H			;
-	INT	21H			;
+		.while	(cx<14)
+			mov	bx,0001h		;
+			.if	(cx>0)			;　　　　　　　　　(2^付点の数)
+				shl	bx,cl		;ax = 音長 × ───────────
+			.endif				;　　　　　　　　(2^(付点の数+1)-1)
+			mul	bx			;　　　↑　↑　↑　↑　↑
+			shl	bx,1			;付点を取っ払った場合の音長を計算している。
+			dec	bx			;
+			div	bx			;
 
-	MOV	DX,OFFSET MML2MID_HED3	;
-	MOV	AH,09H			;
-	INT	21H			;
-	
+			.if	(dx==0)			;割り算で、余りがあったら、駄目
+				mov	bx,ax		;
+				xor	dx,dx		;
+				xor	ax,ax		;
+				mov	al,timebase	;
+				shl	ax,2		;
+				div	bx		; (timebase×4)÷音長
+				.if	(dx==0)		;割り算で、余りがあったら、駄目
+					.break
+				.endif
+			.endif
 
-;---------------------------------------
-;	チャンネル数のチェック
+			mov	ax,c_output_length_Now
+			inc	cx			;
 
-;	このアルゴリズムでは、一部の曲で検出不可能。
-;	MOV	AX,ES:[MUSIC_ADDRESS]	;使用パート数
-;	add	ax,MUSIC_ADDRESSa
-;	SHR	AX,1			;AX←AX/2
+		.endw				;付点の数増やしてやり直し。
 
+		.if	(cx==14)		;
+			xor	cx,cx		;bx reset
+			push	ax		;（Stepで指定する。）
+			mov	dl,'%'		;呼ぶ場合は、BX=0とする事
+			mov	ah,02h		;
+			int	21h		;
+			pop	ax		;
+		.endif
 
-;	dword pre es:[PARTF_ADDRESS"]について、
-;	ビットが"Hi"の数をチェックする。＝チャンネル数。
-;	※注意※
-;	ビットが飛び飛びになっていても、
-;	チャンネルデータのヘッダーは飛び飛びにならない。
-
-	push	cx
-
-	mov	cl,0			;Counter
-	mov	ch,32			;パート数最大
-
-	mov	dx,0000h		;
-	mov	ax,0001h		;dx:axで、32bit幅とする。
-
-UC_START_0:
-	test	word ptr es:[PARTF_ADDRESS+0],ax
-	jnz	UC_START_1		;
-	test	word ptr es:[PARTF_ADDRESS+2],dx
-	jnz	UC_START_1		;
-	jmp	UC_START_2
-UC_START_1:
-	inc	cl
-UC_START_2:
-	shl	ax,1			;
-	rcl	dx,1			;
-
-	dec	ch
-	jnz	UC_START_0
-
-	MOV	CS:[UC_PART],cl		;
-
-;	Debug用
-;	mov	ah,cl			;検出チャンネル数を出力
-;	call	hex2asc8		;
-;	mov	ah,09h			;
-;	int	21h			;
-
-	pop	cx
-	RET				;
-UC_START	endp
-;---------------------------------------------------------------|
-;		後期変換					|
-;---------------------------------------------------------------|
-;	処理							|
-;	１．ＭＭＬ出力部でえた音色のマクロ定義文出力		|
-;---------------------------------------------------------------|
-UC_END_VOICE_ADD:
-		DW	OFFSET UCE_VOICE_0A	
-		DW	OFFSET UCE_VOICE_1A	
-		DW	OFFSET UCE_VOICE_2A	
-		DW	OFFSET UCE_VOICE_3A	
-		DW	OFFSET UCE_VOICE_4A	
-		DW	OFFSET UCE_VOICE_5A	
-		DW	OFFSET UCE_VOICE_6A	
-		DW	OFFSET UCE_VOICE_7A	
-		DW	OFFSET UCE_VOICE_0B	
-		DW	OFFSET UCE_VOICE_1B	
-		DW	OFFSET UCE_VOICE_2B	
-		DW	OFFSET UCE_VOICE_3B	
-		DW	OFFSET UCE_VOICE_4B	
-		DW	OFFSET UCE_VOICE_5B	
-		DW	OFFSET UCE_VOICE_6B	
-		DW	OFFSET UCE_VOICE_7B	
-ifdef	ff8	;------------------------
-		DW	OFFSET UCE_VOICE_0C	
-		DW	OFFSET UCE_VOICE_1C	
-		DW	OFFSET UCE_VOICE_2C	
-		DW	OFFSET UCE_VOICE_3C	
-		DW	OFFSET UCE_VOICE_4C	
-		DW	OFFSET UCE_VOICE_5C	
-		DW	OFFSET UCE_VOICE_6C	
-		DW	OFFSET UCE_VOICE_7C	
-		DW	OFFSET UCE_VOICE_0D	
-		DW	OFFSET UCE_VOICE_1D	
-		DW	OFFSET UCE_VOICE_2D	
-		DW	OFFSET UCE_VOICE_3D	
-		DW	OFFSET UCE_VOICE_4D	
-		DW	OFFSET UCE_VOICE_5D	
-		DW	OFFSET UCE_VOICE_6D	
-		DW	OFFSET UCE_VOICE_7D	
-		DW	OFFSET UCE_VOICE_0E	
-		DW	OFFSET UCE_VOICE_1E	
-		DW	OFFSET UCE_VOICE_2E	
-		DW	OFFSET UCE_VOICE_3E	
-		DW	OFFSET UCE_VOICE_4E	
-		DW	OFFSET UCE_VOICE_5E	
-		DW	OFFSET UCE_VOICE_6E	
-		DW	OFFSET UCE_VOICE_7E	
-		DW	OFFSET UCE_VOICE_0F	
-		DW	OFFSET UCE_VOICE_1F	
-		DW	OFFSET UCE_VOICE_2F	
-		DW	OFFSET UCE_VOICE_3F	
-		DW	OFFSET UCE_VOICE_4F	
-		DW	OFFSET UCE_VOICE_5F	
-		DW	OFFSET UCE_VOICE_6F	
-		DW	OFFSET UCE_VOICE_7F	
-endif	;--------------------------------
-
-UCE_VOICE_0A	DB	'0a		k127	y100,2	y101,0	y6,64	H1,3	@48',0dh,0ah,24h
-UCE_VOICE_1A	DB	'1a		k127	y100,2	y101,0	y6,64	H0,3	@1 ',0dh,0ah,24h
-UCE_VOICE_2A	DB	'2a		k127	y100,2	y101,0	y6,64	H0,3	@2 ',0dh,0ah,24h
-UCE_VOICE_3A	DB	'3a		k127	y100,2	y101,0	y6,64	H0,3	@3 ',0dh,0ah,24h
-UCE_VOICE_4A	DB	'4a		k127	y100,2	y101,0	y6,64	H0,3	@4 ',0dh,0ah,24h
-UCE_VOICE_5A	DB	'5a		k127	y100,2	y101,0	y6,64	H0,3	@5 ',0dh,0ah,24h
-UCE_VOICE_6A	DB	'6a		k127	y100,2	y101,0	y6,64	H0,3	@6 ',0dh,0ah,24h
-UCE_VOICE_7A	DB	'7a		k127	y100,2	y101,0	y6,64	H0,3	@7 ',0dh,0ah,24h
-UCE_VOICE_0B	DB	'0b		k127	y100,2	y101,0	y6,64	H0,3	@8 ',0dh,0ah,24h
-UCE_VOICE_1B	DB	'1b		k127	y100,2	y101,0	y6,64	H0,3	@9 ',0dh,0ah,24h
-UCE_VOICE_2B	DB	'2b		k127	y100,2	y101,0	y6,64	H0,3	@10',0dh,0ah,24h
-UCE_VOICE_3B	DB	'3b		k127	y100,2	y101,0	y6,64	H0,3	@11',0dh,0ah,24h
-UCE_VOICE_4B	DB	'4b		k127	y100,2	y101,0	y6,64	H0,3	@12',0dh,0ah,24h
-UCE_VOICE_5B	DB	'5b		k127	y100,2	y101,0	y6,64	H0,3	@13',0dh,0ah,24h
-UCE_VOICE_6B	DB	'6b		k127	y100,2	y101,0	y6,64	H0,3	@14',0dh,0ah,24h
-UCE_VOICE_7B	DB	'7b		k127	y100,2	y101,0	y6,64	H0,3	@15',0dh,0ah,24h
-ifdef	ff8	;------------------------
-UCE_VOICE_0C	DB	'0c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_1C	DB	'1c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_2C	DB	'2c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_3C	DB	'3c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_4C	DB	'4c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_5C	DB	'5c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_6C	DB	'6c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_7C	DB	'7c		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_0D	DB	'0d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_1D	DB	'1d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_2D	DB	'2d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_3D	DB	'3d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_4D	DB	'4d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_5D	DB	'5d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_6D	DB	'6d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_7D	DB	'7d		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_0E	DB	'0e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_1E	DB	'1e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_2E	DB	'2e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_3E	DB	'3e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_4E	DB	'4e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_5E	DB	'5e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_6E	DB	'6e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_7E	DB	'7e		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_0F	DB	'0f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_1F	DB	'1f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_2F	DB	'2f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_3F	DB	'3f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_4F	DB	'4f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_5F	DB	'5f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_6F	DB	'6f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-UCE_VOICE_7F	DB	'7f		k127	y100,2	y101,0	y6,64	H0,3	@',24h
-endif	;--------------------------------
-UCE_VOICE_cr	db	0dh,0ah,24h
-
-UC_Instrument	proc	near
-
-	XOR	CX,CX			;CL←0
-
-ifdef	ff7	;------------------------
-	MOV	BX,OFFSET UC_VoiceExWork
-endif	;--------------------------------
-ifdef	ff8	;------------------------
-	MOV	BX,VOICE_ADDRESS	;従属音色情報アドレス
-	MOV	DX,ES:[BX]		;
-	.if	(dx==0000h)
-		mov	cx,16
-	.else
-		add	bx,dx		;BX←従属音色情報先頭アドレス
 	.endif
 
-endif	;--------------------------------
+	call	hex2asc16		;
+	mov	ah,09h			;
+	int	21h			;
 
-	.while	(cx<16)
-
-ifdef	ff7	;------------------------
-		mov	ax,cs:[bx]		;AL←音色登録情報
-endif	;--------------------------------
-ifdef	ff8	;------------------------
-		mov	ax,es:[bx]		;AL←音色登録情報
-endif	;--------------------------------
-		.break	.if	(ax==0ffffh)
-		
-		PUSH	BX			;
-
-		MOV	AH,02H			;'$'の表示
-		MOV	DL,24H			;
-		INT	21H			;
-
-		MOV	BX,OFFSET UC_END_VOICE_ADD
-		ADD	BX,CX			;
-		ADD	BX,CX			;
-		MOV	DX,CS:[BX]		;DX←出力すべき文字列のアドレス
-		MOV	AH,09H			;
-		INT	21H			;出力
-
-		POP	BX			;
-		
-		INC	BX			;
-		INC	BX			;アドレスインクリメント
-		INC	CX			;
-
+	.while	(cx>0)			;付点表示
+		mov	dl,'.'		;
+		mov	ah,02h		;
+		int	21h		;
+		dec	cx		;
 	.endw
 
+c_output_length_End:			;
+	popa				;
+	ret				;
+c_output_length	endp
+;---------------------------------------------------------------|
+;		無限ループ解析					|
+;---------------------------------------------------------------|
+;	処理							|
+;		無限ループアドレスを検索する。			|
+;	引数							|
+;		bx	チャンネルの開始アドレス		|
+;---------------------------------------------------------------|
+UCMOLS_LOOP_msg1	DB	'/*Loop=0x$'
+UCMOLS_LOOP_msg2	DB	'*/$'
+UCMOLS_LOOP_msg3	DB	'条件ジャンプが複雑すぎ$'
+UCMOLS_LOOP_msg4	DB	'リピートが可笑しい$'
 
-ifdef	ff8	;------------------------
-	XOR	CX,CX			;CL←0
-	MOV	BX,OFFSET UC_VOICE	;
-UC_END_L2:
+UCMOLS_LOOP_PTY		equ	8
+UCMOLS_LOOP_ADDRESS	DW	UCMOLS_LOOP_PTY	dup(0)
+UCMOLS_LOOP_Count	dw	0
 
-	.while	(cx<64)
+UCMO_LOOP_SEARCH	proc	near	uses ax bx cx dx di
 
-		mov	al,cs:[bx]		;AL←音色登録情報
-		.break	.if	(al==0ffh)
+	local	ptStart:WORD		;チャンネルの開始アドレス
+	local	tempBX:WORD		;条件ジャンプ先の保存
+	local	iCount:WORD		;0xFE07のカウント用
 
-		PUSH	BX			;
-		push	ax
+;	デバッグ用
+	mov	dx,offset UCMOLS_LOOP_msg1
+	mov	ah,09h
+	int	21h
 
-		MOV	AH,02H			;'$'の表示
-		MOV	DL,24H			;
-		INT	21H			;
+	;ループアドレスリセット
+	push	es
+	xor	ax,ax			;ax←0 変数クリア用
+	mov	cx,UCMOLS_LOOP_PTY	;回数セット
+	mov	di,offset UCMOLS_LOOP_ADDRESS
+	push	cs			
+	pop	es			;es:di ← アドレス
+  rep	stosw				;一括セット
+	pop	es
 
-		MOV	BX,OFFSET UC_END_VOICE_ADD
-		ADD	BX,32			;
-		ADD	BX,CX			;
-		ADD	BX,CX			;
-		MOV	DX,CS:[BX]		;DX←出力すべき文字列のアドレス
-		MOV	AH,09H			;
-		INT	21H			;出力
+	mov	cs:[UC_LoopCountData],ax	;リピート処理用
 
-		pop	ax
+	mov	cs:[UCMOLS_LOOP_Count],ax	;無限ループ用
+	mov	tempBX,ax			;
+	mov	iCount,1			;iCountは1
 
-		mov	ah,al
-		call	hex2asc8
-		MOV	AH,09H			;
-		INT	21H			;出力
 
-		mov	dx,offset UCE_VOICE_cr
-		MOV	AH,09H			;
-		INT	21H			;出力
+  .repeat		;0xFE07 コマンドに関連するリピートとする
 
-		POP	BX			;
+    .repeat		;0xFE06 コマンドをつかった、強制ジャンプによるリピート
 
-		INC	BX			;
-		INC	CX			;
+	MOV	AX,BX				;
+	MOV	ptStart,AX		;先頭アドレス保存
 
-	.endw
+      .repeat		;EoCが来るまでのリピート
 
+	XOR	AX,AX			;
+	MOV	AL,ES:[BX]		;データ読み込み　曲
+	MOV	DX,OFFSET UCMO_COMMAND_SIZE
+	ADD	DX,AX			;
+	MOV	AH,AL			;AH←コマンド
+	XCHG	BX,DX			;
+	MOV	AL,CS:[BX]		;データ読み込み　解析情報
+	XCHG	BX,DX			;
+
+ifdef	SPC	;------------------------
+	;ループ命令の解析	;-------
+	.if	(ah==comRepeatStart)
+		inc	bx		;コマンドの分だけ進ませる
+		call	Loop_StartEx
+		.continue
+	.elseif	(ah==comRepeatExit)
+		inc	bx		;コマンドの分だけ進ませる
+		call	Loop_ExitEx
+		.continue
+	.elseif	(ah==comRepeatEnd)
+		inc	bx		;コマンドの分だけ進ませる
+		call	Loop_EndEx
+		.continue
+	.endif
+	;-------------------------------
 endif	;--------------------------------
 
-	mov	dx,offset UCE_VOICE_cr
-	MOV	AH,09H			;
-	INT	21H			;出力
+	.if	((al==0)||(al==9))	;音符・EoCだった場合の処理
+ifdef	SPC	;------------------------
+		mov	al,1	;
+endif	;--------------------------------
+ifdef	PS1	;------------------------
+		.if	(ah<0F0h)	;
+			mov	al,1	;
+		.else
+			mov	al,2	;
+		.endif
+endif	;--------------------------------
+	.endif
+
+	.if	(al==6)
+ifdef	ff8	;------------------------
+		MOV	AX,ES:[BX]		;
+
+		.if	(ax==006FEh)
+			MOV	DX,BX		;DX←FE06hコマンドのアドレス
+			ADD	BX,2		;
+			MOV	AX,ES:[BX]	;
+			TEST	AX,AX		;
+			JZ	UCMOL_EE	;If AX=0 Then Return
+			add	bx,ax		;BX←ループ先アドレス
+			mov	ax,bx		;AX←BX
+			.break
+		.elseif	(ax==007FEh)
+			.if	(tempBX!=0)
+				;デバッグ用
+				push	ax
+				mov	dx,offset UCMOLS_LOOP_msg3
+				mov	ah,09h
+				int	21h
+				pop	ax
+			.endif
+			inc	iCount		;
+			add	bx,3		;
+			mov	ax,es:[bx]	;
+			add	ax,bx		;
+			mov	tempBX,ax	;条件ジャンプ先
+			add	bx,2		;FF8は、最後にカウント
+
+		.elseif	((ax==004FEh)||(ax==01DFEh)||(ax==01EFEh)||(ax==01FFEh))
+			add	bx,2
+		.elseif	((ax==010FEh)||(ax==014FEh)||(ax==01CFEh))
+			add	bx,3
+		.elseif	(ax==009FEh)
+			add	bx,5
+		.else
+			add	bx,4
+		.endif
+else	;--------------------------------
+		.if	(tempBX!=0)
+			;デバッグ用
+			push	ax
+			mov	dx,offset UCMOLS_LOOP_msg3
+			mov	ah,09h
+			int	21h
+			pop	ax
+		.endif
+		inc	iCount			;
+		add	bx,1			;
+		mov	ax,es:[bx]		;
+		add	bx,2			;次のコマンド
+  ifdef	SPC	;------------------------
+		sub	ax,cs:[UC_ADDER]	;ax←戻り先絶対アドレス
+  endif	;--------------------------------
+  ifdef	PS1	;------------------------
+		add	ax,bx			;
+  endif	;--------------------------------
+		mov	tempBX,ax		;条件ジャンプ先保存
+endif	;--------------------------------
+
+	.elseif	(al==7)
+		jmp	UCMOL_EE		;終了
+
+	.elseif	(al==8)
+		mov	dx,bx			;
+		ADD	BX,1			;
+		MOV	AX,ES:[BX]		;
+		TEST	AX,AX			;
+		JZ	UCMOL_EE		;If AX=0 Then Return
+ifdef	SPC	;------------------------
+		sub	ax,cs:[UC_ADDER]	;ax←戻り先絶対アドレス
+endif	;--------------------------------
+ifdef	PS1	;------------------------
+		add	ax,MUSIC_ADDRESSa
+		add	ax,bx			;ax←戻り先絶対アドレス
+endif	;--------------------------------
+		mov	bx,ax			;BX←AX
+		.break
+	.else
+		MOV	AH,0		;
+		ADD	BX,AX		;
+
+	.endif
+
+      .until	0	;このリピートは、".break"で抜ける。
+
+
+
+	;強制ジャンプだったら、そのジャンプ先でまた繰り返す。
+    .until	((ptStart<=ax)&&(dx>=ax))
+
+
+
+	mov	ax,cs:[UCMOLS_LOOP_Count]	;
+	shl	ax,1				;
+	push	ax				;bx←入れる所
+	MOV	ax,bx				;ax←無限ループ先
+	pop	bx				;無限ループアドレスの登録
+	MOV	CS:[UCMOLS_LOOP_ADDRESS + bx],ax
+
+	;デバッグ用出力
+	call	dat2hex16	;
+	MOV	AH,09H		;
+	INT	21H		;
+	mov	dl,2ch		;
+	mov	ah,02h		;
+	int	21h		;
+
+	mov	bx,tempBX			;次の開始点
+	mov	tempBX,0			;一応クリア
+
+	inc	cs:[UCMOLS_LOOP_Count]		;無限ループ数　＋＋
+	dec	iCount				;0xFE07用
+  .until	(iCount==0)
+
+UCMOL_EE:					;無限ループ無し！
+	;デバッグ用
+	mov	dx,offset UCMOLS_LOOP_msg2
+	mov	ah,09h
+	int	21h
 
 	RET
-UC_Instrument	endp
+UCMO_LOOP_SEARCH	endp
 ;---------------------------------------------------------------|
 ;		コマンド変換					|
 ;---------------------------------------------------------------|
@@ -405,12 +312,265 @@ UC_Instrument	endp
 ;	破壊							|
 ;		ほぼ全てのレジスタ				|
 ;---------------------------------------------------------------|
-;コメントアウト用
-c_CommentOut0	db	'/*$'
-c_CommentOut1	db	'*/$'
-
-UCMO_TAI_OUTPUT:			;
-	DB	'&$'			;
+;逆ＭＭＬ変換情報のあるアドレス
+;実体は、タイトル毎の定義ファイル。
+UC_DATA_ADDRESS:
+	DW	OFFSET UC_D00	;コマンド00h
+	DW	OFFSET UC_D01
+	DW	OFFSET UC_D02
+	DW	OFFSET UC_D03
+	DW	OFFSET UC_D04
+	DW	OFFSET UC_D05
+	DW	OFFSET UC_D06
+	DW	OFFSET UC_D07
+	DW	OFFSET UC_D08
+	DW	OFFSET UC_D09
+	DW	OFFSET UC_D0A
+	DW	OFFSET UC_D0B
+	DW	OFFSET UC_D0C
+	DW	OFFSET UC_D0D
+	DW	OFFSET UC_D0E
+	DW	OFFSET UC_D0F
+	DW	OFFSET UC_D10
+	DW	OFFSET UC_D11
+	DW	OFFSET UC_D12
+	DW	OFFSET UC_D13
+	DW	OFFSET UC_D14
+	DW	OFFSET UC_D15
+	DW	OFFSET UC_D16
+	DW	OFFSET UC_D17
+	DW	OFFSET UC_D18
+	DW	OFFSET UC_D19
+	DW	OFFSET UC_D1A
+	DW	OFFSET UC_D1B
+	DW	OFFSET UC_D1C
+	DW	OFFSET UC_D1D
+	DW	OFFSET UC_D1E
+	DW	OFFSET UC_D1F
+	DW	OFFSET UC_D20
+	DW	OFFSET UC_D21
+	DW	OFFSET UC_D22
+	DW	OFFSET UC_D23
+	DW	OFFSET UC_D24
+	DW	OFFSET UC_D25
+	DW	OFFSET UC_D26
+	DW	OFFSET UC_D27
+	DW	OFFSET UC_D28
+	DW	OFFSET UC_D29
+	DW	OFFSET UC_D2A
+	DW	OFFSET UC_D2B
+	DW	OFFSET UC_D2C
+	DW	OFFSET UC_D2D
+	DW	OFFSET UC_D2E
+	DW	OFFSET UC_D2F
+	DW	OFFSET UC_D30
+	DW	OFFSET UC_D31
+	DW	OFFSET UC_D32
+	DW	OFFSET UC_D33
+	DW	OFFSET UC_D34
+	DW	OFFSET UC_D35
+	DW	OFFSET UC_D36
+	DW	OFFSET UC_D37
+	DW	OFFSET UC_D38
+	DW	OFFSET UC_D39
+	DW	OFFSET UC_D3A
+	DW	OFFSET UC_D3B
+	DW	OFFSET UC_D3C
+	DW	OFFSET UC_D3D
+	DW	OFFSET UC_D3E
+	DW	OFFSET UC_D3F
+	DW	OFFSET UC_D40
+	DW	OFFSET UC_D41
+	DW	OFFSET UC_D42
+	DW	OFFSET UC_D43
+	DW	OFFSET UC_D44
+	DW	OFFSET UC_D45
+	DW	OFFSET UC_D46
+	DW	OFFSET UC_D47
+	DW	OFFSET UC_D48
+	DW	OFFSET UC_D49
+	DW	OFFSET UC_D4A
+	DW	OFFSET UC_D4B
+	DW	OFFSET UC_D4C
+	DW	OFFSET UC_D4D
+	DW	OFFSET UC_D4E
+	DW	OFFSET UC_D4F
+	DW	OFFSET UC_D50
+	DW	OFFSET UC_D51
+	DW	OFFSET UC_D52
+	DW	OFFSET UC_D53
+	DW	OFFSET UC_D54
+	DW	OFFSET UC_D55
+	DW	OFFSET UC_D56
+	DW	OFFSET UC_D57
+	DW	OFFSET UC_D58
+	DW	OFFSET UC_D59
+	DW	OFFSET UC_D5A
+	DW	OFFSET UC_D5B
+	DW	OFFSET UC_D5C
+	DW	OFFSET UC_D5D
+	DW	OFFSET UC_D5E
+	DW	OFFSET UC_D5F
+	DW	OFFSET UC_D60
+	DW	OFFSET UC_D61
+	DW	OFFSET UC_D62
+	DW	OFFSET UC_D63
+	DW	OFFSET UC_D64
+	DW	OFFSET UC_D65
+	DW	OFFSET UC_D66
+	DW	OFFSET UC_D67
+	DW	OFFSET UC_D68
+	DW	OFFSET UC_D69
+	DW	OFFSET UC_D6A
+	DW	OFFSET UC_D6B
+	DW	OFFSET UC_D6C
+	DW	OFFSET UC_D6D
+	DW	OFFSET UC_D6E
+	DW	OFFSET UC_D6F
+	DW	OFFSET UC_D70
+	DW	OFFSET UC_D71
+	DW	OFFSET UC_D72
+	DW	OFFSET UC_D73
+	DW	OFFSET UC_D74
+	DW	OFFSET UC_D75
+	DW	OFFSET UC_D76
+	DW	OFFSET UC_D77
+	DW	OFFSET UC_D78
+	DW	OFFSET UC_D79
+	DW	OFFSET UC_D7A
+	DW	OFFSET UC_D7B
+	DW	OFFSET UC_D7C
+	DW	OFFSET UC_D7D
+	DW	OFFSET UC_D7E
+	DW	OFFSET UC_D7F
+	DW	OFFSET UC_D80
+	DW	OFFSET UC_D81
+	DW	OFFSET UC_D82
+	DW	OFFSET UC_D83
+	DW	OFFSET UC_D84
+	DW	OFFSET UC_D85
+	DW	OFFSET UC_D86
+	DW	OFFSET UC_D87
+	DW	OFFSET UC_D88
+	DW	OFFSET UC_D89
+	DW	OFFSET UC_D8A
+	DW	OFFSET UC_D8B
+	DW	OFFSET UC_D8C
+	DW	OFFSET UC_D8D
+	DW	OFFSET UC_D8E
+	DW	OFFSET UC_D8F
+	DW	OFFSET UC_D90
+	DW	OFFSET UC_D91
+	DW	OFFSET UC_D92
+	DW	OFFSET UC_D93
+	DW	OFFSET UC_D94
+	DW	OFFSET UC_D95
+	DW	OFFSET UC_D96
+	DW	OFFSET UC_D97
+	DW	OFFSET UC_D98
+	DW	OFFSET UC_D99
+	DW	OFFSET UC_D9A
+	DW	OFFSET UC_D9B
+	DW	OFFSET UC_D9C
+	DW	OFFSET UC_D9D
+	DW	OFFSET UC_D9E
+	DW	OFFSET UC_D9F
+	DW	OFFSET UC_DA0
+	DW	OFFSET UC_DA1
+	DW	OFFSET UC_DA2
+	DW	OFFSET UC_DA3
+	DW	OFFSET UC_DA4
+	DW	OFFSET UC_DA5
+	DW	OFFSET UC_DA6
+	DW	OFFSET UC_DA7
+	DW	OFFSET UC_DA8
+	DW	OFFSET UC_DA9
+	DW	OFFSET UC_DAA
+	DW	OFFSET UC_DAB
+	DW	OFFSET UC_DAC
+	DW	OFFSET UC_DAD
+	DW	OFFSET UC_DAE
+	DW	OFFSET UC_DAF
+	DW	OFFSET UC_DB0
+	DW	OFFSET UC_DB1
+	DW	OFFSET UC_DB2
+	DW	OFFSET UC_DB3
+	DW	OFFSET UC_DB4
+	DW	OFFSET UC_DB5
+	DW	OFFSET UC_DB6
+	DW	OFFSET UC_DB7
+	DW	OFFSET UC_DB8
+	DW	OFFSET UC_DB9
+	DW	OFFSET UC_DBA
+	DW	OFFSET UC_DBB
+	DW	OFFSET UC_DBC
+	DW	OFFSET UC_DBD
+	DW	OFFSET UC_DBE
+	DW	OFFSET UC_DBF
+	DW	OFFSET UC_DC0
+	DW	OFFSET UC_DC1
+	DW	OFFSET UC_DC2
+	DW	OFFSET UC_DC3
+	DW	OFFSET UC_DC4
+	DW	OFFSET UC_DC5
+	DW	OFFSET UC_DC6
+	DW	OFFSET UC_DC7
+	DW	OFFSET UC_DC8
+	DW	OFFSET UC_DC9
+	DW	OFFSET UC_DCA
+	DW	OFFSET UC_DCB
+	DW	OFFSET UC_DCC
+	DW	OFFSET UC_DCD
+	DW	OFFSET UC_DCE
+	DW	OFFSET UC_DCF
+	DW	OFFSET UC_DD0
+	DW	OFFSET UC_DD1
+	DW	OFFSET UC_DD2
+	DW	OFFSET UC_DD3
+	DW	OFFSET UC_DD4
+	DW	OFFSET UC_DD5
+	DW	OFFSET UC_DD6
+	DW	OFFSET UC_DD7
+	DW	OFFSET UC_DD8
+	DW	OFFSET UC_DD9
+	DW	OFFSET UC_DDA
+	DW	OFFSET UC_DDB
+	DW	OFFSET UC_DDC
+	DW	OFFSET UC_DDD
+	DW	OFFSET UC_DDE
+	DW	OFFSET UC_DDF
+	DW	OFFSET UC_DE0
+	DW	OFFSET UC_DE1
+	DW	OFFSET UC_DE2
+	DW	OFFSET UC_DE3
+	DW	OFFSET UC_DE4
+	DW	OFFSET UC_DE5
+	DW	OFFSET UC_DE6
+	DW	OFFSET UC_DE7
+	DW	OFFSET UC_DE8
+	DW	OFFSET UC_DE9
+	DW	OFFSET UC_DEA
+	DW	OFFSET UC_DEB
+	DW	OFFSET UC_DEC
+	DW	OFFSET UC_DED
+	DW	OFFSET UC_DEE
+	DW	OFFSET UC_DEF
+	DW	OFFSET UC_DF0
+	DW	OFFSET UC_DF1
+	DW	OFFSET UC_DF2
+	DW	OFFSET UC_DF3
+	DW	OFFSET UC_DF4
+	DW	OFFSET UC_DF5
+	DW	OFFSET UC_DF6
+	DW	OFFSET UC_DF7
+	DW	OFFSET UC_DF8
+	DW	OFFSET UC_DF9
+	DW	OFFSET UC_DFA
+	DW	OFFSET UC_DFB
+	DW	OFFSET UC_DFC
+	DW	OFFSET UC_DFD
+	DW	OFFSET UC_DFE
+	DW	OFFSET UC_DFF
 
 c_decode	proc	near
 
@@ -422,6 +582,41 @@ c_decode	proc	near
 	XOR	AX,AX			;
 	MOV	AL,ES:[BX]		;データ読み込み
 	INC	BX			;ポインタインクリメント
+
+ifdef	Rhythm12	;---------------
+	.if	((ax<(Rhythm12*12))&&(cs:[UC_Rhythm_flag]==1))
+		push	ax
+		push	cx
+		push	dx
+		mov	dl,Rhythm12
+		div	dl		;al←音程
+		mov	cx,ax
+
+		mov	dl,'$'
+		mov	ah,02h
+		int	21h		;$
+
+		.if	(cl<6)
+			mov	dl,'x'
+			add	cl,30h
+		.else
+			mov	dl,'y'
+			add	cl,30h-6
+		.endif
+		push	dx
+		mov	dl,cl
+		mov	ah,02h
+		int	21h		;番号（0～5）
+
+		pop	dx
+		mov	ah,02h
+		int	21h		;マクロ　英文字
+
+		pop	dx
+		pop	cx
+		pop	ax
+	.endif
+endif	;-------------------------------
 
 	SHL	AX,1			;
 	PUSH	BX			;
@@ -482,7 +677,7 @@ c_decode	proc	near
 
 	.elseif	(al==20h)
 
-		.if	((UCMO_ComStartFlag==1)&&(byte ptr es:[bx-1]<9ah)&&(byte ptr cs:[UC_Step_work]!=0))
+		.if	((UCMO_ComStartFlag==1)&&(byte ptr es:[bx-1]<=Music_Note)&&(byte ptr cs:[UC_Step_work]!=0))
 
 			XCHG	BX,DX			;
 			push	dx
@@ -548,6 +743,15 @@ c_decode	proc	near
 				mov	dl,'B'		;
 				mov	ah,02h		;
 				int	21h		;
+				ifdef	SPC	;-------
+				mov	dl,'W'		;
+				mov	ah,02h		;
+				int	21h		;
+				mov	ax,word ptr cs:[UC_Detune_D]	;
+				mov	byte ptr cs:[UC_portamento_D],0
+				CALL	HEX2ASC16	;出力
+				endif	;---------------
+				ifdef	PS1	;-------
 				mov	dl,'S'		;
 				mov	ah,02h		;
 				int	21h		;
@@ -555,18 +759,15 @@ c_decode	proc	near
 				mov	ah,byte ptr cs:[UC_Detune_D]	;
 				mov	byte ptr cs:[UC_portamento_D],0
 				CALL	HEX2ASC8	;出力
+				endif	;---------------
 				MOV	AH,09H		;
 				INT	21H		;ピッチベンドのリセット
 			.endif
 			.break
 
-		.elseif	(al==8)			;８：解析終了（End of Channel）
-ifdef	ff7	;------------------------
-			.break
-endif	;--------------------------------
+		.elseif	(al==6)			;６：解析終了
 ifdef	ff8	;------------------------
 			MOV	AX,ES:[BX]
-
 			.if	(ax==006FEh)
 				.break
 			.elseif	((ax==004FEh)||(ax==01DFEh)||(ax==01EFEh)||(ax==01FFEh))
@@ -578,7 +779,12 @@ ifdef	ff8	;------------------------
 			.else
 				add	bx,4
 			.endif
+else	;--------------------------------
+			.break
 endif	;--------------------------------
+
+		.elseif	((al==7)||(al==8))	;７, ８：解析終了（End of Channel）
+			.break
 
 		.elseif	(al==9)			;９：次の音程とタイで繋ぐ。
 			mov	dl,'&'		;
@@ -642,6 +848,465 @@ endif	;--------------------------------
 	ret
 c_decode	endp
 ;---------------------------------------------------------------|
+;		初期変換					|
+;---------------------------------------------------------------|
+;	処理							|
+;	１．タイトル、作曲、タイムベースの表示			|
+;	２．データ解析						|
+;		(1) 使用パート数				|
+;---------------------------------------------------------------|
+MML2MID_HED1:
+	db	'8z	@0	/*Instrument of percussion 1z*/'		,0dh,0ah,24h
+
+MML2MID_HED2:
+	db	'9z	@48	/*Instrument of percussion 2z*/'		,0dh,0ah,24h
+
+MML2MID_HED3:
+	db	0dh,0ah
+ifdef	ff7	;------------------------
+	DB	'#include "define.mml"',0dh,0ah
+else	;--------------------------------
+	DB	'#include "init.mml"',0dh,0ah
+endif	;--------------------------------
+	db	0dh,0ah,24h		;改行は、ff8mmlでも出力する。
+
+UC_START	proc	near
+	;ヘッダー出力
+	MOV	DX,OFFSET MML2MID_HED	;これは define部
+	MOV	AH,09H			;
+	INT	21H			;
+
+	mov	dl,24h			;$の表示
+	mov	ah,02h			;
+	int	21h			;
+	MOV	DX,OFFSET MML2MID_HED1	;
+	MOV	AH,09H			;
+	INT	21H			;
+
+	mov	dl,24h			;$の表示
+	mov	ah,02h			;
+	int	21h			;
+	MOV	DX,OFFSET MML2MID_HED2	;
+	MOV	AH,09H			;
+	INT	21H			;
+
+	MOV	DX,OFFSET MML2MID_HED3	;
+	MOV	AH,09H			;
+	INT	21H			;
+
+	;---------------------------------------
+	;◆チャンネル数のチェック
+ifdef	SPC	;------------------------
+	MOV	CS:[UC_PART],8		;パート数８
+endif	;---------------------------------------
+
+ifdef	PS1	;------------------------
+;	dword ptr es:[PARTF_ADDRESS"]について、
+;	ビットが"Hi"の数をチェックする。＝チャンネル数。
+;	※注意※
+;	ビットが飛び飛びになっていても、
+;	チャンネルデータのヘッダーは飛び飛びにならない。
+
+	push	cx
+
+	mov	cl,0			;Counter
+	mov	ch,32			;パート数最大
+
+	mov	dx,0000h		;
+	mov	ax,0001h		;dx:axで、32bit幅とする。
+
+	.repeat
+		test	word ptr es:[PARTF_ADDRESS+0],ax
+		jnz	UC_START_1	;
+		test	word ptr es:[PARTF_ADDRESS+2],dx
+		jnz	UC_START_1	;
+		jmp	UC_START_2	
+UC_START_1:
+		inc	cl
+UC_START_2:
+		shl	ax,1		;
+		rcl	dx,1		;
+
+		dec	ch		;
+	.until	(zero?)
+
+	MOV	CS:[UC_PART],cl		;
+
+	pop	cx
+endif	;---------------------------------------
+
+	;---------------------------------------
+	;◆アドレス補正値の計算
+ifdef	SPC	;------------------------
+ ifdef	MUSIC_DATA	;-----------------------
+  ifdef	MUSIC_START	;----------------
+	MOV	AX,ES:[MUSIC_START]	;ch0演奏アドレス(ROM内)
+  else	;--------------------------------
+	MOV	AX,ES:[MUSIC_ADDRESS]	;ch0演奏アドレス(ROM内)
+  endif	;--------------------------------
+	SUB	AX,MUSIC_DATA		;データアドレス(SPCの)
+ else	;---------------------------------------
+	mov	ax,-0100h		;SPCとSPC700とでは、0100h アドレスが違う。
+ endif	;---------------------------------------
+	MOV	CS:[UC_ADDER],AX	;SPCアドレスにする為の補正値
+endif	;---------------------------------------
+
+	RET				;
+UC_START	endp
+;---------------------------------------------------------------|
+;		後期変換					|
+;---------------------------------------------------------------|
+;	処理							|
+;	１．ＭＭＬ出力部でえた音色のマクロ定義文出力		|
+;---------------------------------------------------------------|
+UC_END_VOICE_ADD:
+ifdef	PS1	;------------------------
+		DW	OFFSET UCE_VOICE_0A	
+		DW	OFFSET UCE_VOICE_1A	
+		DW	OFFSET UCE_VOICE_2A	
+		DW	OFFSET UCE_VOICE_3A	
+		DW	OFFSET UCE_VOICE_4A	
+		DW	OFFSET UCE_VOICE_5A	
+		DW	OFFSET UCE_VOICE_6A	
+		DW	OFFSET UCE_VOICE_7A	
+		DW	OFFSET UCE_VOICE_0B	
+		DW	OFFSET UCE_VOICE_1B	
+		DW	OFFSET UCE_VOICE_2B	
+		DW	OFFSET UCE_VOICE_3B	
+		DW	OFFSET UCE_VOICE_4B	
+		DW	OFFSET UCE_VOICE_5B	
+		DW	OFFSET UCE_VOICE_6B	
+		DW	OFFSET UCE_VOICE_7B	
+endif	;--------------------------------
+ifndef	ff7	;------------------------	FF7以外で要る
+		DW	OFFSET UCE_VOICE_0C	
+		DW	OFFSET UCE_VOICE_1C	
+		DW	OFFSET UCE_VOICE_2C	
+		DW	OFFSET UCE_VOICE_3C	
+		DW	OFFSET UCE_VOICE_4C	
+		DW	OFFSET UCE_VOICE_5C	
+		DW	OFFSET UCE_VOICE_6C	
+		DW	OFFSET UCE_VOICE_7C	
+		DW	OFFSET UCE_VOICE_0D	
+		DW	OFFSET UCE_VOICE_1D	
+		DW	OFFSET UCE_VOICE_2D	
+		DW	OFFSET UCE_VOICE_3D	
+		DW	OFFSET UCE_VOICE_4D	
+		DW	OFFSET UCE_VOICE_5D	
+		DW	OFFSET UCE_VOICE_6D	
+		DW	OFFSET UCE_VOICE_7D	
+		DW	OFFSET UCE_VOICE_0E	
+		DW	OFFSET UCE_VOICE_1E	
+		DW	OFFSET UCE_VOICE_2E	
+		DW	OFFSET UCE_VOICE_3E	
+		DW	OFFSET UCE_VOICE_4E	
+		DW	OFFSET UCE_VOICE_5E	
+		DW	OFFSET UCE_VOICE_6E	
+		DW	OFFSET UCE_VOICE_7E	
+		DW	OFFSET UCE_VOICE_0F	
+		DW	OFFSET UCE_VOICE_1F	
+		DW	OFFSET UCE_VOICE_2F	
+		DW	OFFSET UCE_VOICE_3F	
+		DW	OFFSET UCE_VOICE_4F	
+		DW	OFFSET UCE_VOICE_5F	
+		DW	OFFSET UCE_VOICE_6F	
+		DW	OFFSET UCE_VOICE_7F	
+endif	;--------------------------------
+ifdef	PS1	;------------------------
+UCE_VOICE_0A	DB	'0a	',24h
+UCE_VOICE_1A	DB	'1a	',24h
+UCE_VOICE_2A	DB	'2a	',24h
+UCE_VOICE_3A	DB	'3a	',24h
+UCE_VOICE_4A	DB	'4a	',24h
+UCE_VOICE_5A	DB	'5a	',24h
+UCE_VOICE_6A	DB	'6a	',24h
+UCE_VOICE_7A	DB	'7a	',24h
+UCE_VOICE_0B	DB	'0b	',24h
+UCE_VOICE_1B	DB	'1b	',24h
+UCE_VOICE_2B	DB	'2b	',24h
+UCE_VOICE_3B	DB	'3b	',24h
+UCE_VOICE_4B	DB	'4b	',24h
+UCE_VOICE_5B	DB	'5b	',24h
+UCE_VOICE_6B	DB	'6b	',24h
+UCE_VOICE_7B	DB	'7b	',24h
+
+UCE_VOICE_Program:
+ ifdef	ff7	;------------------------
+		db	46	;harp
+ else	;--------------------------------
+		db	48	;strings
+ endif	;--------------------------------
+		db	1
+		db	2
+		db	3
+		db	4
+		db	5
+		db	6
+		db	7
+		db	8
+		db	9
+		db	10
+		db	11
+		db	12
+		db	13
+		db	14
+		db	15
+endif	;--------------------------------
+
+ifndef	ff7	;------------------------	FF7以外で要る
+UCE_VOICE_0C	DB	'0c	',24h
+UCE_VOICE_1C	DB	'1c	',24h
+UCE_VOICE_2C	DB	'2c	',24h
+UCE_VOICE_3C	DB	'3c	',24h
+UCE_VOICE_4C	DB	'4c	',24h
+UCE_VOICE_5C	DB	'5c	',24h
+UCE_VOICE_6C	DB	'6c	',24h
+UCE_VOICE_7C	DB	'7c	',24h
+UCE_VOICE_0D	DB	'0d	',24h
+UCE_VOICE_1D	DB	'1d	',24h
+UCE_VOICE_2D	DB	'2d	',24h
+UCE_VOICE_3D	DB	'3d	',24h
+UCE_VOICE_4D	DB	'4d	',24h
+UCE_VOICE_5D	DB	'5d	',24h
+UCE_VOICE_6D	DB	'6d	',24h
+UCE_VOICE_7D	DB	'7d	',24h
+UCE_VOICE_0E	DB	'0e	',24h
+UCE_VOICE_1E	DB	'1e	',24h
+UCE_VOICE_2E	DB	'2e	',24h
+UCE_VOICE_3E	DB	'3e	',24h
+UCE_VOICE_4E	DB	'4e	',24h
+UCE_VOICE_5E	DB	'5e	',24h
+UCE_VOICE_6E	DB	'6e	',24h
+UCE_VOICE_7E	DB	'7e	',24h
+UCE_VOICE_0F	DB	'0f	',24h
+UCE_VOICE_1F	DB	'1f	',24h
+UCE_VOICE_2F	DB	'2f	',24h
+UCE_VOICE_3F	DB	'3f	',24h
+UCE_VOICE_4F	DB	'4f	',24h
+UCE_VOICE_5F	DB	'5f	',24h
+UCE_VOICE_6F	DB	'6f	',24h
+UCE_VOICE_7F	DB	'7f	',24h
+endif	;--------------------------------
+
+UCE_VOICE_M0	db	'0z	k127	v127	y100,2	y101,0	y6,64	H0,0	@',24h
+
+ifdef	Rhythm12	;---------------
+UC_Rhythm_Add	dw	offset UC_Rhythm_0x
+		dw	offset UC_Rhythm_1x
+		dw	offset UC_Rhythm_2x
+		dw	offset UC_Rhythm_3x
+		dw	offset UC_Rhythm_4x
+		dw	offset UC_Rhythm_5x
+		dw	offset UC_Rhythm_0y
+		dw	offset UC_Rhythm_1y
+		dw	offset UC_Rhythm_2y
+		dw	offset UC_Rhythm_3y
+		dw	offset UC_Rhythm_4y
+		dw	offset UC_Rhythm_5y
+
+UC_Rhythm_0x	db	'0x	',24h
+UC_Rhythm_1x	db	'1x	',24h
+UC_Rhythm_2x	db	'2x	',24h
+UC_Rhythm_3x	db	'3x	',24h
+UC_Rhythm_4x	db	'4x	',24h
+UC_Rhythm_5x	db	'5x	',24h
+UC_Rhythm_0y	db	'0y	',24h
+UC_Rhythm_1y	db	'1y	',24h
+UC_Rhythm_2y	db	'2y	',24h
+UC_Rhythm_3y	db	'3y	',24h
+UC_Rhythm_4y	db	'4y	',24h
+UC_Rhythm_5y	db	'5y	',24h
+
+UCE_VOICE_M1	db	'1z	k127	v127	J',24h
+
+UCE_VOICE_Note:
+  ifdef	SPC	;------------------------	ロマサガ３設定暫定
+		db	36	;B.Drum 1
+		db	49	;Cymbal 1
+		db	38	;S.Drum 1
+		db	57	;Cymbal 2
+		db	40	;S.Drum 2
+		db	53	;Bell
+		db	42	;H.H.Close
+		db	42	;H.H.Close
+		db	67	;Agogo 
+		db	70	;Maracas 
+		db	46	;H.H.Open
+		db	35	;B.Drum 2
+  endif	;-------------------------------
+  ifdef	PS1	;------------------------	ＦＦ７設定？暫定
+		db	36	;B.Drum 1
+		db	37	;
+		db	38	;S.Drum 1
+		db	39	;
+		db	40	;S.Drum 2
+		db	41	;
+		db	42	;H.H.Close
+		db	43	;
+		db	44	;H.H.Pedal
+		db	45	;
+		db	46	;H.H.Open
+		db	47	;
+  endif	;-------------------------------
+
+endif	;-------------------------------
+
+UCE_VOICE_cr	db	0dh,0ah,24h
+
+UC_Instrument	proc	near
+
+ifdef	PS1	;------------------------
+	XOR	CX,CX			;CL←0
+	MOV	SI,OFFSET UC_END_VOICE_ADD
+	mov	di,offset UCE_VOICE_Program
+  ifdef	ff7	;------------------------
+	MOV	BX,OFFSET UC_VoiceExWork
+  else	;--------------------------------
+	MOV	BX,VOICE_ADDRESS	;従属音色情報アドレス
+	MOV	DX,ES:[BX]		;
+	.if	(dx==0000h)
+		mov	cx,16
+	.else
+		add	bx,dx		;BX←従属音色情報先頭アドレス
+	.endif
+  endif	;--------------------------------
+
+	.while	(cx<16)
+
+  ifdef	ff7	;------------------------
+		mov	ax,cs:[bx]		;AL←音色登録情報
+  else	;--------------------------------
+		mov	ax,es:[bx]		;AL←音色登録情報
+  endif	;--------------------------------
+		.break	.if	(ax==0ffffh)
+
+		mov	dl,'$'
+		mov	ah,02h
+		int	21h
+
+		lodsw				;出力すべき文字列のアドレス
+		mov	dx,ax			;
+		MOV	AH,09H			;
+		INT	21H			;出力
+
+		mov	dl,'$'
+		mov	ah,02h
+		int	21h
+
+		mov	dx,offset UCE_VOICE_M0
+		mov	ah,09h
+		int	21h
+
+		mov	ah,cs:[di]
+		call	hex2asc8
+		mov	ah,09h
+		int	21h
+
+		mov	dx,offset UCE_VOICE_cr
+		MOV	AH,09H			;
+		INT	21H			;出力
+
+		INC	BX			;
+		INC	BX			;アドレスインクリメント
+		INC	CX			;
+		inc	di
+	.endw
+endif	;-------------------------------
+
+
+
+ifndef	ff7	;------------------------
+	XOR	CX,CX			;CL←0
+	MOV	SI,OFFSET UC_END_VOICE_ADD
+  ifdef	PS1	;------------------------
+	add	si,32			;PSは、従属音色の分、加算する
+  endif	;--------------------------------
+	MOV	BX,OFFSET UC_VOICE	;
+
+	.while	(cx<64)
+
+		mov	al,cs:[bx]		;AL←音色登録情報
+		.break	.if	(al==0ffh)
+
+		push	ax
+
+		mov	dl,'$'
+		mov	ah,02h
+		int	21h
+
+		lodsw				;出力すべき文字列のアドレス
+		mov	dx,ax			;
+		MOV	AH,09H			;
+		INT	21H			;出力
+
+		mov	dl,'$'
+		mov	ah,02h
+		int	21h
+
+		mov	dx,offset UCE_VOICE_M0
+		mov	ah,09h
+		int	21h
+
+		pop	ax
+
+		mov	ah,al
+		call	hex2asc8
+		MOV	AH,09H			;
+		INT	21H			;出力
+
+		mov	dx,offset UCE_VOICE_cr
+		MOV	AH,09H			;
+		INT	21H			;出力
+
+		INC	BX			;
+		INC	CX			;
+
+	.endw
+endif	;-------------------------------
+	mov	dx,offset UCE_VOICE_cr
+	MOV	AH,09H			;
+	INT	21H			;出力
+
+
+
+ifdef	Rhythm12	;---------------
+	mov	cx,12
+	mov	bx,offset UCE_VOICE_Note
+	mov	si,offset UC_Rhythm_Add
+	.repeat
+		mov	dl,'$'
+		mov	ah,02h
+		int	21h
+
+		lodsw
+		mov	dx,ax
+		mov	ah,09h
+		int	21h
+
+		mov	dl,'$'
+		mov	ah,02h
+		int	21h
+
+		mov	dx,offset UCE_VOICE_M1
+		mov	ah,09h
+		int	21h
+
+		mov	ah,cs:[bx]
+		call	hex2asc8
+		mov	ah,09h
+		int	21h
+
+		mov	dx,offset UCE_VOICE_cr
+		MOV	AH,09H			;
+		INT	21H			;出力
+
+		inc	bx
+	.untilcxz
+endif	;-------------------------------
+
+	RET
+UC_Instrument	endp
+;---------------------------------------------------------------|
 ;		ＭＭＬ出力部					|
 ;---------------------------------------------------------------|
 ;	処理							|
@@ -649,8 +1314,20 @@ c_decode	endp
 ;	２．使用されている音色番号の記憶			|
 ;---------------------------------------------------------------|
 UC_PART		DB	?			;パート数
-UC_CR		DB	0Dh,0Ah,24h
-UC_PART_ASC	DB	'0A	$'	;1ch
+UC_PART_ASC:
+ifdef	SPC	;------------------------
+		DB	'A	$',0	;1ch
+		DB	'B	$',0	;2ch
+		DB	'C	$',0	;3ch
+		DB	'D	$',0	;4ch
+		DB	'E	$',0	;5ch
+		DB	'F	$',0	;6ch
+		DB	'G	$',0	;7ch
+		DB	'H	$',0	;8ch
+UC_ADDER	DW	?			;先頭アドレス差分
+endif	;-------------------------------
+ifdef	PS1	;------------------------
+		DB	'0A	$'	;1ch
 		DB	'1A	$'	;2ch
 		DB	'2A	$'	;3ch
 		DB	'3A	$'	;4ch
@@ -682,6 +1359,8 @@ UC_PART_ASC	DB	'0A	$'	;1ch
 		DB	'1H	$'	;14ch
 		DB	'2H	$'	;15ch
 		DB	'3H	$'	;16ch
+endif	;-------------------------------
+UC_CR		DB	0Dh,0Ah,24h
 UCMO_LOOP_OUTPUT:			;
 	DB	'/*L1*/[$'		;
 UCMO_LOOP_OUTPUT2:			;
@@ -689,9 +1368,19 @@ UCMO_LOOP_OUTPUT2:			;
 
 c_Command_EoC	db	?		;End of Channel
 
-UC_MML_OUTPUT	proc	near		;proc にはしない。
+UC_MML_OUTPUT	proc	near	uses	ax bx cx dx
 
-;---------------------------------------
+	local	stAddr:word
+	local	endAddr:word
+
+ifdef	MUSIC_EOF	;----------------
+	mov	ax,es:[MUSIC_EOF]	;
+  ifdef	SPC	;------------------------
+	sub	ax,cs:[UC_ADDER]	;
+  endif	;--------------------------------
+	mov	endAddr,ax		;終了アドレスの設定
+endif	;--------------------------------
+
 	MOV	CL,CS:[UC_PART]		;CL←使用パート数
 	MOV	CH,0			;CH←現在のパート
 
@@ -699,8 +1388,6 @@ UC_MML_OUTPUT	proc	near		;proc にはしない。
 	.while	(cl!=ch)
 
 	push	cx			;
-
-	call	UC_INIT			;変数初期化
 
 	XOR	DX,DX			;
 	MOV	DL,CH			;
@@ -714,11 +1401,35 @@ UC_MML_OUTPUT	proc	near		;proc にはしない。
 	POP	AX			;AX←パート番号＊２
 	ADD	AX,MUSIC_ADDRESS	;AX←パート情報＋AX
 	MOV	BX,AX			;
-	MOV	BX,ES:[BX]		;BX←演奏アドレス（相対）
+	mov	bx,es:[bx]		;
+
+ifdef	SPC	;------------------------
+ifndef	MUSIC_EOF	;----------------
+	.if	(bx==0)
+		jmp	c_Command_Ch_END	;ポインタチェック
+	.endif
+endif	;--------------------------------
+endif	;--------------------------------
+
+ifdef	SPC	;------------------------
+	sub	bx,cs:[UC_ADDER]	;
+endif	;--------------------------------
+ifdef	PS1	;------------------------
 	add	bx,MUSIC_ADDRESSa	;
 	ADD	BX,AX			;BX←演奏アドレス
+endif	;--------------------------------
 
-	CALL	UCMO_LOOP_SEARCH	;
+	mov	stAddr,bx		;先頭アドレス
+
+ifdef	MUSIC_EOF	;----------------
+	.if	(bx>=endAddr)
+		jmp	c_Command_Ch_END	;ポインタチェック
+	.endif
+endif	;--------------------------------
+
+	CALL	UCMO_LOOP_SEARCH	;無限ループ解析
+
+	call	UC_INIT			;変数初期化
 
 ;---------------------------------------
 
@@ -727,19 +1438,28 @@ UC_MML_OUTPUT	proc	near		;proc にはしない。
 	;"End of Channel"が来るまでのwhile()文	
 	.while	(byte ptr cs:[c_Command_EoC]==00h)
 
-		;無限ループの開始点であるかチェック
-		MOV	AX,CS:[UCMOLS_LOOP_ADDRESS]	;ループアドレス同一？
-		.if	(ax==bx)			;
-			MOV	DX,OFFSET UCMO_LOOP_OUTPUT
-			MOV	AH,09H			;
-			INT	21H			;
-		.endif
-		MOV	AX,CS:[UCMOLS_LOOP_ADDRESS2]	;ループアドレス同一？
-		.if	((ax==bx)&&(cs:[UCMOLS_LOOP_flag]==01h))
-			MOV	DX,OFFSET UCMO_LOOP_OUTPUT2
-			MOV	AH,09H			;
-			INT	21H			;
-		.endif
+ifdef	MUSIC_EOF	;----------------
+		.break	.if	(bx>=endAddr)
+endif	;--------------------------------
+
+		;ループアドレスのチェック
+		push	es
+		mov	ax,bx			;ax←アドレス
+		mov	cx,UCMOLS_LOOP_PTY	;回数セット
+		mov	di,offset UCMOLS_LOOP_ADDRESS
+		push	cs			
+		pop	es			;es:di ← アドレス
+		.repeat
+			scasw
+			.if	(ZERO?)
+				push	ax
+				MOV	DX,OFFSET UCMO_LOOP_OUTPUT
+				MOV	AH,09H			;
+				INT	21H			;
+				pop	ax
+			.endif
+		.untilcxz
+		pop	es
 
 		call	c_decode
 
@@ -747,6 +1467,8 @@ UC_MML_OUTPUT	proc	near		;proc にはしない。
 
 ;---------------------------------------
 ;チャンネルの終了
+
+c_Command_Ch_END:
 
 	MOV 	DX,OFFSET UC_CR		;
 	MOV	AH,09H	 		;
@@ -765,195 +1487,16 @@ c_Command_END:				;
 	RET				;RETURN
 UC_MML_OUTPUT	endp
 ;---------------------------------------------------------------|
-;		無限ループ解析					|
+;		逆ＭＭＬ部メインルーチン			|
 ;---------------------------------------------------------------|
-;	処理							|
-;		無限ループアドレスを検索する。			|
-;---------------------------------------------------------------|
-UCMOLS_LOOP_msg1	DB	'/*Loop=$'
-UCMOLS_LOOP_msg2	DB	'*/$'
+UN_MML_COMPAILE	proc	near	uses ax es
 
-UCMOLS_START_ADDRESS	DW	?
-UCMOLS_LOOP_ADDRESS	DW	0000H
-UCMOLS_LOOP_ADDRESS2	DW	0000H
-UCMOLS_LOOP_flag	DB	00
-UCMOLS_LOOP_flag1	DB	00
-UCMOLS_LOOP_flag2	DB	00
-UCMOLS_LOOP_bxwork	dw	0000h
+	MOV	AX,CS:[segAKAO_File]	;
+	MOV	ES,AX			;ES←AKAO SEGMENT
 
-UCMO_LOOP_SEARCH	proc	near
-	PUSH	BX				;
-	PUSH	CX				;レジスタ保存
+	CALL	UC_START	;初期設定
+	CALL	UC_MML_OUTPUT	;ＭＭＬ出力部
+	CALL	UC_Instrument	;後期設定
 
-;	デバッグ用
-	mov	dx,offset UCMOLS_LOOP_msg1
-	mov	ah,09h
-	int	21h
-
-UCMOL_0:MOV	AX,BX				;
-	MOV	CS:[UCMOLS_START_ADDRESS],AX	;先頭アドレス保存
-	XOR	AX,AX				;
-	MOV	CS:[UCMOLS_LOOP_ADDRESS],AX	;ループアドレスリセット
-	mov	byte ptr cs:[UCMOLS_LOOP_flag],00h
-	mov	byte ptr cs:[UCMOLS_LOOP_flag1],00h
-	mov	byte ptr cs:[UCMOLS_LOOP_flag2],00h
-
-UCMOL_1:
-	XOR	AX,AX			;
-	MOV	AL,ES:[BX]		;データ読み込み　曲
-
-	MOV	DX,OFFSET UCMO_COMMAND_SIZE
-	ADD	DX,AX			;
-	MOV	AH,AL			;AH←コマンド
-	XCHG	BX,DX			;
-	MOV	AL,CS:[BX]		;データ読み込み　解析情報
-	XCHG	BX,DX			;
-	CMP	AL,0			;
-	JZ	UCMOL_KEY		;
-	CMP	AL,9			;
-	JZ	UCMOL_KEY		;
-	JMP	UCMOL_2			;
-UCMOL_KEY:
-
-	MOV	AL,1			;・0F?h以外のコマンド
-	CMP	AH,0F0h			;AL←1
-	JC	UCMOL_K			;・0F?hのコマンド
-	MOV	AL,2			;AL←2
-UCMOL_K:CMP	AH,0A0h			;・0A0hのコマンド
-	JNZ	UCMOL_2			;パート終了
-	JMP	UCMOL_EE		;
-
-UCMOL_2:
-	CMP	AL,8			;
-	JNZ	UCMOL_3			;
-ifdef	ff7	;------------------------
-	mov	dx,bx			;
-	ADD	BX,1			;
-	MOV	AX,ES:[BX]		;
-	ADD	bx,2			;
-
-	jmp	UCMOL_E0
-
-;	TEST	AX,AX			;
-;	JZ	UCMOL_EE		;If AX=0 Then Return
-;	ADD	AX,BX			;AX←ループ先アドレス
-;	MOV	BX,AX			;BX←AX
-;	jmp	UCMOL_E3		;
-
-endif	;--------------------------------
-ifdef	ff8	;------------------------
-	MOV	AX,ES:[BX]		;
-	CMP	AX,007FEH		;
-	JZ	UCMOL_7			;
-	CMP	AX,006FEH		;
-	JZ	UCMOL_E			;
-
-	cmp	ax,004FEh		;
-	jz	UCMOL_2_2		;
-	cmp	ax,01DFEh		;
-	jz	UCMOL_2_2		;
-	cmp	ax,01EFEh		;
-	jz	UCMOL_2_2		;
-	cmp	ax,01fFEh		;
-	jz	UCMOL_2_2		;
-
-	cmp	ax,010FEh		;
-	jz	UCMOL_2_3		;
-	cmp	ax,014FEh		;
-	jz	UCMOL_2_3		;
-	cmp	ax,01CFEh		;
-	jz	UCMOL_2_3		;
-
-	cmp	ax,009FEh		;
-	jz	UCMOL_2_5		;
-
-	JMP	UCMOL_2_4		;
-
-UCMOL_2_2:				;
-	ADD	BX,2			;
-	JMP	UCMOL_1			;
-
-UCMOL_2_3:				;
-	ADD	BX,3			;
-	JMP	UCMOL_1			;
-
-UCMOL_2_4:				;
-	ADD	BX,4			;
-	JMP	UCMOL_1			;
-
-UCMOL_2_5:				;
-	ADD	BX,5			;
-	JMP	UCMOL_1			;
-endif	;--------------------------------
-
-
-UCMOL_3:				;
-	MOV	AH,0			;
-	ADD	BX,AX			;
-	JMP	UCMOL_1			;
-UCMOL_7:				;
-	mov	byte ptr cs:[UCMOLS_LOOP_flag],01h
-	mov	byte ptr cs:[UCMOLS_LOOP_flag1],01h
-	mov	byte ptr cs:[UCMOLS_LOOP_flag2],01h
-	add	bx,5			;
-	jmp	UCMOL_1			;
-UCMOL_E:				;
-	mov	ax,bx
-	mov	word ptr cs:[UCMOLS_LOOP_bxwork],ax
-	MOV	DX,BX				;DX←FE06hコマンドのアドレス
-	ADD	BX,2				;
-	MOV	AX,ES:[BX]			;
-
-UCMOL_E0:
-	TEST	AX,AX				;
-	JZ	UCMOL_EE			;If AX=0 Then Return
-	ADD	AX,BX				;AX←ループ先アドレス
-	MOV	BX,AX				;BX←AX
-	CMP	DX,AX				;AX < DX ?
-	JNC	UCMOL_E1			;
-	JMP	UCMOL_0				;ReStrat
-UCMOL_E1:
-	MOV	DX,CS:[UCMOLS_START_ADDRESS]	;DX←先頭アドレス
-	CMP	AX,DX				;AX <= DX
-	JNC	UCMOL_E2			;
-	JMP	UCMOL_0				;ReStrat
-UCMOL_E2:
-	cmp	byte ptr cs:[UCMOLS_LOOP_flag1],01h	;
-	jnz	UCMOL_E3			;
-	MOV	AX,BX				;
-	MOV	CS:[UCMOLS_LOOP_ADDRESS2],AX	;ループアドレスリセット
-	mov	byte ptr cs:[UCMOLS_LOOP_flag1],00h	;
-
-	mov	ax,word ptr cs:[UCMOLS_LOOP_bxwork]
-	mov	bx,ax				;
-	add	bx,4				;
-	JMP	UCMOL_1				;
-UCMOL_E3:
-	MOV	AX,BX				;
-	MOV	CS:[UCMOLS_LOOP_ADDRESS],AX	;ループアドレスリセット
-UCMOL_EE:
-
-
-;	デバッグ用
-	MOV	ax,CS:[UCMOLS_LOOP_ADDRESS]	;
-	call	hex2asc16
-	mov	ah,09h
-	int	21h
-
-	mov	dl,2ch
-	mov	ah,02
-	int	21h
-
-	MOV	ax,CS:[UCMOLS_LOOP_ADDRESS2]	;
-	call	hex2asc16
-	mov	ah,09h
-	int	21h
-
-	mov	dx,offset UCMOLS_LOOP_msg2
-	mov	ah,09h
-	int	21h
-
-	POP	CX			;
-	POP	BX			;
-	RET
-UCMO_LOOP_SEARCH	endp
+	RET			;RETURN
+UN_MML_COMPAILE	endp
