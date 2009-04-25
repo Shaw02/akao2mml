@@ -743,23 +743,23 @@ endif	;-------------------------------
 				mov	dl,'B'		;
 				mov	ah,02h		;
 				int	21h		;
-				ifdef	SPC	;-------
+			;	ifdef	SPC	;-------
 				mov	dl,'W'		;
 				mov	ah,02h		;
 				int	21h		;
 				mov	ax,word ptr cs:[UC_Detune_D]	;
 				mov	byte ptr cs:[UC_portamento_D],0
 				CALL	HEX2ASC16	;出力
-				endif	;---------------
-				ifdef	PS1	;-------
-				mov	dl,'S'		;
-				mov	ah,02h		;
-				int	21h		;
-				mov	ax,0		;
-				mov	ah,byte ptr cs:[UC_Detune_D]	;
-				mov	byte ptr cs:[UC_portamento_D],0
-				CALL	HEX2ASC8	;出力
-				endif	;---------------
+			;	endif	;---------------
+			;	ifdef	PS1	;-------
+			;	mov	dl,'S'		;
+			;	mov	ah,02h		;
+			;	int	21h		;
+			;	mov	ax,0		;
+			;	mov	ah,byte ptr cs:[UC_Detune_D]	;
+			;	mov	byte ptr cs:[UC_portamento_D],0
+			;	CALL	HEX2ASC8	;出力
+			;	endif	;---------------
 				MOV	AH,09H		;
 				INT	21H		;ピッチベンドのリセット
 			.endif

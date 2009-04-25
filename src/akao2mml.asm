@@ -99,7 +99,6 @@ ifdef	PS1	;------------------------
 	DB	"   filename1	Source SND filename",0DH,0AH
 endif	;--------------------------------
 	DB	"  >filename2	Output MML filename",0DH,0AH
-ifdef	SPC	;------------------------
 	DB	"  /D		Set the debug mode (0 to 255)",0DH,0AH
 	db	"  mode		 bit0(+  1) : Do not using repeat command : [, :, ]",0DH,0AH
 ;	db	"		 bit2(+  2) : reserve",0DH,0AH
@@ -110,7 +109,6 @@ ifdef	SPC	;------------------------
 ;	db	"		 bit6(+ 64) : reserve",0DH,0AH
 ;	db	"		 bit7(+128) : ヒッポロ系ニャポーン",0DH,0AH
 	db	"		 default = 0",0dh,0ah
-endif	;--------------------------------
 	DB	"  /?		Display help",0DH,0AH
 	DB	024H
 ;****************************************************************

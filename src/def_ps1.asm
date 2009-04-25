@@ -321,7 +321,9 @@ UC_D9C	DB	' /*9C*/$',00h
 UC_D9D	DB	' /*9D*/$',00h
 UC_D9E	DB	' /*9E*/$',00h
 UC_D9F	DB	' /*9F*/$',00h
-UC_DA0	DB	80h,00h			;終了
+UC_DA0	DB	0FFh
+	dw	offset UC_End
+	db	00h			;終了
 UC_DA1	DB	24h,24h,0FFH		;音色	'$'の出力
 	DW	OFFSET UC_VOICE_OUTPUT	;	マクロ番号出力
 	DB	00h			;	使用マクロ記憶
@@ -399,15 +401,19 @@ UC_DC4	DB	' /*C4(Non)*/$',00h	;Noise on
 UC_DC5	DB	' /*C5(Noff)*/$',00h	;Noise off
 UC_DC6	DB	' /*C6(Mon)*/$',00h	;modulation on
 UC_DC7	DB	' /*C7(Moff)*/$',00h	;modulation off
-UC_DC8	DB	' [$',0FFH		;Loop start
-	dw	offset UC_LoopCountInc
-	db	00h
-UC_DC9	DB	' ]$',10h,0FFh		;Loop end
-	dw	offset UC_LoopCountDec
-	db	00h
-UC_DCA	DB	' ]2$',0FFh		;Loop end(FF7用)
-	dw	offset UC_LoopCountDec
-	db	00h
+
+UC_DC8	DB	0FFh
+	DW	OFFSET Loop_Start
+	DB	00h
+
+UC_DC9	DB	0FFh
+	DW	OFFSET Loop_End
+	DB	00h
+
+UC_DCA	DB	0FFh
+	DW	OFFSET Loop_End2
+	DB	00h
+
 UC_DCB	DB	' /*CB*/$',00h
 UC_DCC	DB	' /*P*/$',00h		;スラー開始
 UC_DCD	DB	' /*X*/$',00h		;スラー終了
@@ -421,10 +427,10 @@ UC_DD4	DB	' /*D4*/$',00h
 UC_DD5	DB	' /*D5*/$',00h
 UC_DD6	DB	' /*D6*/$',00h
 UC_DD7	DB	' /*D7*/$',00h
-UC_DD8	DB	' BS$',0FFh		;ディチューン
+UC_DD8	DB	' BW$',0FFh		;ディチューン
 	DW	offset UC_Detune
 	DB	00h
-UC_DD9	DB	' BS$',11h,00h		;相対ディチューン
+UC_DD9	DB	' BW$',11h,00h		;相対ディチューン
 UC_DDA	DB	' /*DA,$',010h,' */$',00h	;不明
 UC_DDB	DB	' /*DB*/$',00h
 UC_DDC	DB	' /*DC,$',010h,' */$',00h	;不明
@@ -452,18 +458,27 @@ UC_DEA	DB	0FFh				;リバーブ
 UC_DEB	DB	0FFh				;相対リバーブ
 	dw	offset UC_RelativeReverb	;
 	db	00h				;
-UC_DEC	DB	0ffh				;パーカッションon
-	dw	offset UC_PercussionOn		;
+
+;UC_DEC	DB	0ffh				;パーカッションon
+;	dw	offset UC_PercussionOn		;
+;	db	' /*Adr=$',012h,' */$',00h	;Address?
+;UC_DED	DB	0ffh				;パーカッションoff
+;	dw	offset UC_PercussionOff		;
+;	db	00h				;
+
+UC_DEC	DB	' /*1z*/$',0ffh
+	dw	offset UC_Rhythm_on
 	db	' /*Adr=$',012h,' */$',00h	;Address?
-UC_DED	DB	0ffh				;パーカッションoff
-	dw	offset UC_PercussionOff		;
-	db	00h				;
+UC_DED	db	' /*0z*/$',0ffh
+	dw	offset UC_Rhythm_off
+	db	0				;パーカッション off
+
 UC_DEE	DB	0FFh				;無限ループ(FF7)
 	dw	offset UC_PermanentLoop	;
 	db	00h				;
 UC_DEF	DB	' /*EF,$',010h,' ,$',010h,' ,$',010h,' */$',00h	;
 UC_DF0	DB	0FFh				;ループ抜け
-	dw	offset UC_ExitLoop		;
+	dw	offset Loop_Exit		;
 	db	00h				;
 UC_DF1	DB	' /*F1,$',010h,' ,$',010h,' ,$',010h,' */$',00h	;
 UC_DF2	DB	24h,24h,0FFH			;音色	'$'の出力
@@ -611,7 +626,7 @@ UCDFF_L07_1:
 UCDFF_L09:
 	CMP	AL,09h		;
 	jnz	UCDFF_L10	;
-	jmp	UC_ExitLoop	
+	jmp	Loop_Exit	
 ;---------------------------------------
 ;	0x10
 ;---------------------------------------

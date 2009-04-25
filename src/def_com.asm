@@ -5,12 +5,12 @@ UC_INIT		proc	near	uses ax
 
 	mov	ax,0
 
-ifdef	SPC	;------------------------
+;ifdef	SPC	;------------------------
 	mov	word ptr cs:[UC_Detune_D],8192		;パイプライン対策
-endif	;-------------------------------
-ifdef	PS1	;------------------------
-	mov	byte ptr cs:[UC_Detune_D],64		;
-endif	;-------------------------------
+;endif	;-------------------------------
+;ifdef	PS1	;------------------------
+;	mov	byte ptr cs:[UC_Detune_D],64		;
+;endif	;-------------------------------
 
 	mov	byte ptr cs:[UC_Step_work],al
 	mov	byte ptr cs:[UC_DATA_E],al
@@ -35,7 +35,7 @@ endif	;-------------------------------
 
 	mov	byte ptr cs:[UC_portamento_D],al
 	mov	word ptr cs:[UC_LoopCountData],ax
-	mov	word ptr cs:[UC_Tempo_Work],ax
+;	mov	word ptr cs:[UC_Tempo_Work],ax		;初期化しないでみる
 
 ifdef	Rhythm12	;---------------
 	mov	byte ptr cs:[UC_Rhythm_flag],al
@@ -251,12 +251,12 @@ UC_Detune	proc	near	uses dx
 	inc	bx				;
 ifdef	SPC	;------------------------
 	mov	ah,4				;多分、このくらい？
-	imul	ah				;
-	add	ax,8192				;
 endif	;-------------------------------
 ifdef	PS1	;------------------------
-	add	ax,64				;
+	mov	ah,64				;多分、このくらい？
 endif	;-------------------------------
+	imul	ah				;
+	add	ax,8192				;
 	mov	word ptr cs:[UC_Detune_D],ax	;
 	CALL	HEX2ASC16			;出力
 
@@ -694,7 +694,6 @@ UC_Loop_count		db	32	dup(0)
 UC_Loop_counter		db	32	dup(0)
 UC_Loop_addr		dw	32	dup(0)
 
-ifdef	SPC	;------------------------
 ;---------------------------------------------------------------
 Loop_Start	proc	near
 	.if	(cs:[D_Debug]&001h)
@@ -714,6 +713,15 @@ Loop_End	proc	near
 	ret
 Loop_End	endp
 ;---------------------------------------------------------------
+Loop_End2	proc	near
+	.if	(cs:[D_Debug]&001h)
+		call	Loop_EndEx2
+	.else
+		call	LOOP_COUNT_POP2
+	.endif
+	ret
+Loop_End2	endp
+;---------------------------------------------------------------
 Loop_Exit	proc	near
 	.if	(cs:[D_Debug]&001h)
 		call	Loop_ExitEx
@@ -730,13 +738,14 @@ Loop_StartEx	proc	near	uses ax cx dx si
 	mov	ax,word ptr cs:[UC_LoopCountData]
 	mov	cx,ax
 
-	mov	al,es:[bx]
+ifdef	SPC	;------------------------
+	mov	al,es:[bx]		;回数読み出し
 	inc	bx
-
 	inc	al
 	mov	si,offset UC_Loop_count
 	add	si,cx
 	mov	byte ptr cs:[si],al
+endif	;--------------------------------
 
 	mov	si,offset UC_Loop_counter
 	add	si,cx
@@ -753,6 +762,36 @@ Loop_StartEx	proc	near	uses ax cx dx si
 	ret
 Loop_StartEx	endp
 ;===============================================================
+;		LOOP	開始点
+;===============================================================
+LOOP_COUNT_PUSH	proc	near	uses cx dx si
+	mov	dl,'['
+	mov	ah,02h
+	int	21h
+
+	mov	ax,word ptr cs:[UC_LoopCountData]
+	mov	cx,ax
+
+ifdef	SPC	;------------------------
+	MOV	al,ES:[BX]			;データ読み込み
+	INC	BX				;ループ回数
+	INC	al				
+	mov	si,offset UC_Loop_count		
+	add	si,cx				
+	mov	cs:[si],al			;ループ回数を保存
+endif	;--------------------------------
+
+	mov	si,offset UC_Loop_addr		;
+	add	si,cx				;
+	add	si,cx				;
+	xor	ax,ax				;
+	mov	cs:[si],ax			;ジャンプ先 0x0000にしておく
+
+	inc	word ptr cs:[UC_LoopCountData]
+
+	RET					
+LOOP_COUNT_PUSH	endp
+;===============================================================
 ;		LOOP	終了	（シミュレート用）
 ;===============================================================
 Loop_EndEx	proc	near	uses ax cx dx si
@@ -761,9 +800,15 @@ Loop_EndEx	proc	near	uses ax cx dx si
 	mov	cx,ax
 	dec	cx
 
+ifdef	SPC	;------------------------
 	mov	si,offset UC_Loop_count
 	add	si,cx
 	mov	ah,byte ptr cs:[si]	;ah ← ループ回数
+endif	;--------------------------------
+ifdef	PS1	;------------------------
+	mov	ah,es:[bx]		;回数読み出し
+	inc	bx
+endif	;--------------------------------
 
 	mov	si,offset UC_Loop_counter
 	add	si,cx
@@ -784,6 +829,109 @@ Loop_EndEx	proc	near	uses ax cx dx si
 	ret
 Loop_EndEx	endp
 ;===============================================================
+;		LOOP	終了点
+;===============================================================
+LOOP_COUNT_POP	proc	near	uses cx dx si
+	mov	dl,']'
+	mov	ah,02h
+	int	21h
+
+	cmp	word ptr cs:[UC_LoopCountData],0
+	jz	LOOP_COUNT_POP_E
+
+	dec	word ptr cs:[UC_LoopCountData]
+	mov	ax,word ptr cs:[UC_LoopCountData]
+	mov	cx,ax
+
+ifdef	SPC	;------------------------
+	mov	si,offset UC_Loop_count		
+	add	si,cx				
+	mov	ah,cs:[si]			;ループ回数
+endif	;--------------------------------
+ifdef	PS1	;------------------------
+	mov	ah,es:[bx]			;回数読み出し
+	inc	bx
+endif	;--------------------------------
+	CALL	HEX2ASC8			;出力
+	MOV	AH,09H				;
+	INT	21H				;
+
+	mov	si,offset UC_Loop_addr		
+	add	si,cx				
+	add	si,cx				
+	mov	ax,cs:[si]
+
+	.if	(ax!=0)			;ジャンプ先
+		mov	bx,ax		;ジャンプする
+	.endif
+
+LOOP_COUNT_POP_E:
+
+	RET
+LOOP_COUNT_POP	endp
+;===============================================================
+;		LOOP	終了	（シミュレート用）
+;===============================================================
+Loop_EndEx2	proc	near	uses ax cx dx si
+
+	mov	ax,word ptr cs:[UC_LoopCountData]
+	mov	cx,ax
+	dec	cx
+
+	mov	ah,2
+
+	mov	si,offset UC_Loop_counter
+	add	si,cx
+	mov	al,byte ptr cs:[si]	;al ← 何ループ目
+
+	.if	(ah>al)
+		inc	al
+		mov	cs:[si],al
+		mov	si,offset UC_Loop_addr
+		add	si,cx
+		add	si,cx
+		mov	ax,word ptr cs:[si]
+		mov	bx,ax
+	.else
+		dec	word ptr cs:[UC_LoopCountData]
+	.endif
+
+	ret
+Loop_EndEx2	endp
+;===============================================================
+;		LOOP	終了点
+;===============================================================
+LOOP_COUNT_POP2	proc	near	uses cx dx si
+	mov	dl,']'
+	mov	ah,02h
+	int	21h
+
+	cmp	word ptr cs:[UC_LoopCountData],0
+	jz	LOOP_COUNT_POP2_E
+
+	dec	word ptr cs:[UC_LoopCountData]
+	mov	ax,word ptr cs:[UC_LoopCountData]
+	mov	cx,ax
+
+	mov	ah,2				;
+	CALL	HEX2ASC8			;出力
+	MOV	AH,09H				;
+	INT	21H				;
+
+	mov	si,offset UC_Loop_addr		
+	add	si,cx				
+	add	si,cx				
+	mov	ax,cs:[si]
+
+	.if	(ax!=0)			;ジャンプ先
+		mov	bx,ax		;ジャンプする
+	.endif
+
+LOOP_COUNT_POP2_E:
+
+	RET
+LOOP_COUNT_POP2	endp
+;===============================================================
 ;		LOOP	抜け	（シミュレート用）
 ;===============================================================
 Loop_ExitEx	proc	near	uses ax cx dx si
@@ -795,9 +943,19 @@ Loop_ExitEx	proc	near	uses ax cx dx si
 	mov	al,es:[bx]
 	mov	dl,al			;dl ← 何カッコ？
 	inc	bx
+
 	mov	ax,es:[bx]
-	sub	ax,cs:[UC_ADDER]	;ax ← ジャンプ先
-	add	bx,2			;al ← 何カッコ？
+ifdef	SPC	;------------------------
+	sub	ax,cs:[UC_ADDER]	;ax←行き先絶対アドレス
+endif	;--------------------------------
+ifdef	FF8	;------------------------
+	add	ax,bx
+endif	;--------------------------------
+	add	bx,2
+ifdef	FF7	;------------------------
+	add	ax,bx
+endif	;--------------------------------
+
 	xchg	ax,dx			;dx ← ジャンプ先
 
 	mov	si,offset UC_Loop_counter
@@ -815,95 +973,11 @@ Loop_ExitEx	proc	near	uses ax cx dx si
 	ret
 Loop_ExitEx	endp
 ;===============================================================
-;		LOOP	開始点
-;===============================================================
-LOOP_COUNT_PUSH	proc	near	uses cx dx di
-	mov	dl,'['
-	mov	ah,02h
-	int	21h
-
-	mov	ax,word ptr cs:[UC_LoopCountData]
-	mov	cx,ax
-
-	MOV	AH,ES:[BX]			;データ読み込み
-	INC	BX				;ループ回数
-	INC	AH				
-	mov	di,offset UC_Loop_count		
-	add	di,cx				
-	mov	cs:[di],ah			;ループ回数を保存
-
-	mov	di,offset UC_Loop_addr		;
-	add	di,cx				;
-	add	di,cx				;
-	xor	ax,ax				;
-	mov	cs:[di],ax			;ジャンプ先 0x0000にしておく
-
-	inc	word ptr cs:[UC_LoopCountData]
-
-	RET					
-LOOP_COUNT_PUSH	endp
-;===============================================================
-;		LOOP	終了点
-;===============================================================
-LOOP_COUNT_POP	proc	near	uses cx dx di
-	mov	dl,']'
-	mov	ah,02h
-	int	21h
-
-	cmp	word ptr cs:[UC_LoopCountData],0
-	jz	LOOP_COUNT_POP_E
-
-	dec	word ptr cs:[UC_LoopCountData]
-	mov	ax,word ptr cs:[UC_LoopCountData]
-	mov	cx,ax
-
-	mov	di,offset UC_Loop_count		
-	add	di,cx				
-	mov	ah,cs:[di]			;ループ回数
-	CALL	HEX2ASC8			;出力
-	MOV	AH,09H				;
-	INT	21H				;
-
-	mov	di,offset UC_Loop_addr		
-	add	di,cx				
-	add	di,cx				
-	mov	ax,cs:[di]
-
-	.if	(ax!=0)			;ジャンプ先
-		mov	bx,ax		;ジャンプする
-	.endif
-
-LOOP_COUNT_POP_E:
-
-	RET
-LOOP_COUNT_POP	endp
-endif	;--------------------------------
-ifdef	PS1	;------------------------
-;===============================================================
-;	0xC8		ループ
-;===============================================================
-UC_LoopCountInc	proc	near
-	inc	word ptr cs:[UC_LoopCountData]
-	ret
-UC_LoopCountInc	endp
-;===============================================================
-;	0xC9,0xCA	ループ
-;===============================================================
-UC_LoopCountDec	proc	near
-	cmp	word ptr cs:[UC_LoopCountData],0
-	jz	UC_LoopCountDec_1
-	dec	word ptr cs:[UC_LoopCountData]
-UC_LoopCountDec_1:
-	ret
-UC_LoopCountDec	endp
-endif	;--------------------------------
-
-;===============================================================
 ;		LOOP	抜け
 ;===============================================================
 UC_ExitLoop_M1	db	'/*Adr=0x$'
 UC_ExitLoop_M2	db	'*/:$'
-UC_ExitLoop		proc	near	uses cx dx di
+UC_ExitLoop		proc	near	uses cx dx si
 
 	mov	ax,word ptr cs:[UC_LoopCountData]
 	mov	cx,ax
@@ -935,10 +1009,10 @@ ifdef	FF7	;------------------------
 	add	ax,bx
 endif	;--------------------------------
 
-	mov	di,offset UC_Loop_addr	
-	add	di,cx		
-	add	di,cx		
-	mov	cs:[di],ax	;行き先を保存
+	mov	si,offset UC_Loop_addr	
+	add	si,cx		
+	add	si,cx		
+	mov	cs:[si],ax	;行き先を保存
 
 	call	DAT2HEX16
 	MOV	AH,09H		;
@@ -950,7 +1024,6 @@ endif	;--------------------------------
 
 	ret			;
 UC_ExitLoop		endp
-
 ;===============================================================
 ;		End Of Channel
 ;===============================================================
@@ -975,23 +1048,12 @@ UC_End	endp
 ;		EoC	with	無限ループ
 ;===============================================================
 UCDFF_M06_1	DB	']2/*L*/$'
-UCDFF_M06_2	DB	']1/*L*/$'
+UCDFF_M06_2	DB	']1$'
 UCDFF_M07_Adr	dw	?	;飛び先
 
-UC_PermanentLoop	proc	near	uses cx
+UC_PermanentLoop	proc	near	uses cx di
 
 	mov	byte ptr cs:[c_Command_EoC],01h		;デフォルトは、終わる
-
-ifdef	PS1	;------------------------
-	;-----------------------
-	;有限ループが残ってる場合、解消する
-	.while	(word ptr cs:[UC_LoopCountData]!=0)
-		mov	dx,offset UCDFF_M06_2
-		mov	ah,09h		;
-		int	21h		;
-		dec	word ptr cs:[UC_LoopCountData]
-	.endw
-endif	;--------------------------------
 
 	;-----------------------
 	;無限ループ処理
