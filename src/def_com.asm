@@ -177,7 +177,8 @@ endif	;--------------------------------
 UC_VoiceEx	endp
 ;****************************************************************
 ifdef	Rhythm12	;---------------
-UC_Rhythm_flag	db	0
+UC_Rhythm_flag		db	0
+UC_Rhythm_Address	dw	0
 ;===============================================================
 ;		リズムon
 ;===============================================================
@@ -192,6 +193,33 @@ UC_Rhythm_off	proc	near
 	mov	byte ptr cs:[UC_Rhythm_flag],0
 	ret
 UC_Rhythm_off	endp
+;===============================================================
+;		リズムアドレス　セット
+;===============================================================
+UC_Rhythm_adr_set_M1	db	' /*Adr=0x',24h
+UC_Rhythm_adr_set_M2	db	' */',24h
+UC_Rhythm_adr_set	proc	near	uses dx si
+
+	mov	dx,offset UC_Rhythm_adr_set_M1
+	mov	ah,09h			;
+	int	21h			;
+
+	mov	ax,es:[bx]		;
+	inc	bx			;
+	inc	bx			;
+	add	ax,bx			;
+
+	mov	cs:[UC_Rhythm_Address],ax	;リズム定義のアドレス
+	call	dat2hex16		
+	mov	ah,09h			
+	int	21h			;表示もしておく
+
+	mov	dx,offset UC_Rhythm_adr_set_M2
+	mov	ah,09h
+	int	21h
+
+	ret
+UC_Rhythm_adr_set	endp
 endif	;-------------------------------
 ;===============================================================
 ;	0xEC	パーカッションon

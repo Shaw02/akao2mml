@@ -4,6 +4,74 @@
 ;*									*
 ;************************************************************************
 ;---------------------------------------------------------------|
+;		音符出力					|
+;---------------------------------------------------------------|
+;	処理							|
+;		音符・オクターブを計算して出力			|
+;	引数							|
+;		al	Note Number				|
+;---------------------------------------------------------------|
+c_output_note_N		dw	offset c_output_note_C
+			dw	offset c_output_note_Ds
+			dw	offset c_output_note_D
+			dw	offset c_output_note_Es
+			dw	offset c_output_note_E
+			dw	offset c_output_note_F
+			dw	offset c_output_note_Gs
+			dw	offset c_output_note_G
+			dw	offset c_output_note_As
+			dw	offset c_output_note_A
+			dw	offset c_output_note_B
+			dw	offset c_output_note_H
+c_output_note_C		db	'c$'
+c_output_note_Ds	db	'c+$'
+c_output_note_D		db	'd$'
+c_output_note_Es	db	'd+$'
+c_output_note_E		db	'e$'
+c_output_note_F		db	'f$'
+c_output_note_Gs	db	'f+$'
+c_output_note_G		db	'g$'
+c_output_note_As	db	'g+$'
+c_output_note_A		db	'a$'
+c_output_note_B		db	'a+$'
+c_output_note_H		db	'b$'
+c_output_note_O		db	'o$'
+
+c_output_note	proc	near
+	pusha
+
+	xor	ah,ah			;ax ← Note
+	mov	dl,12			;
+	div	dl			;ah ← octave
+	xchg	al,ah			;al ← note
+
+
+	push	ax
+	mov	dx,offset c_output_note_O
+	mov	ah,09h
+	int	21h			;'o'の表示
+	pop	ax
+
+	push	ax
+	dec	ah			
+	call	hex2asc8
+	mov	ah,09h
+	int	21h			;オクターブ値
+	pop	ax
+
+	xor	ah,ah			;ax←Note Number
+	shl	ax,1
+	mov	bx,offset c_output_note_N
+	add	bx,ax
+	mov	dx,cs:[bx]
+	mov	ah,09h
+	int	21h			;音符の出力
+
+c_output_note_End:
+	popa
+	ret
+c_output_note	endp
+;---------------------------------------------------------------|
 ;		音長出力					|
 ;---------------------------------------------------------------|
 ;	処理							|
@@ -572,6 +640,21 @@ UC_DATA_ADDRESS:
 	DW	OFFSET UC_DFE
 	DW	OFFSET UC_DFF
 
+ifdef	PS1	;---------------
+c_decode_Length:
+	db	1
+	db	2
+	db	4
+	db	8
+	db	16
+	db	32
+	db	64
+	db	6
+	db	12
+	db	24
+	db	48
+endif	;-----------------------
+
 c_decode	proc	near
 
 	local	UCMO_ComStartFlag:byte
@@ -585,12 +668,13 @@ c_decode	proc	near
 
 ifdef	Rhythm12	;---------------
 	.if	((ax<(Rhythm12*12))&&(cs:[UC_Rhythm_flag]==1))
-		push	ax
-		push	cx
-		push	dx
+		pusha
+
 		mov	dl,Rhythm12
-		div	dl		;al←音程
-		mov	cx,ax
+		div	dl		;cl←音程
+		mov	cx,ax		;ch←余り
+
+		push	ax
 
 		mov	dl,'$'
 		mov	ah,02h
@@ -612,9 +696,38 @@ ifdef	Rhythm12	;---------------
 		mov	ah,02h
 		int	21h		;マクロ　英文字
 
-		pop	dx
-		pop	cx
 		pop	ax
+
+  ifdef	PS1	;-----------------------
+		;音符の表示
+		mov	bx,cs:[UC_Rhythm_Address]
+		xor	ah,ah
+		add	bx,ax
+		shl	ax,2
+		add	bx,ax
+		inc	bx		;bx += ax*5 + 1
+		mov	al,es:[bx]
+		call	c_output_note
+
+		;音長の表示
+		.if	(byte ptr cs:[UC_Step_work]==0)
+			xor	ax,ax
+			mov	al,ch		;ax←音長さコード
+			mov	bx,offset c_decode_Length
+			add	bx,ax
+			mov	ah,cs:[bx]
+		.else
+			mov	dl,'%'
+			mov	ah,02h			;
+			int	21h			;
+			mov	ah,byte ptr cs:[UC_Step_work]
+		.endif
+		call	hex2asc8
+		mov	ah,09h
+		int	21h			;
+  endif	;-------------------------------
+
+		popa
 	.endif
 endif	;-------------------------------
 
@@ -677,6 +790,14 @@ endif	;-------------------------------
 
 	.elseif	(al==20h)
 
+ifdef	Rhythm12	;---------------
+ifdef	PS1	;-----------------------
+	    .if	((UCMO_ComStartFlag==1)&&(byte ptr es:[bx-1]<(Rhythm12*12))&&(cs:[UC_Rhythm_flag]==1))
+
+	    .else
+endif	;-------------------------------
+endif	;-------------------------------
+
 		.if	((UCMO_ComStartFlag==1)&&(byte ptr es:[bx-1]<=Music_Note)&&(byte ptr cs:[UC_Step_work]!=0))
 
 			XCHG	BX,DX			;
@@ -714,6 +835,12 @@ endif	;-------------------------------
 			POP	DX			;
 
 		.endif
+
+ifdef	Rhythm12	;---------------
+ifdef	PS1	;-----------------------
+	    .endif
+endif	;-------------------------------
+endif	;-------------------------------
 
 		.repeat
 			XCHG	BX,DX			;
@@ -1117,7 +1244,12 @@ UC_Rhythm_3y	db	'3y	',24h
 UC_Rhythm_4y	db	'4y	',24h
 UC_Rhythm_5y	db	'5y	',24h
 
+  ifdef	SPC	;------------------------	ロマサガ３設定暫定
 UCE_VOICE_M1	db	'1z	k127	v127	J',24h
+  endif	;-------------------------------
+  ifdef	PS1	;------------------------	ＰＳ用
+UCE_VOICE_M1	db	'1z	k127		J',24h
+  endif	;-------------------------------
 
 UCE_VOICE_Note:
   ifdef	SPC	;------------------------	ロマサガ３設定暫定
@@ -1273,6 +1405,12 @@ ifdef	Rhythm12	;---------------
 	mov	cx,12
 	mov	bx,offset UCE_VOICE_Note
 	mov	si,offset UC_Rhythm_Add
+  ifdef	PS1	;-----------------------
+	mov	di,cs:[UC_Rhythm_Address]
+	cmp	di,0
+	je	UC_Instrument_NoRhythm	;パーカッション無かったら吐かない
+  endif	;-------------------------------
+
 	.repeat
 		mov	dl,'$'
 		mov	ah,02h
@@ -1283,6 +1421,7 @@ ifdef	Rhythm12	;---------------
 		mov	ah,09h
 		int	21h
 
+  ifdef	SPC	;-----------------------
 		mov	dl,'$'
 		mov	ah,02h
 		int	21h
@@ -1295,6 +1434,12 @@ ifdef	Rhythm12	;---------------
 		call	hex2asc8
 		mov	ah,09h
 		int	21h
+  endif	;-------------------------------
+  ifdef	PS1	;-----------------------
+
+		call	UC_Instrument_Phythm_PS1
+
+  endif	;-------------------------------
 
 		mov	dx,offset UCE_VOICE_cr
 		MOV	AH,09H			;
@@ -1302,10 +1447,91 @@ ifdef	Rhythm12	;---------------
 
 		inc	bx
 	.untilcxz
+UC_Instrument_NoRhythm:
 endif	;-------------------------------
 
 	RET
 UC_Instrument	endp
+;---------------------------------------------------------------|
+;		ＰＳ１	リズム定義出力				|
+;---------------------------------------------------------------|
+UC_Instrument_Phythm_PS1_M1	db	"	/*J",24h
+UC_Instrument_Phythm_PS1_M2	db	"	/*",24h
+UC_Instrument_Phythm_PS1_ME	db	"*/",24h
+UC_Instrument_Phythm_PS1_E	db	"	E",24h
+UC_Instrument_Phythm_PS1_P	db	"	p",24h
+
+UC_Instrument_Phythm_PS1	proc	near	uses bx
+
+	;[0]: Voice
+	mov	dl,'$'
+	mov	ah,02h
+	int	21h
+
+	xor	ax,ax				;
+	mov	al,es:[di]			;
+	inc	di				;
+	mov	dx,OFFSET UC_VOICE_NAME		;
+	add	dx,ax				;
+	add	dx,ax				;
+	add	dx,ax				;
+	mov	ah,09h
+	int	21h
+
+	;[1]:Note Number
+	mov	dx,offset UC_Instrument_Phythm_PS1_M1
+	mov	ah,09h
+	int	21h
+	mov	ah,es:[di]
+	inc	di
+	call	hex2asc8
+	mov	ah,09h
+	int	21h
+	mov	dx,offset UC_Instrument_Phythm_PS1_ME
+	mov	ah,09h
+	int	21h
+
+	;[2]:unknown
+	mov	dx,offset UC_Instrument_Phythm_PS1_M2
+	mov	ah,09h
+	int	21h
+	mov	ah,es:[di]
+	inc	di
+	call	hex2asc8
+	mov	ah,09h
+	int	21h
+	mov	dx,offset UC_Instrument_Phythm_PS1_ME
+	mov	ah,09h
+	int	21h
+
+	;[3]:Expression
+	mov	dx,offset UC_Instrument_Phythm_PS1_E
+	mov	ah,09h
+	int	21h
+
+	xor	ax,ax				;
+	mov	al,es:[di]
+	inc	di
+	MOV	BX,OFFSET UC_Volume_TABLE	;
+	ADD	BX,AX				;
+	MOV	AH,CS:[BX]			;
+	call	hex2asc8
+	mov	ah,09h
+	int	21h
+
+	;[4]:Panpot
+	mov	dx,offset UC_Instrument_Phythm_PS1_P
+	mov	ah,09h
+	int	21h
+	mov	ah,es:[di]
+	inc	di
+	call	hex2asc8
+	mov	ah,09h
+	int	21h
+
+
+	ret
+UC_Instrument_Phythm_PS1	endp
 ;---------------------------------------------------------------|
 ;		ＭＭＬ出力部					|
 ;---------------------------------------------------------------|

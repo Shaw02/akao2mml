@@ -468,7 +468,10 @@ UC_DEB	DB	0FFh				;相対リバーブ
 
 UC_DEC	DB	' /*1z*/$',0ffh
 	dw	offset UC_Rhythm_on
-	db	' /*Adr=$',012h,' */$',00h	;Address?
+;	db	' /*Adr=$',012h,' */$',00h	;Address?
+	db	0ffh
+	dw	offset UC_Rhythm_adr_set
+	db	0
 UC_DED	db	' /*0z*/$',0ffh
 	dw	offset UC_Rhythm_off
 	db	0				;パーカッション off
