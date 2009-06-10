@@ -1215,7 +1215,8 @@ UCE_VOICE_6F	DB	'6f	',24h
 UCE_VOICE_7F	DB	'7f	',24h
 endif	;--------------------------------
 
-UCE_VOICE_M0	db	'0z	k127	v127	y100,2	y101,0	y6,64	H0,0	@',24h
+UCE_VOICE_M0		db	'0z	k127	v127	y100,2	y101,0	y6,64	H0,0	@',24h
+UCE_VOICE_M0_VGM	db	'	k127	v127					@',24h
 
 ifdef	Rhythm12	;---------------
 UC_Rhythm_Add	dw	offset UC_Rhythm_0x
@@ -1287,6 +1288,10 @@ UCE_VOICE_cr	db	0dh,0ah,24h
 
 UC_Instrument	proc	near
 
+	local	iMultiSample:BYTE
+
+	mov	iMultiSample,0
+
 ifdef	PS1	;------------------------
 	XOR	CX,CX			;CL←0
 	MOV	SI,OFFSET UC_END_VOICE_ADD
@@ -1321,15 +1326,22 @@ ifdef	PS1	;------------------------
 		MOV	AH,09H			;
 		INT	21H			;出力
 
-		mov	dl,'$'
-		mov	ah,02h
-		int	21h
-
-		mov	dx,offset UCE_VOICE_M0
+		.if	(cs:[D_Debug] & 02h)
+		  mov	dx,offset UCE_VOICE_M0_VGM
+		.else
+		  mov	dl,'$'
+		  mov	ah,02h
+		  int	21h
+		  mov	dx,offset UCE_VOICE_M0
+		.endif
 		mov	ah,09h
 		int	21h
 
-		mov	ah,cs:[di]
+		.if	((cs:[D_Debug] & 02h) && (cx==0))
+		  mov	ah,0
+		.else
+		  mov	ah,cs:[di]
+		.endif
 		call	hex2asc8
 		mov	ah,09h
 		int	21h
@@ -1342,6 +1354,8 @@ ifdef	PS1	;------------------------
 		INC	BX			;アドレスインクリメント
 		INC	CX			;
 		inc	di
+
+		inc	iMultiSample
 	.endw
 endif	;-------------------------------
 
@@ -1365,22 +1379,27 @@ ifndef	ff7	;------------------------
 		mov	dl,'$'
 		mov	ah,02h
 		int	21h
-
 		lodsw				;出力すべき文字列のアドレス
 		mov	dx,ax			;
 		MOV	AH,09H			;
 		INT	21H			;出力
 
-		mov	dl,'$'
-		mov	ah,02h
-		int	21h
-
-		mov	dx,offset UCE_VOICE_M0
+		.if	(cs:[D_Debug] & 02h)
+		  mov	dx,offset UCE_VOICE_M0_VGM
+		.else
+		  mov	dl,'$'
+		  mov	ah,02h
+		  int	21h
+		  mov	dx,offset UCE_VOICE_M0
+		.endif
 		mov	ah,09h
 		int	21h
 
 		pop	ax
 
+		.if	(cs:[D_Debug] & 02h)
+		  add	al,iMultiSample
+		.endif
 		mov	ah,al
 		call	hex2asc8
 		MOV	AH,09H			;

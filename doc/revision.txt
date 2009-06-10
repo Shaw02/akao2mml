@@ -1,8 +1,19 @@
 ================================================================
 
-	AKAO2MML	改訂履歴
+	AKAO2MML	改訂履歴（Revision）
 
 ================================================================
+
+
+
+version 2.02		2009. 6.10
+	◆FF8MML.COM
+	・VGMtransが出力するDLSの音色番号に併せるオプションスイッチを追加。
+	　I added option switch to the "ff8mml.com".
+	　This will be outputting the instrument number the same as VGMtrans.
+	　　0xA1	指定値に、0xFE-0x14で使用された音色数を加算して出力。
+	　　0xFE-0x04	@127を出力
+	　　0xFE-0x14	指定値を出力（最大16個）
 
 
 

@@ -101,7 +101,9 @@ endif	;--------------------------------
 	DB	"  >filename2	Output MML filename",0DH,0AH
 	DB	"  /D		Set the debug mode (0 to 255)",0DH,0AH
 	db	"  mode		 bit0(+  1) : Do not using repeat command : [, :, ]",0DH,0AH
-;	db	"		 bit2(+  2) : reserve",0DH,0AH
+ifdef	FF8	;------------------------
+	db	"		 bit2(+  2) : Instrument no out same as VGMtrans.",0DH,0AH
+endif	;--------------------------------
 ;	db	"		 bit2(+  4) : reserve",0DH,0AH
 ;	db	"		 bit3(+  8) : reserve",0DH,0AH
 ;	db	"		 bit4(+ 16) : reserve",0DH,0AH

@@ -224,17 +224,21 @@ endif	;-------------------------------
 ;===============================================================
 ;	0xEC	パーカッションon
 ;===============================================================
-UC_Perc_On	db	'1z$'
+UC_Perc_On		db	'1z$'
+UC_Perc_On_VGMtrans	db	'@127$'
 
 UC_PercussionOn		proc	near
 
-	MOV	DL,24H		;'$'の出力
-	MOV	AH,02H		;
-	INT	21H		;
-
-	MOV	DX,OFFSET UC_Perc_On
-	MOV	AH,09H		;
-	INT	21H		;
+	.if	(cs:[D_Debug] & 02h)
+		mov	dx,OFFSET UC_Perc_On_VGMtrans
+	.else
+		MOV	DL,24H		;'$'の出力
+		MOV	AH,02H		;
+		INT	21H		;
+		mov	dx,OFFSET UC_Perc_On
+	.endif
+	MOV	AH,09H			;
+	INT	21H			;
 
 	ret
 UC_PercussionOn		endp
