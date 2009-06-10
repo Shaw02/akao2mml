@@ -1085,8 +1085,11 @@ UCDFF_M07_Adr	dw	?	;飛び先
 
 UC_PermanentLoop	proc	near	uses cx di
 
+ifdef	FF8	;------------------------
+	call	UC_End
+else	;--------------------------------
 	mov	byte ptr cs:[c_Command_EoC],01h		;デフォルトは、終わる
-
+endif	;--------------------------------
 	;-----------------------
 	;無限ループ処理
 	mov	ax,es:[bx]		;ax←ループ先

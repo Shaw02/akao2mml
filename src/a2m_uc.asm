@@ -1399,6 +1399,7 @@ ifndef	ff7	;------------------------
 
 		.if	(cs:[D_Debug] & 02h)
 		  add	al,iMultiSample
+		  inc	al
 		.endif
 		mov	ah,al
 		call	hex2asc8
