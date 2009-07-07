@@ -53,7 +53,7 @@ else	;-------------------------------
 endif	;-------------------------------
 
 	.if	(ax==0)
-		mov	dx,offset UC_ExpressionM
+		lea	dx,[UC_ExpressionM]
 		mov	ah,09h
 		int	21h
 		pop	ax		;Dummy
@@ -75,7 +75,7 @@ ifdef	ExpRange	;---------------
 	shl	al,1				;倍にする
 endif	;-------------------------------
 	push	bx
-	mov	bx,offset UC_Volume_Table
+	lea	bx,[UC_Volume_Table]
 	xlat
 
 	mov	ah,al
@@ -96,7 +96,7 @@ UC_ExpressionM1	db	'UE1,0,%$'
 UC_DATA_E	DB	?			;エクスプレッション
 UC_Expression	proc	near
 
-	MOV	DX,OFFSET UC_ExpressionM
+	lea	DX,[UC_ExpressionM]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -105,7 +105,7 @@ UC_Expression	proc	near
 	MOV	AH,09H		;
 	INT	21H		;そしてそれを表示
 
-	MOV	DX,OFFSET UC_ExpressionM1
+	lea	DX,[UC_ExpressionM1]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -134,7 +134,7 @@ ifdef	ExpRange	;---------------
 endif	;-------------------------------
 
 	push	bx
-	mov	bx,offset UC_Volume_Table
+	lea	bx,[UC_Volume_Table]
 	xlat
 	mov	ah,al
 	pop	bx
@@ -166,7 +166,7 @@ else	;-------------------------------
 endif	;-------------------------------
 
 	.if	(ax==0)
-		mov	dx,offset UC_PanpotM
+		lea	dx,[UC_PanpotM]
 		mov	ah,09h
 		int	21h
 		pop	ax		;Dummy
@@ -203,7 +203,7 @@ UC_PanpotM1	db	'UP1,0,%$'
 UC_DATA_P	DB	?			;パンポット
 UC_Panpot	proc	near
 
-	MOV	DX,OFFSET UC_PanpotM
+	lea	DX,[UC_PanpotM]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -212,7 +212,7 @@ UC_Panpot	proc	near
 	MOV	AH,09H		;
 	INT	21H		;そしてそれを表示
 
-	MOV	DX,OFFSET UC_PanpotM1
+	lea	DX,[UC_PanpotM1]
 	MOV	AH,09H		;
 	INT	21H		;
 

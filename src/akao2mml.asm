@@ -17,7 +17,7 @@
 ;=======================================================================|
 	.startup
 ff8mml_:	
-	MOV	AX,OFFSET CEND + BSTACK	;
+	lea	AX,[CEND + BSTACK]	;
 	MOV	SP,AX			;
 
 	MOV	AX,CS			;
@@ -118,7 +118,7 @@ endif	;--------------------------------
 ;****************************************************************
 OPTION_ERROR_MSG	db	'オプションが不正です。',0dh,0ah,24h
 OPTION_ERROR	proc	near
-	mov	dx,offset OPTION_ERROR_MSG
+	lea	dx,[OPTION_ERROR_MSG]
 	mov	ah,09h
 	int	21h
 	jmp	COMEND
@@ -160,17 +160,17 @@ OPTION_FLAG	proc	near	uses ax bx cx dx di si ds es
 
 		.if	((al=='h')||(al=='H')||(al=='?'))
 			MOV	AH,0FFh			;フラグ立て用。
-			MOV	di,OFFSET OP_FLAG_HELP	;フラグアドレス
+			lea	di,[OP_FLAG_HELP]	;フラグアドレス
 			call	OP_FLAG_SET
 		.elseif	((al=='d')||(al=='D'))
-			MOV	di,OFFSET OP_FLAG_DEBUG
+			lea	di,[OP_FLAG_DEBUG]
 			call	OP_Number_SET
 		.else
 			JMP	OPTION_ERROR		;無かったらエラー
 		.endif
 
 	.else
-		mov	di,OFFSET OP_FLAG_FILE	;ファイル
+		lea	di,[OP_FLAG_FILE]	;ファイル
 		call	OP_FILE_SET
 	.endif
 
@@ -256,7 +256,7 @@ OPTION_DEBUG	proc	near	uses ax	;
 OPTION_DEBUG	endp			;
 ;****************************************************************
 OPTION_HELP	proc	near
-	MOV	DX,OFFSET OP_HELP	;表示
+	lea	DX,[OP_HELP]		;表示
 	MOV	AH,09H			;
 	INT	21H			;
 	JMP	COMEND			;プログラム終了
@@ -266,7 +266,7 @@ OPTION_FILE	proc	near	uses ax dx
 
 ;●ファイルのオープン
 	MOV	al,0			;Read mode
-	MOV	dx,OFFSET OP_FLAG_FILE	;DX←ファイル名アドレス
+	lea	dx,[OP_FLAG_FILE]	;DX←ファイル名アドレス
 	call	File_Open		;
 	mov	word ptr cs:[hAKAO_File],ax
 

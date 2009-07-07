@@ -47,7 +47,7 @@ c_output_note	proc	near
 
 
 	push	ax
-	mov	dx,offset c_output_note_O
+	lea	dx,[c_output_note_O]
 	mov	ah,09h
 	int	21h			;'o'の表示
 	pop	ax
@@ -61,9 +61,11 @@ c_output_note	proc	near
 
 	xor	ah,ah			;ax←Note Number
 	shl	ax,1
-	mov	bx,offset c_output_note_N
-	add	bx,ax
-	mov	dx,cs:[bx]
+;	mov	bx,offset c_output_note_N
+;	add	bx,ax
+;	mov	dx,cs:[bx]
+	mov	bx,ax
+	mov	dx,cs:[c_output_note_N + bx]
 	mov	ah,09h
 	int	21h			;音符の出力
 
@@ -174,7 +176,7 @@ UCMO_LOOP_SEARCH	proc	near	uses ax bx cx dx di
 	local	iCount:WORD		;0xFE07のカウント用
 
 ;	デバッグ用
-	mov	dx,offset UCMOLS_LOOP_msg1
+	lea	dx,[UCMOLS_LOOP_msg1]
 	mov	ah,09h
 	int	21h
 
@@ -182,7 +184,7 @@ UCMO_LOOP_SEARCH	proc	near	uses ax bx cx dx di
 	push	es
 	xor	ax,ax			;ax←0 変数クリア用
 	mov	cx,UCMOLS_LOOP_PTY	;回数セット
-	mov	di,offset UCMOLS_LOOP_ADDRESS
+	lea	di,[UCMOLS_LOOP_ADDRESS]
 	push	cs			
 	pop	es			;es:di ← アドレス
   rep	stosw				;一括セット
@@ -206,7 +208,7 @@ UCMO_LOOP_SEARCH	proc	near	uses ax bx cx dx di
 
 	XOR	AX,AX			;
 	MOV	AL,ES:[BX]		;データ読み込み　曲
-	MOV	DX,OFFSET UCMO_COMMAND_SIZE
+	LEA	DX,[UCMO_COMMAND_SIZE]	;
 	ADD	DX,AX			;
 	MOV	AH,AL			;AH←コマンド
 	XCHG	BX,DX			;
@@ -261,7 +263,7 @@ ifdef	ff8	;------------------------
 			.if	(tempBX!=0)
 				;デバッグ用
 				push	ax
-				mov	dx,offset UCMOLS_LOOP_msg3
+				lea	dx,[UCMOLS_LOOP_msg3]
 				mov	ah,09h
 				int	21h
 				pop	ax
@@ -286,7 +288,7 @@ else	;--------------------------------
 		.if	(tempBX!=0)
 			;デバッグ用
 			push	ax
-			mov	dx,offset UCMOLS_LOOP_msg3
+			lea	dx,[UCMOLS_LOOP_msg3]
 			mov	ah,09h
 			int	21h
 			pop	ax
@@ -361,7 +363,7 @@ endif	;--------------------------------
 
 UCMOL_EE:					;無限ループ無し！
 	;デバッグ用
-	mov	dx,offset UCMOLS_LOOP_msg2
+	lea	dx,[UCMOLS_LOOP_msg2]
 	mov	ah,09h
 	int	21h
 
@@ -711,11 +713,14 @@ ifdef	Rhythm12	;---------------
 
 		;音長の表示
 		.if	(byte ptr cs:[UC_Step_work]==0)
-			xor	ax,ax
-			mov	al,ch		;ax←音長さコード
-			mov	bx,offset c_decode_Length
-			add	bx,ax
-			mov	ah,cs:[bx]
+		;	xor	ax,ax
+		;	mov	al,ch		;ax←音長さコード
+		;	mov	bx,offset c_decode_Length
+		;	add	bx,ax
+		;	mov	ah,cs:[bx]
+			xor	bx,bx
+			mov	bl,ch
+			mov	ah,byte ptr cs:[c_decode_Length + bx]
 		.else
 			mov	dl,'%'
 			mov	ah,02h			;
@@ -733,9 +738,11 @@ endif	;-------------------------------
 
 	SHL	AX,1			;
 	PUSH	BX			;
-	MOV	BX,OFFSET UC_DATA_ADDRESS
-	ADD	BX,AX			;BX←変換情報アドレス格納アドレス
-	MOV	DX,CS:[BX]		;DX←変換情報アドレス
+;	MOV	BX,OFFSET UC_DATA_ADDRESS
+;	ADD	BX,AX			;BX←変換情報アドレス格納アドレス
+;	MOV	DX,CS:[BX]		;DX←変換情報アドレス
+	mov	bx,ax			;
+	mov	dx,cs:[UC_DATA_ADDRESS + bx]
 	POP	BX			;
 
 	;EoCじゃない間だったら、無限ループ。
@@ -859,7 +866,7 @@ endif	;-------------------------------
 
 		XOR	AX,AX			;
 		MOV	AL,ES:[BX]		;データ読み込み　曲
-		MOV	DX,OFFSET UCMO_COMMAND_SIZE
+		lea	DX,[UCMO_COMMAND_SIZE]
 		ADD	DX,AX			;
 		XCHG	BX,DX			;
 		MOV	AL,CS:[BX]		;データ読み込み　解析情報
@@ -997,29 +1004,52 @@ else	;--------------------------------
 endif	;--------------------------------
 	db	0dh,0ah,24h		;改行は、ff8mmlでも出力する。
 
+ifdef	ff8	;------------------------
+MML2MID_HED4:
+	db	'/* Instrument Set ID = ',24h
+MML2MID_HED5:
+	db	' */',0dh,0ah,24h
+endif	;--------------------------------
+
 UC_START	proc	near
-	;ヘッダー出力
-	MOV	DX,OFFSET MML2MID_HED	;これは define部
+	;---------------------------------------
+	;◆ヘッダー出力
+	lea	DX,[MML2MID_HED]	;これは define部
 	MOV	AH,09H			;
 	INT	21H			;
 
 	mov	dl,24h			;$の表示
 	mov	ah,02h			;
 	int	21h			;
-	MOV	DX,OFFSET MML2MID_HED1	;
+	lea	DX,[MML2MID_HED1]	;
 	MOV	AH,09H			;
 	INT	21H			;
 
 	mov	dl,24h			;$の表示
 	mov	ah,02h			;
 	int	21h			;
-	MOV	DX,OFFSET MML2MID_HED2	;
+	lea	DX,[MML2MID_HED2]	;
 	MOV	AH,09H			;
 	INT	21H			;
 
-	MOV	DX,OFFSET MML2MID_HED3	;
+	lea	DX,[MML2MID_HED3]	;
 	MOV	AH,09H			;
 	INT	21H			;
+
+ifdef	ff8	;------------------------
+	lea	DX,[MML2MID_HED4]	;
+	MOV	AH,09H			;
+	INT	21H			;
+
+	mov	ax,es:[0014h]
+	call	hex2asc16
+	MOV	AH,09H			;
+	INT	21H			;
+
+	lea	DX,[MML2MID_HED5]	;
+	MOV	AH,09H			;
+	INT	21H			;
+endif	;--------------------------------
 
 	;---------------------------------------
 	;◆チャンネル数のチェック
@@ -1087,7 +1117,7 @@ UC_START	endp
 ;	１．ＭＭＬ出力部でえた音色のマクロ定義文出力		|
 ;---------------------------------------------------------------|
 UC_END_VOICE_ADD:
-ifdef	PS1	;------------------------
+ifdef	PS1	;------------------------	;Multi Sampling Instrument
 		DW	OFFSET UCE_VOICE_0A	
 		DW	OFFSET UCE_VOICE_1A	
 		DW	OFFSET UCE_VOICE_2A	
@@ -1105,8 +1135,8 @@ ifdef	PS1	;------------------------
 		DW	OFFSET UCE_VOICE_6B	
 		DW	OFFSET UCE_VOICE_7B	
 endif	;--------------------------------
-ifndef	ff7	;------------------------	FF7以外で要る
-		DW	OFFSET UCE_VOICE_0C	
+ifndef	ff7	;------------------------	;Normal Instrument
+		DW	OFFSET UCE_VOICE_0C	;(FF7以外で要る)
 		DW	OFFSET UCE_VOICE_1C	
 		DW	OFFSET UCE_VOICE_2C	
 		DW	OFFSET UCE_VOICE_3C	
@@ -1139,6 +1169,21 @@ ifndef	ff7	;------------------------	FF7以外で要る
 		DW	OFFSET UCE_VOICE_6F	
 		DW	OFFSET UCE_VOICE_7F	
 endif	;--------------------------------
+ifdef	Rhythm12	;---------------	;Percussion
+UC_Rhythm_Add	dw	offset UC_Rhythm_0x	
+		dw	offset UC_Rhythm_1x	
+		dw	offset UC_Rhythm_2x	
+		dw	offset UC_Rhythm_3x	
+		dw	offset UC_Rhythm_4x	
+		dw	offset UC_Rhythm_5x	
+		dw	offset UC_Rhythm_0y	
+		dw	offset UC_Rhythm_1y	
+		dw	offset UC_Rhythm_2y	
+		dw	offset UC_Rhythm_3y	
+		dw	offset UC_Rhythm_4y	
+		dw	offset UC_Rhythm_5y	
+endif	;--------------------------------
+
 ifdef	PS1	;------------------------
 UCE_VOICE_0A	DB	'0a	',24h
 UCE_VOICE_1A	DB	'1a	',24h
@@ -1156,30 +1201,7 @@ UCE_VOICE_4B	DB	'4b	',24h
 UCE_VOICE_5B	DB	'5b	',24h
 UCE_VOICE_6B	DB	'6b	',24h
 UCE_VOICE_7B	DB	'7b	',24h
-
-UCE_VOICE_Program:
- ifdef	ff7	;------------------------
-		db	46	;harp
- else	;--------------------------------
-		db	48	;strings
- endif	;--------------------------------
-		db	1
-		db	2
-		db	3
-		db	4
-		db	5
-		db	6
-		db	7
-		db	8
-		db	9
-		db	10
-		db	11
-		db	12
-		db	13
-		db	14
-		db	15
 endif	;--------------------------------
-
 ifndef	ff7	;------------------------	FF7以外で要る
 UCE_VOICE_0C	DB	'0c	',24h
 UCE_VOICE_1C	DB	'1c	',24h
@@ -1214,24 +1236,7 @@ UCE_VOICE_5F	DB	'5f	',24h
 UCE_VOICE_6F	DB	'6f	',24h
 UCE_VOICE_7F	DB	'7f	',24h
 endif	;--------------------------------
-
-UCE_VOICE_M0		db	'0z	k127	v127	y100,2	y101,0	y6,64	H0,0	@',24h
-UCE_VOICE_M0_VGM	db	'	k127	v127					@',24h
-
 ifdef	Rhythm12	;---------------
-UC_Rhythm_Add	dw	offset UC_Rhythm_0x
-		dw	offset UC_Rhythm_1x
-		dw	offset UC_Rhythm_2x
-		dw	offset UC_Rhythm_3x
-		dw	offset UC_Rhythm_4x
-		dw	offset UC_Rhythm_5x
-		dw	offset UC_Rhythm_0y
-		dw	offset UC_Rhythm_1y
-		dw	offset UC_Rhythm_2y
-		dw	offset UC_Rhythm_3y
-		dw	offset UC_Rhythm_4y
-		dw	offset UC_Rhythm_5y
-
 UC_Rhythm_0x	db	'0x	',24h
 UC_Rhythm_1x	db	'1x	',24h
 UC_Rhythm_2x	db	'2x	',24h
@@ -1244,16 +1249,35 @@ UC_Rhythm_2y	db	'2y	',24h
 UC_Rhythm_3y	db	'3y	',24h
 UC_Rhythm_4y	db	'4y	',24h
 UC_Rhythm_5y	db	'5y	',24h
+endif	;--------------------------------
 
-  ifdef	SPC	;------------------------	ロマサガ３設定暫定
-UCE_VOICE_M1	db	'1z	k127	v127	J',24h
-  endif	;-------------------------------
-  ifdef	PS1	;------------------------	ＰＳ用
-UCE_VOICE_M1	db	'1z	k127		J',24h
-  endif	;-------------------------------
 
-UCE_VOICE_Note:
-  ifdef	SPC	;------------------------	ロマサガ３設定暫定
+
+ifdef	PS1	;------------------------
+UCE_VOICE_Program:
+ ifdef	ff7	;------------------------
+		db	46	;harp
+ else	;--------------------------------
+		db	48	;strings
+ endif	;--------------------------------
+		db	1
+		db	2
+		db	3
+		db	4
+		db	5
+		db	6
+		db	7
+		db	8
+		db	9
+		db	10
+		db	11
+		db	12
+		db	13
+		db	14
+		db	15
+endif	;--------------------------------
+ifdef	Rhythm12	;---------------
+UCE_VOICE_Note:					;ロマサガ３設定暫定
 		db	36	;B.Drum 1
 		db	49	;Cymbal 1
 		db	38	;S.Drum 1
@@ -1266,24 +1290,12 @@ UCE_VOICE_Note:
 		db	70	;Maracas 
 		db	46	;H.H.Open
 		db	35	;B.Drum 2
-  endif	;-------------------------------
-  ifdef	PS1	;------------------------	ＦＦ７設定？暫定
-		db	36	;B.Drum 1
-		db	37	;
-		db	38	;S.Drum 1
-		db	39	;
-		db	40	;S.Drum 2
-		db	41	;
-		db	42	;H.H.Close
-		db	43	;
-		db	44	;H.H.Pedal
-		db	45	;
-		db	46	;H.H.Open
-		db	47	;
-  endif	;-------------------------------
 
+UCE_VOICE_M1		db	'1z	k127	v127	J',24h
 endif	;-------------------------------
 
+UCE_VOICE_M0		db	'0z	k127	v127	y100,2	y101,0	y6,64	H0,0	@',24h
+UCE_VOICE_M0_VGM	db	'	k127	v127					@',24h
 UCE_VOICE_cr	db	0dh,0ah,24h
 
 UC_Instrument	proc	near
@@ -1292,12 +1304,15 @@ UC_Instrument	proc	near
 
 	mov	iMultiSample,0
 
+;=======================================
+;Multi Sampling Instrument
+;=======================================
 ifdef	PS1	;------------------------
 	XOR	CX,CX			;CL←0
-	MOV	SI,OFFSET UC_END_VOICE_ADD
-	mov	di,offset UCE_VOICE_Program
+	lea	SI,[UC_END_VOICE_ADD]
+	lea	di,[UCE_VOICE_Program]
   ifdef	ff7	;------------------------
-	MOV	BX,OFFSET UC_VoiceExWork
+	lea	BX,[UC_VoiceExWork]
   else	;--------------------------------
 	MOV	BX,VOICE_ADDRESS	;従属音色情報アドレス
 	MOV	DX,ES:[BX]		;
@@ -1327,12 +1342,12 @@ ifdef	PS1	;------------------------
 		INT	21H			;出力
 
 		.if	(cs:[D_Debug] & 02h)
-		  mov	dx,offset UCE_VOICE_M0_VGM
+		  lea	dx,[UCE_VOICE_M0_VGM]
 		.else
 		  mov	dl,'$'
 		  mov	ah,02h
 		  int	21h
-		  mov	dx,offset UCE_VOICE_M0
+		  lea	dx,[UCE_VOICE_M0]
 		.endif
 		mov	ah,09h
 		int	21h
@@ -1346,7 +1361,7 @@ ifdef	PS1	;------------------------
 		mov	ah,09h
 		int	21h
 
-		mov	dx,offset UCE_VOICE_cr
+		lea	dx,[UCE_VOICE_cr]
 		MOV	AH,09H			;
 		INT	21H			;出力
 
@@ -1361,13 +1376,16 @@ endif	;-------------------------------
 
 
 
+;=======================================
+;Normal Instrument
+;=======================================
 ifndef	ff7	;------------------------
 	XOR	CX,CX			;CL←0
-	MOV	SI,OFFSET UC_END_VOICE_ADD
+	lea	SI,[UC_END_VOICE_ADD]
   ifdef	PS1	;------------------------
 	add	si,32			;PSは、従属音色の分、加算する
   endif	;--------------------------------
-	MOV	BX,OFFSET UC_VOICE	;
+	lea	BX,[UC_VOICE]		;
 
 	.while	(cx<64)
 
@@ -1385,12 +1403,12 @@ ifndef	ff7	;------------------------
 		INT	21H			;出力
 
 		.if	(cs:[D_Debug] & 02h)
-		  mov	dx,offset UCE_VOICE_M0_VGM
+		  lea	dx,[UCE_VOICE_M0_VGM]
 		.else
 		  mov	dl,'$'
 		  mov	ah,02h
 		  int	21h
-		  mov	dx,offset UCE_VOICE_M0
+		  lea	dx,[UCE_VOICE_M0]
 		.endif
 		mov	ah,09h
 		int	21h
@@ -1406,7 +1424,7 @@ ifndef	ff7	;------------------------
 		MOV	AH,09H			;
 		INT	21H			;出力
 
-		mov	dx,offset UCE_VOICE_cr
+		lea	dx,[UCE_VOICE_cr]
 		MOV	AH,09H			;
 		INT	21H			;出力
 
@@ -1415,16 +1433,18 @@ ifndef	ff7	;------------------------
 
 	.endw
 endif	;-------------------------------
-	mov	dx,offset UCE_VOICE_cr
+	lea	dx,[UCE_VOICE_cr]
 	MOV	AH,09H			;
 	INT	21H			;出力
 
 
-
+;=======================================
+;Percussion Instrument
+;=======================================
 ifdef	Rhythm12	;---------------
 	mov	cx,12
-	mov	bx,offset UCE_VOICE_Note
-	mov	si,offset UC_Rhythm_Add
+	lea	bx,[UCE_VOICE_Note]
+	lea	si,[UC_Rhythm_Add]
   ifdef	PS1	;-----------------------
 	mov	di,cs:[UC_Rhythm_Address]
 	cmp	di,0
@@ -1439,14 +1459,14 @@ ifdef	Rhythm12	;---------------
 		lodsw
 		mov	dx,ax
 		mov	ah,09h
-		int	21h
+		int	21h		;Macro Name
 
   ifdef	SPC	;-----------------------
 		mov	dl,'$'
 		mov	ah,02h
 		int	21h
 
-		mov	dx,offset UCE_VOICE_M1
+		lea	dx,[UCE_VOICE_M1]
 		mov	ah,09h
 		int	21h
 
@@ -1461,7 +1481,7 @@ ifdef	Rhythm12	;---------------
 
   endif	;-------------------------------
 
-		mov	dx,offset UCE_VOICE_cr
+		lea	dx,[UCE_VOICE_cr]
 		MOV	AH,09H			;
 		INT	21H			;出力
 
@@ -1470,11 +1490,19 @@ ifdef	Rhythm12	;---------------
 UC_Instrument_NoRhythm:
 endif	;-------------------------------
 
+
+ifdef	PS1	;-----------------------
+	call	UC_Instrument_PS1_multi
+endif	;-------------------------------
+
+
 	RET
 UC_Instrument	endp
 ;---------------------------------------------------------------|
 ;		ＰＳ１	リズム定義出力				|
 ;---------------------------------------------------------------|
+ifdef	Rhythm12	;---------------
+  ifdef	PS1	;-----------------------
 UC_Instrument_Phythm_PS1_M1	db	"	/*J",24h
 UC_Instrument_Phythm_PS1_M2	db	"	/*",24h
 UC_Instrument_Phythm_PS1_ME	db	"*/",24h
@@ -1488,18 +1516,19 @@ UC_Instrument_Phythm_PS1	proc	near	uses bx
 	mov	ah,02h
 	int	21h
 
-	xor	ax,ax				;
-	mov	al,es:[di]			;
+	xor	bx,bx				;
+	mov	bl,es:[di]			;
 	inc	di				;
-	mov	dx,OFFSET UC_VOICE_NAME		;
-	add	dx,ax				;
-	add	dx,ax				;
-	add	dx,ax				;
+	lea	dx,[UC_VOICE_NAME + bx]
+;	mov	dx,OFFSET UC_VOICE_NAME		;
+;	add	dx,bx				;
+	add	dx,bx				;
+	add	dx,bx				;
 	mov	ah,09h
 	int	21h
 
 	;[1]:Note Number
-	mov	dx,offset UC_Instrument_Phythm_PS1_M1
+	lea	dx,[UC_Instrument_Phythm_PS1_M1]
 	mov	ah,09h
 	int	21h
 	mov	ah,es:[di]
@@ -1507,12 +1536,12 @@ UC_Instrument_Phythm_PS1	proc	near	uses bx
 	call	hex2asc8
 	mov	ah,09h
 	int	21h
-	mov	dx,offset UC_Instrument_Phythm_PS1_ME
+	lea	dx,[UC_Instrument_Phythm_PS1_ME]
 	mov	ah,09h
 	int	21h
 
 	;[2]:unknown
-	mov	dx,offset UC_Instrument_Phythm_PS1_M2
+	lea	dx,[UC_Instrument_Phythm_PS1_M2]
 	mov	ah,09h
 	int	21h
 	mov	ah,es:[di]
@@ -1520,27 +1549,31 @@ UC_Instrument_Phythm_PS1	proc	near	uses bx
 	call	hex2asc8
 	mov	ah,09h
 	int	21h
-	mov	dx,offset UC_Instrument_Phythm_PS1_ME
+	lea	dx,[UC_Instrument_Phythm_PS1_ME]
 	mov	ah,09h
 	int	21h
 
 	;[3]:Expression
-	mov	dx,offset UC_Instrument_Phythm_PS1_E
+	lea	dx,[UC_Instrument_Phythm_PS1_E]
 	mov	ah,09h
 	int	21h
 
-	xor	ax,ax				;
-	mov	al,es:[di]
+;	xor	ax,ax				;
+;	mov	al,es:[di]
+;	inc	di
+;	MOV	BX,OFFSET UC_Volume_TABLE	;
+;	ADD	BX,AX				;
+;	MOV	AH,CS:[BX]			;
+	xor	bx,bx
+	mov	bl,es:[di]
 	inc	di
-	MOV	BX,OFFSET UC_Volume_TABLE	;
-	ADD	BX,AX				;
-	MOV	AH,CS:[BX]			;
+	mov	ah,byte ptr cs:[UC_Volume_TABLE + bx]
 	call	hex2asc8
 	mov	ah,09h
 	int	21h
 
 	;[4]:Panpot
-	mov	dx,offset UC_Instrument_Phythm_PS1_P
+	lea	dx,[UC_Instrument_Phythm_PS1_P]
 	mov	ah,09h
 	int	21h
 	mov	ah,es:[di]
@@ -1549,9 +1582,112 @@ UC_Instrument_Phythm_PS1	proc	near	uses bx
 	mov	ah,09h
 	int	21h
 
-
 	ret
 UC_Instrument_Phythm_PS1	endp
+  endif	;-------------------------------
+endif	;-------------------------------
+;---------------------------------------------------------------|
+;	ＰＳ１	AKAO Multi sampling Instrument 出力		|
+;---------------------------------------------------------------|
+ifdef	PS1	;-----------------------
+UC_Instrument_PS1_M00	db	3bh,"Multi Sampling Instrument No.=",24h
+UC_Instrument_PS1_M01	db	3bh,"	Sample No.=",24h
+UC_Instrument_PS1_M02	db	3bh,"	Noto No.=",24h
+UC_Instrument_PS1_M03	db	"～",24h
+UC_Instrument_PS1_M08	db	3bh,"	Volume =",24h
+UC_Instrument_PS1_multi	proc	near	uses	bp ax bx cx dx si
+
+	xor	cx,cx			;CL←0
+ifdef	ff7	;------------------------
+	lea	si,[UC_VoiceExWork]
+else	;--------------------------------
+	MOV	bx,ES:[VOICE_ADDRESS]	;従属音色情報アドレス
+	.if	(bx==0000h)
+		mov	cx,16
+	.else
+		lea	si,[bx + VOICE_ADDRESS]	;si←従属音色情報先頭アドレス
+	.endif
+endif	;--------------------------------
+	lea	bp,[si]			;
+
+	.while	(cx<16)
+ifdef	ff7	;------------------------
+		lodsw	cs:[si]			;ax←音色登録情報
+		mov	bx,ax			;bx ← 音色情報アドレス
+else	;--------------------------------
+		lodsw	es:[si]			;ax←音色登録情報
+		lea	bx,[bp + 20h]
+		add	bx,ax			;bx ← 音色情報アドレス
+endif	;--------------------------------
+		.break	.if	(ax==0ffffh)
+
+		;Message
+		lea	dx,[UC_Instrument_PS1_M00]
+		mov	ah,09h			;
+		int	21h			;
+
+		mov	ax,cx			;
+		call	hex2asc16		;
+		mov	ah,09h			;
+		int	21h			;
+
+		lea	dx,[UCE_VOICE_cr]	;
+		mov	ah,09h			;
+		int	21h			;
+
+		;各サンプリング情報
+ifdef	ff7
+		.while	((word ptr es:[bx+0]!=8080h) || (word ptr es:[bx+2]!=8080h))
+else
+		.while	((word ptr es:[bx+0]!=0) || (word ptr es:[bx+2]!=0) || (word ptr es:[bx+4]!=0) || (word ptr es:[bx+6]!=0))
+endif
+			;Voice No.
+			lea	dx,[UC_Instrument_PS1_M01]
+			mov	ah,09h			;
+			int	21h			;
+			mov	ah,es:[bx+0]
+			call	hex2asc8
+			mov	ah,09h
+			int	21h
+			
+			lea	dx,[UC_Instrument_PS1_M02]
+			mov	ah,09h			;
+			int	21h			;
+			mov	ah,es:[bx+1]
+			call	hex2asc8
+			mov	ah,09h
+			int	21h
+
+			lea	dx,[UC_Instrument_PS1_M03]
+			mov	ah,09h			;
+			int	21h			;
+			mov	ah,es:[bx+2]
+			call	hex2asc8
+			mov	ah,09h
+			int	21h
+
+			lea	dx,[UC_Instrument_PS1_M08]
+			mov	ah,09h			;
+			int	21h			;
+			mov	ah,es:[bx+7]
+			call	hex2asc8
+			mov	ah,09h
+			int	21h
+
+			lea	dx,[UCE_VOICE_cr]	;
+			mov	ah,09h			;
+			int	21h			;
+
+			add	bx,8
+		.endw
+		inc	cx
+	.endw
+
+
+
+	ret
+UC_Instrument_PS1_multi	endp
+endif	;-------------------------------
 ;---------------------------------------------------------------|
 ;		ＭＭＬ出力部					|
 ;---------------------------------------------------------------|
@@ -1635,34 +1771,46 @@ endif	;--------------------------------
 
 	push	cx			;
 
-	XOR	DX,DX			;
-	MOV	DL,CH			;
-	SHL	DX,1			;
-	PUSH	DX			;アドレス計算用
-	SHL	DX,1			;
-	ADD	DX,OFFSET UC_PART_ASC	;AX←UC_PART_ASC + CH * 4
+;	XOR	DX,DX			;
+;	MOV	DL,CH			;
+;	SHL	DX,1			;
+;	PUSH	DX			;アドレス計算用
+;	SHL	DX,1			;
+;	ADD	DX,OFFSET UC_PART_ASC	;AX←UC_PART_ASC + CH * 4
+	xor	bx,bx
+	mov	bl,ch
+	shl	bx,1
+	push	bx
+	shl	bx,1
+	lea	dx,[UC_PART_ASC + bx]
 	MOV	AH,09H			;
 	INT	21H			;パート表示
 
-	POP	AX			;AX←パート番号＊２
-	ADD	AX,MUSIC_ADDRESS	;AX←パート情報＋AX
-	MOV	BX,AX			;
-	mov	bx,es:[bx]		;
+;	POP	AX			;AX←パート番号＊２
+;	ADD	AX,MUSIC_ADDRESS	;AX←パート情報＋AX
+;	MOV	BX,AX			;
+;	mov	bx,es:[bx]		;
+	pop	bx			;
+	lea	bx,es:[MUSIC_ADDRESS + bx]
+	mov	ax,es:[bx]		;ax←アドレス
 
 ifdef	SPC	;------------------------
 ifndef	MUSIC_EOF	;----------------
-	.if	(bx==0)
-		jmp	c_Command_Ch_END	;ポインタチェック
+	.if	(ax==0)
+	   jmp	c_Command_Ch_END	;ポインタチェック
 	.endif
 endif	;--------------------------------
 endif	;--------------------------------
 
 ifdef	SPC	;------------------------
+	mov	bx,ax
 	sub	bx,cs:[UC_ADDER]	;
 endif	;--------------------------------
 ifdef	PS1	;------------------------
-	add	bx,MUSIC_ADDRESSa	;
-	ADD	BX,AX			;BX←演奏アドレス
+;	add	bx,MUSIC_ADDRESSa	;
+;	ADD	BX,AX			;BX←演奏アドレス
+	lea	bx,[MUSIC_ADDRESSa + bx]
+	add	bx,ax
 endif	;--------------------------------
 
 	mov	stAddr,bx		;先頭アドレス
@@ -1692,14 +1840,14 @@ endif	;--------------------------------
 		push	es
 		mov	ax,bx			;ax←アドレス
 		mov	cx,UCMOLS_LOOP_PTY	;回数セット
-		mov	di,offset UCMOLS_LOOP_ADDRESS
+		lea	di,[UCMOLS_LOOP_ADDRESS]
 		push	cs			
 		pop	es			;es:di ← アドレス
 		.repeat
 			scasw
 			.if	(ZERO?)
 				push	ax
-				MOV	DX,OFFSET UCMO_LOOP_OUTPUT
+				lea	DX,[UCMO_LOOP_OUTPUT]
 				MOV	AH,09H			;
 				INT	21H			;
 				pop	ax
@@ -1716,10 +1864,10 @@ endif	;--------------------------------
 
 c_Command_Ch_END:
 
-	MOV 	DX,OFFSET UC_CR		;
+	lea 	DX,[UC_CR]		;
 	MOV	AH,09H	 		;
 	INT	21H			;改行
-	MOV	DX,OFFSET UC_CR		;
+	lea 	DX,[UC_CR]		;
 	MOV	AH,09H			;
 	INT	21H			;改行
 

@@ -598,7 +598,7 @@ UCDFF_L07:
 	JZ	UCDFF_L07_1	;
 	JMP	UCDFF_L09	;
 UCDFF_L07_1:
-	MOV	DX,OFFSET UCDFF_M07_1
+	lea	DX,[UCDFF_M07_1]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -617,7 +617,7 @@ UCDFF_L07_1:
 	MOV	AH,09H		;
 	INT	21H		;
 
-	MOV	DX,OFFSET UCDFF_M07_2
+	lea	DX,[UCDFF_M07_2]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -640,7 +640,7 @@ UCDFF_L10:
 	jnz	UCDFF_L14	;
 UCDFF_L10_1:
 	
-	MOV	DX,OFFSET UCDFF_M10_1
+	lea	DX,[UCDFF_M10_1]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -650,7 +650,7 @@ UCDFF_L10_1:
 	mov	ah,09h
 	int	21h
 
-	MOV	DX,OFFSET UCDFF_M10_2
+	lea	DX,[UCDFF_M10_2]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -686,7 +686,7 @@ UCDFF_L1C:
 	JZ	UCDFF_L1C_1	;
 	jmp	UCDFF_L1D
 UCDFF_L1C_1:
-	mov	dx,offset UCDFF_M1C_1
+	lea	dx,[UCDFF_M1C_1]
 	mov	ah,09h
 	int	21h
 
@@ -696,7 +696,7 @@ UCDFF_L1C_1:
 	mov	ah,09h
 	int	21h
 
-	mov	dx,offset UCDFF_M1C_2
+	lea	dx,[UCDFF_M1C_2]
 	mov	ah,09h
 	int	21h
 
@@ -710,7 +710,7 @@ UCDFF_L1D:
 	jnz	UCDFF_L1E	;
 UCDFF_L1D_1:
 	
-	MOV	DX,OFFSET UCDFF_M1D_1
+	lea	DX,[UCDFF_M1D_1]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -724,7 +724,7 @@ UCDFF_L1E:
 	jnz	UCDFF_L1F	;
 UCDFF_L1E_1:
 	
-	MOV	DX,OFFSET UCDFF_M1E_1
+	lea	DX,[UCDFF_M1E_1]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -739,7 +739,7 @@ UCDFF_L1F:
 	jmp	UCDFF_LQQ
 UCDFF_L1F_1:
 	
-	MOV	DX,OFFSET UCDFF_M1F_1
+	lea	DX,[UCDFF_M1F_1]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -753,7 +753,7 @@ UCDFF_Med	DB	'*/$'
 UCDFF_LQQ:
 
 	push	ax
-	MOV	DX,OFFSET UCDFF_Mst
+	lea	DX,[UCDFF_Mst]
 	MOV	AH,09H		;
 	INT	21H		;
 	pop	ax
@@ -789,7 +789,7 @@ UCDFF_LQQ:
 	MOV	AH,09H		;
 	INT	21H		;
 
-	MOV	DX,OFFSET UCDFF_Med
+	lea	DX,[UCDFF_Med]
 	MOV	AH,09H		;
 	INT	21H		;
 

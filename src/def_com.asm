@@ -96,7 +96,7 @@ UC_VOICE_OUTPUT	proc	near	uses	cx dx
 	INC	BX				;
 	push	bx
 
-	MOV	DX,OFFSET UC_VOICE_NAME		;
+	lea	DX,[UC_VOICE_NAME]		;
 ifdef	ff7	;------------------------
 	add	dx,ax				;
 	add	dx,ax				;
@@ -166,7 +166,7 @@ ifdef	ff8	;------------------------
 	INC	BX
 endif	;--------------------------------
 
-	MOV	DX,OFFSET UC_VoiceEx_Name	;
+	lea	DX,[UC_VoiceEx_Name]		;
 	ADD	dx,ax				;
 	ADD	dx,ax				;
 	ADD	dx,ax				;
@@ -200,7 +200,7 @@ UC_Rhythm_adr_set_M1	db	' /*Adr=0x',24h
 UC_Rhythm_adr_set_M2	db	' */',24h
 UC_Rhythm_adr_set	proc	near	uses dx si
 
-	mov	dx,offset UC_Rhythm_adr_set_M1
+	lea	dx,[UC_Rhythm_adr_set_M1]
 	mov	ah,09h			;
 	int	21h			;
 
@@ -214,7 +214,7 @@ UC_Rhythm_adr_set	proc	near	uses dx si
 	mov	ah,09h			
 	int	21h			;表示もしておく
 
-	mov	dx,offset UC_Rhythm_adr_set_M2
+	lea	dx,[UC_Rhythm_adr_set_M2]
 	mov	ah,09h
 	int	21h
 
@@ -230,12 +230,12 @@ UC_Perc_On_VGMtrans	db	'@127$'
 UC_PercussionOn		proc	near
 
 	.if	(cs:[D_Debug] & 02h)
-		mov	dx,OFFSET UC_Perc_On_VGMtrans
+		lea	dx,[UC_Perc_On_VGMtrans]
 	.else
 		MOV	DL,24H		;'$'の出力
 		MOV	AH,02H		;
 		INT	21H		;
-		mov	dx,OFFSET UC_Perc_On
+		lea	dx,[UC_Perc_On]
 	.endif
 	MOV	AH,09H			;
 	INT	21H			;
@@ -252,7 +252,7 @@ UC_PercussionOff	proc	near
 	MOV	AH,02H		;
 	INT	21H		;
 
-	MOV	DX,OFFSET UC_Perc_Off
+	lea	DX,[UC_Perc_Off]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -422,7 +422,7 @@ UC_UC_Reverb_M1	db	'/*Reverb($'
 UC_UC_Reverb_M2	db	')*/$'
 
 UC_Reverb		proc	near
-	MOV	DX,OFFSET UC_UC_Reverb_M1
+	lea	DX,[UC_UC_Reverb_M1]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -440,7 +440,7 @@ endif	;-------------------------------
 	MOV	AH,09H		;
 	INT	21H		;そしてそれを表示
 
-	MOV	DX,OFFSET UC_UC_Reverb_M2
+	lea	DX,[UC_UC_Reverb_M2]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -453,7 +453,7 @@ UC_UC_Reverb_M8	db	'/*Reverb($'
 UC_UC_Reverb_M9	db	')*/$'
 
 UC_RelativeReverb	proc	near
-	MOV	DX,OFFSET UC_UC_Reverb_M8
+	lea	DX,[UC_UC_Reverb_M8]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -488,7 +488,7 @@ endif	;-------------------------------
 	MOV	AH,09H		;
 	INT	21H		;そしてそれを表示
 
-	MOV	DX,OFFSET UC_UC_Reverb_M9
+	lea	DX,[UC_UC_Reverb_M9]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -532,7 +532,7 @@ UC_RTempo_M	db	't$'
 UC_Tempo_Work	dw	0
 
 UC_Tempo	proc	near	uses dx cx
-	MOV	DX,OFFSET UC_RTempo_M
+	lea	DX,[UC_RTempo_M]
 	MOV	AH,09H			;
 	INT	21H			;
 
@@ -569,7 +569,7 @@ UC_RelativeTempo_M:
 	db	'UT1,0,%$'
 UC_RelativeTempo	proc	near	uses dx cx
 
-	MOV	DX,OFFSET UC_RTempo_M
+	lea	DX,[UC_RTempo_M]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -578,7 +578,7 @@ UC_RelativeTempo	proc	near	uses dx cx
 	MOV	AH,09H		;
 	INT	21H		;そしてそれを表示
 
-	MOV	DX,OFFSET UC_RelativeTempo_M
+	lea	DX,[UC_RelativeTempo_M]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -635,7 +635,7 @@ UC_RelativeTempo	endp
 UC_Beat_M	db	'BT$'
 UC_Beat			proc	near
 
-	mov	dx,offset UC_Beat_M
+	lea	dx,[UC_Beat_M]
 	mov	ah,09h
 	int	21h
 
@@ -681,7 +681,7 @@ UC_Beat			endp
 UC_Measures_M	db	'WC$'
 UC_Measures		proc	near
 
-	mov	dx,offset UC_Measures_M
+	lea	dx,[UC_Measures_M]
 	mov	ah,09h
 	int	21h
 
@@ -774,17 +774,17 @@ ifdef	SPC	;------------------------
 	mov	al,es:[bx]		;回数読み出し
 	inc	bx
 	inc	al
-	mov	si,offset UC_Loop_count
+	lea	si,[UC_Loop_count]
 	add	si,cx
 	mov	byte ptr cs:[si],al
 endif	;--------------------------------
 
-	mov	si,offset UC_Loop_counter
+	lea	si,[UC_Loop_counter]
 	add	si,cx
 	mov	byte ptr cs:[si],1	;１回目にセット
 
 	mov	ax,bx			;ax ← 戻り先アドレス
-	mov	si,offset UC_Loop_addr
+	lea	si,[UC_Loop_addr]
 	add	si,cx
 	add	si,cx
 	mov	word ptr cs:[si],ax
@@ -808,12 +808,12 @@ ifdef	SPC	;------------------------
 	MOV	al,ES:[BX]			;データ読み込み
 	INC	BX				;ループ回数
 	INC	al				
-	mov	si,offset UC_Loop_count		
+	lea	si,[UC_Loop_count]		
 	add	si,cx				
 	mov	cs:[si],al			;ループ回数を保存
 endif	;--------------------------------
 
-	mov	si,offset UC_Loop_addr		;
+	lea	si,[UC_Loop_addr]		;
 	add	si,cx				;
 	add	si,cx				;
 	xor	ax,ax				;
@@ -833,7 +833,7 @@ Loop_EndEx	proc	near	uses ax cx dx si
 	dec	cx
 
 ifdef	SPC	;------------------------
-	mov	si,offset UC_Loop_count
+	lea	si,[UC_Loop_count]
 	add	si,cx
 	mov	ah,byte ptr cs:[si]	;ah ← ループ回数
 endif	;--------------------------------
@@ -842,14 +842,14 @@ ifdef	PS1	;------------------------
 	inc	bx
 endif	;--------------------------------
 
-	mov	si,offset UC_Loop_counter
+	lea	si,[UC_Loop_counter]
 	add	si,cx
 	mov	al,byte ptr cs:[si]	;al ← 何ループ目
 
 	.if	(ah>al)
 		inc	al
 		mov	cs:[si],al
-		mov	si,offset UC_Loop_addr
+		lea	si,[UC_Loop_addr]
 		add	si,cx
 		add	si,cx
 		mov	ax,word ptr cs:[si]
@@ -876,7 +876,7 @@ LOOP_COUNT_POP	proc	near	uses cx dx si
 	mov	cx,ax
 
 ifdef	SPC	;------------------------
-	mov	si,offset UC_Loop_count		
+	lea	si,[UC_Loop_count]		
 	add	si,cx				
 	mov	ah,cs:[si]			;ループ回数
 endif	;--------------------------------
@@ -888,7 +888,7 @@ endif	;--------------------------------
 	MOV	AH,09H				;
 	INT	21H				;
 
-	mov	si,offset UC_Loop_addr		
+	lea	si,[UC_Loop_addr]		
 	add	si,cx				
 	add	si,cx				
 	mov	ax,cs:[si]
@@ -912,14 +912,14 @@ Loop_EndEx2	proc	near	uses ax cx dx si
 
 	mov	ah,2
 
-	mov	si,offset UC_Loop_counter
+	lea	si,[UC_Loop_counter]
 	add	si,cx
 	mov	al,byte ptr cs:[si]	;al ← 何ループ目
 
 	.if	(ah>al)
 		inc	al
 		mov	cs:[si],al
-		mov	si,offset UC_Loop_addr
+		lea	si,[UC_Loop_addr]
 		add	si,cx
 		add	si,cx
 		mov	ax,word ptr cs:[si]
@@ -950,7 +950,7 @@ LOOP_COUNT_POP2	proc	near	uses cx dx si
 	MOV	AH,09H				;
 	INT	21H				;
 
-	mov	si,offset UC_Loop_addr		
+	lea	si,[UC_Loop_addr]		
 	add	si,cx				
 	add	si,cx				
 	mov	ax,cs:[si]
@@ -990,11 +990,11 @@ endif	;--------------------------------
 
 	xchg	ax,dx			;dx ← ジャンプ先
 
-	mov	si,offset UC_Loop_counter
+	lea	si,[UC_Loop_counter]
 	add	si,cx
 	.if	(cs:[si]==al)
 		mov	bx,dx		;ジャンプ
-		mov	si,offset UC_Loop_count
+		lea	si,[UC_Loop_count]
 		add	si,cx
 		.if	(cs:[si]==al)
 			;「現在のループ回数」＝「カッコ数」＝「ループ目」だったら
@@ -1015,7 +1015,7 @@ UC_ExitLoop		proc	near	uses cx dx si
 	mov	cx,ax
 	dec	cx
 
-	MOV	DX,OFFSET UC_ExitLoop_M1
+	lea	DX,[UC_ExitLoop_M1]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -1041,7 +1041,7 @@ ifdef	FF7	;------------------------
 	add	ax,bx
 endif	;--------------------------------
 
-	mov	si,offset UC_Loop_addr	
+	lea	si,[UC_Loop_addr]
 	add	si,cx		
 	add	si,cx		
 	mov	cs:[si],ax	;行き先を保存
@@ -1050,7 +1050,7 @@ endif	;--------------------------------
 	MOV	AH,09H		;
 	INT	21H		;
 
-	MOV	DX,OFFSET UC_ExitLoop_M2
+	lea	DX,[UC_ExitLoop_M2]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -1067,7 +1067,7 @@ UC_End	proc	near	uses ax dx
 		;-----------------------
 		;有限ループが残ってる場合、解消する
 		.while	(word ptr cs:[UC_LoopCountData]!=0)
-			mov	dx,offset UCDFF_M06_2
+			lea	dx,[UCDFF_M06_2]
 			mov	ah,09h		;
 			int	21h		;
 			dec	word ptr cs:[UC_LoopCountData]
@@ -1107,7 +1107,7 @@ endif	;--------------------------------
 		mov	bx,ax
 
 		mov	cx,UCMOLS_LOOP_PTY	;回数セット
-		mov	di,offset UCMOLS_LOOP_ADDRESS
+		lea	di,[UCMOLS_LOOP_ADDRESS]
 		push	cs			
 		pop	es			;es:di ← アドレス
 	repne	scasw
@@ -1116,7 +1116,7 @@ endif	;--------------------------------
 			.if	(cs:[UCMOLS_LOOP_Count]==1)	;
 				call	UC_End
 			.endif
-			MOV	DX,OFFSET UCDFF_M06_1
+			lea	DX,[UCDFF_M06_1]
 			MOV	AH,09H		;
 			INT	21H		;
 			dec	cs:[UCMOLS_LOOP_Count]
@@ -1140,7 +1140,7 @@ ifdef	SPC	;------------------------
 UC_ConditionalJump_M1	db	'/*L-Adr=0x$'
 UC_ConditionalJump_M2	db	'*/:$'
 UC_ConditionalJump	proc	near	uses ax dx
-	MOV	DX,OFFSET UC_ConditionalJump_M1
+	lea	DX,[UC_ConditionalJump_M1]
 	MOV	AH,09H		;
 	INT	21H		;
 
@@ -1155,7 +1155,7 @@ UC_ConditionalJump	proc	near	uses ax dx
 	MOV	AH,09H		;
 	INT	21H		;
 
-	MOV	DX,OFFSET UC_ConditionalJump_M2
+	lea	DX,[UC_ConditionalJump_M2]
 	MOV	AH,09H		;
 	INT	21H		;
 

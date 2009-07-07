@@ -27,10 +27,15 @@ UC_Volume	proc	near
 	MOV	AL,ES:[BX]			;データ読み込み
 	INC	BX				;
 	PUSH	BX				;
-	XOR	AH,AH				;
-	MOV	BX,OFFSET UC_Volume_TABLE	;
-	ADD	BX,AX				;
-	MOV	AH,CS:[BX]			;
+
+;	XOR	AH,AH				;
+;	MOV	BX,OFFSET UC_Volume_TABLE	;
+;	ADD	BX,AX				;
+;	MOV	AH,CS:[BX]			;
+	xor	bx,bx
+	mov	bl,al
+	mov	ah,byte ptr cs:[UC_Volume_TABLE + bx]
+
 	CALL	HEX2ASC8			;出力
 	MOV	AH,09H				;
 	INT	21H				;

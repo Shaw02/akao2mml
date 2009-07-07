@@ -1,32 +1,30 @@
 
 
-本アプリケーションは、
-MASM6.11（Microsoft (R) Macro Assembler Version 6.11)
-MASM9.00（Microsoft (R) Macro Assembler Version 9.00)
 
-でアセンブル出来る事を確認しています。
-MASM 8.00は試していませんが、多分可能です。
-てか、9.00もフリーなんだから、9.00ダウンロードしれ。
+本アプリケーションは、i80186(V30)のアセンブリ言語で開発されております。
+以下の開発環境にてビルドできる事を確認しています。
 
-MASM 6.11につきましては、ＭＳＤＮの購読にて入手可能です。
-MASM 9.00は、以下のソフトウェアに含まれて居ます。
-　・"Microsoft (R) Visual Studio 2008"			（有料）
-　・"Microsoft (R) Visual C++ 2008 Express Edition"	（無料）
-　　→http://www.microsoft.com/japan/msdn/vstudio/express/default.aspx
+　(1) "Microsoft (R) Visual C++ 2008 Express Edition with SP1"	（無料）
+　　　→http://www.microsoft.com/japan/msdn/vstudio/express/default.aspx
+　(2) "Microsoft (R) Macro Assembler version 6.11a
 
 
 
-なお、MASM ver,6.11に含まれるLink.EXE（リンカー）は、
-Windows Vistaでは使えない事を確認しており、
-以下の16bit版リンカーが別途必要です。
-
-Visual C++ 2008に含まれるLink.exeも32bit版であり、
-MS-DOSのtinyモデル(*.COM)形式のファイルを生成出来ない為、使えません。
-MASM9.00を使う場合についても、以下の16bit版リンカーが別途必要です。
 
 
+尚、ビルドには別途、16bit版 リンカーが必要になる場合があります。
+以下のサイトからダウンロードして使ってください。
+　　　→ftp://ftp.microsoft.com/softlib/mslfiles/lnk563.exe
 
-■16bit版 リンカー
-別途、16bit実行ファイルをアセンブルする為に、16bit版のリンカーが必要です。
-→ftp://ftp.microsoft.com/softlib/mslfiles/lnk563.exe
+　(1) "Microsoft (R) Visual C++ 2008 Express Edition with SP1"を使う場合。
+　　　・ダウンロード後、exeファイルを実行し、解凍して下さい。
+　　　・解凍後の"link.exe"を、"link16.exe"にファイル名を換え、
+　　　　Visual C++.netをインストールしたフォルダーの"bin"フォルダに保存して下さい。
+　　　　例）"C:\Program Files\Microsoft Visual Studio 9.0\VC\bin"
+
+　(2) "Microsoft (R) Windows vista"を使う場合。
+　　　・ダウンロード後、exeファイルを実行し、解凍して下さい。
+　　　・Macro Assemblerをインストールしたフォルダーの"bin"フォルダーに保存して下さい。
+　　　　どうせ、Windows vistaでは標準のlink.exeは使えないので、上書きして下さい。
+
 
