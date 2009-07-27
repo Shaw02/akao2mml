@@ -55,6 +55,7 @@ include	sub_cnv.asm
 include	def_ff4.asm		;SPC FINAL FANTASY 4
 include	def_ff5.asm		;SPC FINAL FANTASY 4
 include	def_ff6.asm		;SPC FINAL FANTASY 5
+include	def_sd2.asm		;SPC êπåïì`ê‡ 2
 include	def_rs1.asm		;SPC Romancing Saga 1
 include	def_rs2.asm		;SPC Romancing Saga 2
 include	def_rs3.asm		;SPC Romancing Saga 3

@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rs2mml", "src\rs2mml.vcproj
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rs3mml", "src\rs3mml.vcproj", "{9541985C-6B67-436C-A679-2F4E5523AC0E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sd2mml", "src\sd2mml.vcproj", "{5E22E7C8-6840-4D7F-9C8E-AB679FCCD64B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -55,6 +57,10 @@ Global
 		{9541985C-6B67-436C-A679-2F4E5523AC0E}.Debug|Win32.Build.0 = Debug|Win32
 		{9541985C-6B67-436C-A679-2F4E5523AC0E}.Release|Win32.ActiveCfg = Release|Win32
 		{9541985C-6B67-436C-A679-2F4E5523AC0E}.Release|Win32.Build.0 = Release|Win32
+		{5E22E7C8-6840-4D7F-9C8E-AB679FCCD64B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5E22E7C8-6840-4D7F-9C8E-AB679FCCD64B}.Debug|Win32.Build.0 = Debug|Win32
+		{5E22E7C8-6840-4D7F-9C8E-AB679FCCD64B}.Release|Win32.ActiveCfg = Release|Win32
+		{5E22E7C8-6840-4D7F-9C8E-AB679FCCD64B}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
