@@ -101,12 +101,11 @@ OP_HELP	DB	0DH,0AH
 	DB	"		Programmed by  内蔵音源をmidi変換するスレの889",0DH,0AH
 	db	"		Special Thanks    同スレの住人達",0DH,0AH
 	DB	0DH,0AH
-	DB	"LZS2BIN [/?] [filename1] [>filename2]",0DH,0AH
+	DB	"LZS2BIN [/?] [filename1]",0DH,0AH
 	DB	0DH,0AH
 	DB	"   filename1	Source LZS filename",0DH,0AH
-	DB	"  >filename2	Output BIN filename",0DH,0AH
-	DB	"  /O		Offset Address upper 8bit",0DH,0AH
-	DB	"    value	  (0 to 255, default = 0)",0DH,0AH
+	DB	"  /O<value>	Offset Address upper 8bit",0DH,0AH
+	DB	"  		  (0 to 255, default = 0)",0DH,0AH
 	DB	"  /?		Display help",0DH,0AH
 	DB	024H
 .code
@@ -252,7 +251,7 @@ Op_	proc	near	uses ds es,
 
 		;ロード
 		mov	ds,word ptr CS:[segLZS_File]
-		invoke	File_Load_S,	ax,addr ds:0,2000h
+		invoke	File_Load_S,	ax,addr ds:0,4000h
 
 		;クローズ
 		pop	ax
@@ -283,7 +282,7 @@ de_compress	proc	near
 	xor	di,di
 	xor	ax,ax
 	mov	cx,8000h
-   rep	stosw			;先ず、メモリ空間を０クリア
+   rep	stosw				;メモリ空間を０クリア
 
 	xor	di,di		;ES:DI	BIN fileのポインタ
 	mov	si,cs:[iOffset]
@@ -294,6 +293,7 @@ de_compress	proc	near
 	;●チョコボの不思議なダンジョン
 	lodsw			;FF7は、DWROD型(32bit)。
 	add	ax,si
+	sub	ax,2
 	mov	iLzsSize,ax	;サイズの書き込み
 
 
@@ -345,6 +345,7 @@ de_compress	proc	near
 		;-----------------------
 		.endif
 		pop	ax
+		.break	.if	(si >= iLzsSize)
 	   .untilcxz
 	.endw
 

@@ -16,7 +16,7 @@
 ;	●返り値						|
 ;		ax		割り当てたメモリのセグメント	|
 ;---------------------------------------------------------------|
-Memory_Open	proc	near	uses bx,
+Memory_Open	proc	near	uses bx cx di es,
 	ParaSize:word
 
 	MOV	bx,ParaSize		;データ領域の確保
