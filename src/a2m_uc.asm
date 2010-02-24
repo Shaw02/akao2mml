@@ -11,6 +11,7 @@
 ;	引数							|
 ;		al	Note Number				|
 ;---------------------------------------------------------------|
+.const
 c_output_note_N		dw	offset c_output_note_C
 			dw	offset c_output_note_Ds
 			dw	offset c_output_note_D
@@ -37,6 +38,8 @@ c_output_note_B		db	'a+$'
 c_output_note_H		db	'b$'
 c_output_note_O		db	'o$'
 
+
+.code
 c_output_note	proc	near
 	pusha
 
@@ -160,15 +163,18 @@ c_output_length	endp
 ;	引数							|
 ;		bx	チャンネルの開始アドレス		|
 ;---------------------------------------------------------------|
+.const
 UCMOLS_LOOP_msg1	DB	'/*Loop=0x$'
 UCMOLS_LOOP_msg2	DB	'*/$'
 UCMOLS_LOOP_msg3	DB	'条件ジャンプが複雑すぎ$'
 UCMOLS_LOOP_msg4	DB	'リピートが可笑しい$'
 
+.data?
 UCMOLS_LOOP_PTY		equ	8
-UCMOLS_LOOP_ADDRESS	DW	UCMOLS_LOOP_PTY	dup(0)
-UCMOLS_LOOP_Count	dw	0
+UCMOLS_LOOP_ADDRESS	DW	UCMOLS_LOOP_PTY	dup(?)
+UCMOLS_LOOP_Count	dw	?
 
+.code
 UCMO_LOOP_SEARCH	proc	near	uses ax bx cx dx di
 
 	local	ptStart:WORD		;チャンネルの開始アドレス
@@ -247,8 +253,12 @@ endif	;--------------------------------
 	.endif
 
 	.if	(al==6)
-ifdef	ff8	;------------------------
+ifdef	PS1	;------------------------
+
 		MOV	AX,ES:[BX]		;
+ ifdef	CD1	;------------------------
+		mov	al,0FEh
+ endif	;--------------------------------
 
 		.if	(ax==006FEh)
 			MOV	DX,BX		;DX←FE06hコマンドのアドレス
@@ -256,6 +266,9 @@ ifdef	ff8	;------------------------
 			MOV	AX,ES:[BX]	;
 			TEST	AX,AX		;
 			JZ	UCMOL_EE	;If AX=0 Then Return
+ ifndef	FF8	;------------------------
+			add	ax,2		;FF8以外は
+ endif	;--------------------------------
 			add	bx,ax		;BX←ループ先アドレス
 			mov	ax,bx		;AX←BX
 			.break
@@ -271,11 +284,20 @@ ifdef	ff8	;------------------------
 			inc	iCount		;
 			add	bx,3		;
 			mov	ax,es:[bx]	;
+ ifndef	FF8	;------------------------
+			add	ax,2		;FF8以外は
+ endif	;--------------------------------
 			add	ax,bx		;
 			mov	tempBX,ax	;条件ジャンプ先
+ ifdef	FF8	;------------------------
 			add	bx,2		;FF8は、最後にカウント
+ endif	;--------------------------------
 
-		.elseif	((ax==004FEh)||(ax==01DFEh)||(ax==01EFEh)||(ax==01FFEh))
+ ifdef	FF8	;------------------------
+		.elseif	((ax==004FEh)||(ax==005FEh)||(ax==01DFEh)||(ax==01EFEh)||(ax==01FFEh))
+ else	;--------------------------------
+		.elseif	((ax==005FEh)||(ax==01DFEh)||(ax==01EFEh)||(ax==01FFEh))
+ endif	;--------------------------------
 			add	bx,2
 		.elseif	((ax==010FEh)||(ax==014FEh)||(ax==01CFEh))
 			add	bx,3
@@ -384,279 +406,279 @@ UCMO_LOOP_SEARCH	endp
 ;---------------------------------------------------------------|
 ;逆ＭＭＬ変換情報のあるアドレス
 ;実体は、タイトル毎の定義ファイル。
-UC_DATA_ADDRESS:
-	DW	OFFSET UC_D00	;コマンド00h
-	DW	OFFSET UC_D01
-	DW	OFFSET UC_D02
-	DW	OFFSET UC_D03
-	DW	OFFSET UC_D04
-	DW	OFFSET UC_D05
-	DW	OFFSET UC_D06
-	DW	OFFSET UC_D07
-	DW	OFFSET UC_D08
-	DW	OFFSET UC_D09
-	DW	OFFSET UC_D0A
-	DW	OFFSET UC_D0B
-	DW	OFFSET UC_D0C
-	DW	OFFSET UC_D0D
-	DW	OFFSET UC_D0E
-	DW	OFFSET UC_D0F
-	DW	OFFSET UC_D10
-	DW	OFFSET UC_D11
-	DW	OFFSET UC_D12
-	DW	OFFSET UC_D13
-	DW	OFFSET UC_D14
-	DW	OFFSET UC_D15
-	DW	OFFSET UC_D16
-	DW	OFFSET UC_D17
-	DW	OFFSET UC_D18
-	DW	OFFSET UC_D19
-	DW	OFFSET UC_D1A
-	DW	OFFSET UC_D1B
-	DW	OFFSET UC_D1C
-	DW	OFFSET UC_D1D
-	DW	OFFSET UC_D1E
-	DW	OFFSET UC_D1F
-	DW	OFFSET UC_D20
-	DW	OFFSET UC_D21
-	DW	OFFSET UC_D22
-	DW	OFFSET UC_D23
-	DW	OFFSET UC_D24
-	DW	OFFSET UC_D25
-	DW	OFFSET UC_D26
-	DW	OFFSET UC_D27
-	DW	OFFSET UC_D28
-	DW	OFFSET UC_D29
-	DW	OFFSET UC_D2A
-	DW	OFFSET UC_D2B
-	DW	OFFSET UC_D2C
-	DW	OFFSET UC_D2D
-	DW	OFFSET UC_D2E
-	DW	OFFSET UC_D2F
-	DW	OFFSET UC_D30
-	DW	OFFSET UC_D31
-	DW	OFFSET UC_D32
-	DW	OFFSET UC_D33
-	DW	OFFSET UC_D34
-	DW	OFFSET UC_D35
-	DW	OFFSET UC_D36
-	DW	OFFSET UC_D37
-	DW	OFFSET UC_D38
-	DW	OFFSET UC_D39
-	DW	OFFSET UC_D3A
-	DW	OFFSET UC_D3B
-	DW	OFFSET UC_D3C
-	DW	OFFSET UC_D3D
-	DW	OFFSET UC_D3E
-	DW	OFFSET UC_D3F
-	DW	OFFSET UC_D40
-	DW	OFFSET UC_D41
-	DW	OFFSET UC_D42
-	DW	OFFSET UC_D43
-	DW	OFFSET UC_D44
-	DW	OFFSET UC_D45
-	DW	OFFSET UC_D46
-	DW	OFFSET UC_D47
-	DW	OFFSET UC_D48
-	DW	OFFSET UC_D49
-	DW	OFFSET UC_D4A
-	DW	OFFSET UC_D4B
-	DW	OFFSET UC_D4C
-	DW	OFFSET UC_D4D
-	DW	OFFSET UC_D4E
-	DW	OFFSET UC_D4F
-	DW	OFFSET UC_D50
-	DW	OFFSET UC_D51
-	DW	OFFSET UC_D52
-	DW	OFFSET UC_D53
-	DW	OFFSET UC_D54
-	DW	OFFSET UC_D55
-	DW	OFFSET UC_D56
-	DW	OFFSET UC_D57
-	DW	OFFSET UC_D58
-	DW	OFFSET UC_D59
-	DW	OFFSET UC_D5A
-	DW	OFFSET UC_D5B
-	DW	OFFSET UC_D5C
-	DW	OFFSET UC_D5D
-	DW	OFFSET UC_D5E
-	DW	OFFSET UC_D5F
-	DW	OFFSET UC_D60
-	DW	OFFSET UC_D61
-	DW	OFFSET UC_D62
-	DW	OFFSET UC_D63
-	DW	OFFSET UC_D64
-	DW	OFFSET UC_D65
-	DW	OFFSET UC_D66
-	DW	OFFSET UC_D67
-	DW	OFFSET UC_D68
-	DW	OFFSET UC_D69
-	DW	OFFSET UC_D6A
-	DW	OFFSET UC_D6B
-	DW	OFFSET UC_D6C
-	DW	OFFSET UC_D6D
-	DW	OFFSET UC_D6E
-	DW	OFFSET UC_D6F
-	DW	OFFSET UC_D70
-	DW	OFFSET UC_D71
-	DW	OFFSET UC_D72
-	DW	OFFSET UC_D73
-	DW	OFFSET UC_D74
-	DW	OFFSET UC_D75
-	DW	OFFSET UC_D76
-	DW	OFFSET UC_D77
-	DW	OFFSET UC_D78
-	DW	OFFSET UC_D79
-	DW	OFFSET UC_D7A
-	DW	OFFSET UC_D7B
-	DW	OFFSET UC_D7C
-	DW	OFFSET UC_D7D
-	DW	OFFSET UC_D7E
-	DW	OFFSET UC_D7F
-	DW	OFFSET UC_D80
-	DW	OFFSET UC_D81
-	DW	OFFSET UC_D82
-	DW	OFFSET UC_D83
-	DW	OFFSET UC_D84
-	DW	OFFSET UC_D85
-	DW	OFFSET UC_D86
-	DW	OFFSET UC_D87
-	DW	OFFSET UC_D88
-	DW	OFFSET UC_D89
-	DW	OFFSET UC_D8A
-	DW	OFFSET UC_D8B
-	DW	OFFSET UC_D8C
-	DW	OFFSET UC_D8D
-	DW	OFFSET UC_D8E
-	DW	OFFSET UC_D8F
-	DW	OFFSET UC_D90
-	DW	OFFSET UC_D91
-	DW	OFFSET UC_D92
-	DW	OFFSET UC_D93
-	DW	OFFSET UC_D94
-	DW	OFFSET UC_D95
-	DW	OFFSET UC_D96
-	DW	OFFSET UC_D97
-	DW	OFFSET UC_D98
-	DW	OFFSET UC_D99
-	DW	OFFSET UC_D9A
-	DW	OFFSET UC_D9B
-	DW	OFFSET UC_D9C
-	DW	OFFSET UC_D9D
-	DW	OFFSET UC_D9E
-	DW	OFFSET UC_D9F
-	DW	OFFSET UC_DA0
-	DW	OFFSET UC_DA1
-	DW	OFFSET UC_DA2
-	DW	OFFSET UC_DA3
-	DW	OFFSET UC_DA4
-	DW	OFFSET UC_DA5
-	DW	OFFSET UC_DA6
-	DW	OFFSET UC_DA7
-	DW	OFFSET UC_DA8
-	DW	OFFSET UC_DA9
-	DW	OFFSET UC_DAA
-	DW	OFFSET UC_DAB
-	DW	OFFSET UC_DAC
-	DW	OFFSET UC_DAD
-	DW	OFFSET UC_DAE
-	DW	OFFSET UC_DAF
-	DW	OFFSET UC_DB0
-	DW	OFFSET UC_DB1
-	DW	OFFSET UC_DB2
-	DW	OFFSET UC_DB3
-	DW	OFFSET UC_DB4
-	DW	OFFSET UC_DB5
-	DW	OFFSET UC_DB6
-	DW	OFFSET UC_DB7
-	DW	OFFSET UC_DB8
-	DW	OFFSET UC_DB9
-	DW	OFFSET UC_DBA
-	DW	OFFSET UC_DBB
-	DW	OFFSET UC_DBC
-	DW	OFFSET UC_DBD
-	DW	OFFSET UC_DBE
-	DW	OFFSET UC_DBF
-	DW	OFFSET UC_DC0
-	DW	OFFSET UC_DC1
-	DW	OFFSET UC_DC2
-	DW	OFFSET UC_DC3
-	DW	OFFSET UC_DC4
-	DW	OFFSET UC_DC5
-	DW	OFFSET UC_DC6
-	DW	OFFSET UC_DC7
-	DW	OFFSET UC_DC8
-	DW	OFFSET UC_DC9
-	DW	OFFSET UC_DCA
-	DW	OFFSET UC_DCB
-	DW	OFFSET UC_DCC
-	DW	OFFSET UC_DCD
-	DW	OFFSET UC_DCE
-	DW	OFFSET UC_DCF
-	DW	OFFSET UC_DD0
-	DW	OFFSET UC_DD1
-	DW	OFFSET UC_DD2
-	DW	OFFSET UC_DD3
-	DW	OFFSET UC_DD4
-	DW	OFFSET UC_DD5
-	DW	OFFSET UC_DD6
-	DW	OFFSET UC_DD7
-	DW	OFFSET UC_DD8
-	DW	OFFSET UC_DD9
-	DW	OFFSET UC_DDA
-	DW	OFFSET UC_DDB
-	DW	OFFSET UC_DDC
-	DW	OFFSET UC_DDD
-	DW	OFFSET UC_DDE
-	DW	OFFSET UC_DDF
-	DW	OFFSET UC_DE0
-	DW	OFFSET UC_DE1
-	DW	OFFSET UC_DE2
-	DW	OFFSET UC_DE3
-	DW	OFFSET UC_DE4
-	DW	OFFSET UC_DE5
-	DW	OFFSET UC_DE6
-	DW	OFFSET UC_DE7
-	DW	OFFSET UC_DE8
-	DW	OFFSET UC_DE9
-	DW	OFFSET UC_DEA
-	DW	OFFSET UC_DEB
-	DW	OFFSET UC_DEC
-	DW	OFFSET UC_DED
-	DW	OFFSET UC_DEE
-	DW	OFFSET UC_DEF
-	DW	OFFSET UC_DF0
-	DW	OFFSET UC_DF1
-	DW	OFFSET UC_DF2
-	DW	OFFSET UC_DF3
-	DW	OFFSET UC_DF4
-	DW	OFFSET UC_DF5
-	DW	OFFSET UC_DF6
-	DW	OFFSET UC_DF7
-	DW	OFFSET UC_DF8
-	DW	OFFSET UC_DF9
-	DW	OFFSET UC_DFA
-	DW	OFFSET UC_DFB
-	DW	OFFSET UC_DFC
-	DW	OFFSET UC_DFD
-	DW	OFFSET UC_DFE
-	DW	OFFSET UC_DFF
+.const
+UC_DATA_ADDRESS	DW	OFFSET UC_D00	;コマンド00h
+		DW	OFFSET UC_D01
+		DW	OFFSET UC_D02
+		DW	OFFSET UC_D03
+		DW	OFFSET UC_D04
+		DW	OFFSET UC_D05
+		DW	OFFSET UC_D06
+		DW	OFFSET UC_D07
+		DW	OFFSET UC_D08
+		DW	OFFSET UC_D09
+		DW	OFFSET UC_D0A
+		DW	OFFSET UC_D0B
+		DW	OFFSET UC_D0C
+		DW	OFFSET UC_D0D
+		DW	OFFSET UC_D0E
+		DW	OFFSET UC_D0F
+		DW	OFFSET UC_D10
+		DW	OFFSET UC_D11
+		DW	OFFSET UC_D12
+		DW	OFFSET UC_D13
+		DW	OFFSET UC_D14
+		DW	OFFSET UC_D15
+		DW	OFFSET UC_D16
+		DW	OFFSET UC_D17
+		DW	OFFSET UC_D18
+		DW	OFFSET UC_D19
+		DW	OFFSET UC_D1A
+		DW	OFFSET UC_D1B
+		DW	OFFSET UC_D1C
+		DW	OFFSET UC_D1D
+		DW	OFFSET UC_D1E
+		DW	OFFSET UC_D1F
+		DW	OFFSET UC_D20
+		DW	OFFSET UC_D21
+		DW	OFFSET UC_D22
+		DW	OFFSET UC_D23
+		DW	OFFSET UC_D24
+		DW	OFFSET UC_D25
+		DW	OFFSET UC_D26
+		DW	OFFSET UC_D27
+		DW	OFFSET UC_D28
+		DW	OFFSET UC_D29
+		DW	OFFSET UC_D2A
+		DW	OFFSET UC_D2B
+		DW	OFFSET UC_D2C
+		DW	OFFSET UC_D2D
+		DW	OFFSET UC_D2E
+		DW	OFFSET UC_D2F
+		DW	OFFSET UC_D30
+		DW	OFFSET UC_D31
+		DW	OFFSET UC_D32
+		DW	OFFSET UC_D33
+		DW	OFFSET UC_D34
+		DW	OFFSET UC_D35
+		DW	OFFSET UC_D36
+		DW	OFFSET UC_D37
+		DW	OFFSET UC_D38
+		DW	OFFSET UC_D39
+		DW	OFFSET UC_D3A
+		DW	OFFSET UC_D3B
+		DW	OFFSET UC_D3C
+		DW	OFFSET UC_D3D
+		DW	OFFSET UC_D3E
+		DW	OFFSET UC_D3F
+		DW	OFFSET UC_D40
+		DW	OFFSET UC_D41
+		DW	OFFSET UC_D42
+		DW	OFFSET UC_D43
+		DW	OFFSET UC_D44
+		DW	OFFSET UC_D45
+		DW	OFFSET UC_D46
+		DW	OFFSET UC_D47
+		DW	OFFSET UC_D48
+		DW	OFFSET UC_D49
+		DW	OFFSET UC_D4A
+		DW	OFFSET UC_D4B
+		DW	OFFSET UC_D4C
+		DW	OFFSET UC_D4D
+		DW	OFFSET UC_D4E
+		DW	OFFSET UC_D4F
+		DW	OFFSET UC_D50
+		DW	OFFSET UC_D51
+		DW	OFFSET UC_D52
+		DW	OFFSET UC_D53
+		DW	OFFSET UC_D54
+		DW	OFFSET UC_D55
+		DW	OFFSET UC_D56
+		DW	OFFSET UC_D57
+		DW	OFFSET UC_D58
+		DW	OFFSET UC_D59
+		DW	OFFSET UC_D5A
+		DW	OFFSET UC_D5B
+		DW	OFFSET UC_D5C
+		DW	OFFSET UC_D5D
+		DW	OFFSET UC_D5E
+		DW	OFFSET UC_D5F
+		DW	OFFSET UC_D60
+		DW	OFFSET UC_D61
+		DW	OFFSET UC_D62
+		DW	OFFSET UC_D63
+		DW	OFFSET UC_D64
+		DW	OFFSET UC_D65
+		DW	OFFSET UC_D66
+		DW	OFFSET UC_D67
+		DW	OFFSET UC_D68
+		DW	OFFSET UC_D69
+		DW	OFFSET UC_D6A
+		DW	OFFSET UC_D6B
+		DW	OFFSET UC_D6C
+		DW	OFFSET UC_D6D
+		DW	OFFSET UC_D6E
+		DW	OFFSET UC_D6F
+		DW	OFFSET UC_D70
+		DW	OFFSET UC_D71
+		DW	OFFSET UC_D72
+		DW	OFFSET UC_D73
+		DW	OFFSET UC_D74
+		DW	OFFSET UC_D75
+		DW	OFFSET UC_D76
+		DW	OFFSET UC_D77
+		DW	OFFSET UC_D78
+		DW	OFFSET UC_D79
+		DW	OFFSET UC_D7A
+		DW	OFFSET UC_D7B
+		DW	OFFSET UC_D7C
+		DW	OFFSET UC_D7D
+		DW	OFFSET UC_D7E
+		DW	OFFSET UC_D7F
+		DW	OFFSET UC_D80
+		DW	OFFSET UC_D81
+		DW	OFFSET UC_D82
+		DW	OFFSET UC_D83
+		DW	OFFSET UC_D84
+		DW	OFFSET UC_D85
+		DW	OFFSET UC_D86
+		DW	OFFSET UC_D87
+		DW	OFFSET UC_D88
+		DW	OFFSET UC_D89
+		DW	OFFSET UC_D8A
+		DW	OFFSET UC_D8B
+		DW	OFFSET UC_D8C
+		DW	OFFSET UC_D8D
+		DW	OFFSET UC_D8E
+		DW	OFFSET UC_D8F
+		DW	OFFSET UC_D90
+		DW	OFFSET UC_D91
+		DW	OFFSET UC_D92
+		DW	OFFSET UC_D93
+		DW	OFFSET UC_D94
+		DW	OFFSET UC_D95
+		DW	OFFSET UC_D96
+		DW	OFFSET UC_D97
+		DW	OFFSET UC_D98
+		DW	OFFSET UC_D99
+		DW	OFFSET UC_D9A
+		DW	OFFSET UC_D9B
+		DW	OFFSET UC_D9C
+		DW	OFFSET UC_D9D
+		DW	OFFSET UC_D9E
+		DW	OFFSET UC_D9F
+		DW	OFFSET UC_DA0
+		DW	OFFSET UC_DA1
+		DW	OFFSET UC_DA2
+		DW	OFFSET UC_DA3
+		DW	OFFSET UC_DA4
+		DW	OFFSET UC_DA5
+		DW	OFFSET UC_DA6
+		DW	OFFSET UC_DA7
+		DW	OFFSET UC_DA8
+		DW	OFFSET UC_DA9
+		DW	OFFSET UC_DAA
+		DW	OFFSET UC_DAB
+		DW	OFFSET UC_DAC
+		DW	OFFSET UC_DAD
+		DW	OFFSET UC_DAE
+		DW	OFFSET UC_DAF
+		DW	OFFSET UC_DB0
+		DW	OFFSET UC_DB1
+		DW	OFFSET UC_DB2
+		DW	OFFSET UC_DB3
+		DW	OFFSET UC_DB4
+		DW	OFFSET UC_DB5
+		DW	OFFSET UC_DB6
+		DW	OFFSET UC_DB7
+		DW	OFFSET UC_DB8
+		DW	OFFSET UC_DB9
+		DW	OFFSET UC_DBA
+		DW	OFFSET UC_DBB
+		DW	OFFSET UC_DBC
+		DW	OFFSET UC_DBD
+		DW	OFFSET UC_DBE
+		DW	OFFSET UC_DBF
+		DW	OFFSET UC_DC0
+		DW	OFFSET UC_DC1
+		DW	OFFSET UC_DC2
+		DW	OFFSET UC_DC3
+		DW	OFFSET UC_DC4
+		DW	OFFSET UC_DC5
+		DW	OFFSET UC_DC6
+		DW	OFFSET UC_DC7
+		DW	OFFSET UC_DC8
+		DW	OFFSET UC_DC9
+		DW	OFFSET UC_DCA
+		DW	OFFSET UC_DCB
+		DW	OFFSET UC_DCC
+		DW	OFFSET UC_DCD
+		DW	OFFSET UC_DCE
+		DW	OFFSET UC_DCF
+		DW	OFFSET UC_DD0
+		DW	OFFSET UC_DD1
+		DW	OFFSET UC_DD2
+		DW	OFFSET UC_DD3
+		DW	OFFSET UC_DD4
+		DW	OFFSET UC_DD5
+		DW	OFFSET UC_DD6
+		DW	OFFSET UC_DD7
+		DW	OFFSET UC_DD8
+		DW	OFFSET UC_DD9
+		DW	OFFSET UC_DDA
+		DW	OFFSET UC_DDB
+		DW	OFFSET UC_DDC
+		DW	OFFSET UC_DDD
+		DW	OFFSET UC_DDE
+		DW	OFFSET UC_DDF
+		DW	OFFSET UC_DE0
+		DW	OFFSET UC_DE1
+		DW	OFFSET UC_DE2
+		DW	OFFSET UC_DE3
+		DW	OFFSET UC_DE4
+		DW	OFFSET UC_DE5
+		DW	OFFSET UC_DE6
+		DW	OFFSET UC_DE7
+		DW	OFFSET UC_DE8
+		DW	OFFSET UC_DE9
+		DW	OFFSET UC_DEA
+		DW	OFFSET UC_DEB
+		DW	OFFSET UC_DEC
+		DW	OFFSET UC_DED
+		DW	OFFSET UC_DEE
+		DW	OFFSET UC_DEF
+		DW	OFFSET UC_DF0
+		DW	OFFSET UC_DF1
+		DW	OFFSET UC_DF2
+		DW	OFFSET UC_DF3
+		DW	OFFSET UC_DF4
+		DW	OFFSET UC_DF5
+		DW	OFFSET UC_DF6
+		DW	OFFSET UC_DF7
+		DW	OFFSET UC_DF8
+		DW	OFFSET UC_DF9
+		DW	OFFSET UC_DFA
+		DW	OFFSET UC_DFB
+		DW	OFFSET UC_DFC
+		DW	OFFSET UC_DFD
+		DW	OFFSET UC_DFE
+		DW	OFFSET UC_DFF
 
 ifdef	PS1	;---------------
-c_decode_Length:
-	db	1
-	db	2
-	db	4
-	db	8
-	db	16
-	db	32
-	db	64
-	db	6
-	db	12
-	db	24
-	db	48
+c_decode_Length	db	1
+		db	2
+		db	4
+		db	8
+		db	16
+		db	32
+		db	64
+		db	6
+		db	12
+		db	24
+		db	48
 endif	;-----------------------
 
+.code
 c_decode	proc	near
 
 	local	UCMO_ComStartFlag:byte
@@ -989,28 +1011,23 @@ c_decode	endp
 ;	２．データ解析						|
 ;		(1) 使用パート数				|
 ;---------------------------------------------------------------|
-MML2MID_HED1:
-	db	'8z	@0	/*Instrument of percussion 1z*/'		,0dh,0ah,24h
-
-MML2MID_HED2:
-	db	'9z	@48	/*Instrument of percussion 2z*/'		,0dh,0ah,24h
-
-MML2MID_HED3:
-	db	0dh,0ah
+.const
+MML2MID_HED1	db	'8z	@0	/*Instrument of percussion 1z*/'		,0dh,0ah,24h
+MML2MID_HED2	db	'9z	@48	/*Instrument of percussion 2z*/'		,0dh,0ah,24h
+MML2MID_HED3	db	0dh,0ah
 ifdef	ff7	;------------------------
-	DB	'#include "define.mml"',0dh,0ah
+		DB	'#include "define.mml"',0dh,0ah
 else	;--------------------------------
-	DB	'#include "init.mml"',0dh,0ah
+		DB	'#include "init.mml"',0dh,0ah
 endif	;--------------------------------
-	db	0dh,0ah,24h		;改行は、ff8mmlでも出力する。
+		db	0dh,0ah,24h		;改行は、ff8mmlでも出力する。
 
 ifdef	ff8	;------------------------
-MML2MID_HED4:
-	db	'/* Instrument Set ID = ',24h
-MML2MID_HED5:
-	db	' */',0dh,0ah,24h
+MML2MID_HED4	db	'/* Instrument Set ID = ',24h
+MML2MID_HED5	db	' */',0dh,0ah,24h
 endif	;--------------------------------
 
+.code
 UC_START	proc	near
 	;---------------------------------------
 	;◆ヘッダー出力
@@ -1116,27 +1133,33 @@ UC_START	endp
 ;	処理							|
 ;	１．ＭＭＬ出力部でえた音色のマクロ定義文出力		|
 ;---------------------------------------------------------------|
-UC_END_VOICE_ADD:
+.const
 ifdef	PS1	;------------------------	;Multi Sampling Instrument
-		DW	OFFSET UCE_VOICE_0A	
-		DW	OFFSET UCE_VOICE_1A	
-		DW	OFFSET UCE_VOICE_2A	
-		DW	OFFSET UCE_VOICE_3A	
-		DW	OFFSET UCE_VOICE_4A	
-		DW	OFFSET UCE_VOICE_5A	
-		DW	OFFSET UCE_VOICE_6A	
-		DW	OFFSET UCE_VOICE_7A	
-		DW	OFFSET UCE_VOICE_0B	
-		DW	OFFSET UCE_VOICE_1B	
-		DW	OFFSET UCE_VOICE_2B	
-		DW	OFFSET UCE_VOICE_3B	
-		DW	OFFSET UCE_VOICE_4B	
-		DW	OFFSET UCE_VOICE_5B	
-		DW	OFFSET UCE_VOICE_6B	
-		DW	OFFSET UCE_VOICE_7B	
+UC_END_VOICE_ADD	DW	OFFSET UCE_VOICE_0A	
+			DW	OFFSET UCE_VOICE_1A	
+			DW	OFFSET UCE_VOICE_2A	
+			DW	OFFSET UCE_VOICE_3A	
+			DW	OFFSET UCE_VOICE_4A	
+			DW	OFFSET UCE_VOICE_5A	
+			DW	OFFSET UCE_VOICE_6A	
+			DW	OFFSET UCE_VOICE_7A	
+			DW	OFFSET UCE_VOICE_0B	
+			DW	OFFSET UCE_VOICE_1B	
+			DW	OFFSET UCE_VOICE_2B	
+			DW	OFFSET UCE_VOICE_3B	
+			DW	OFFSET UCE_VOICE_4B	
+			DW	OFFSET UCE_VOICE_5B	
+			DW	OFFSET UCE_VOICE_6B	
+			DW	OFFSET UCE_VOICE_7B	
 endif	;--------------------------------
 ifndef	ff7	;------------------------	;Normal Instrument
-		DW	OFFSET UCE_VOICE_0C	;(FF7以外で要る)
+
+
+ifndef	PS1	;------------------------
+UC_END_VOICE_ADD	DW	OFFSET UCE_VOICE_0C	;(FF7以外で要る)
+else		;------------------------
+			DW	OFFSET UCE_VOICE_0C	;(FF7以外で要る)
+endif		;------------------------
 		DW	OFFSET UCE_VOICE_1C	
 		DW	OFFSET UCE_VOICE_2C	
 		DW	OFFSET UCE_VOICE_3C	
@@ -1254,11 +1277,10 @@ endif	;--------------------------------
 
 
 ifdef	PS1	;------------------------
-UCE_VOICE_Program:
  ifdef	ff7	;------------------------
-		db	46	;harp
+UCE_VOICE_Program	db	46	;harp
  else	;--------------------------------
-		db	48	;strings
+UCE_VOICE_Program	db	48	;strings
  endif	;--------------------------------
 		db	1
 		db	2
@@ -1277,8 +1299,7 @@ UCE_VOICE_Program:
 		db	15
 endif	;--------------------------------
 ifdef	Rhythm12	;---------------
-UCE_VOICE_Note:					;ロマサガ３設定暫定
-		db	36	;B.Drum 1
+UCE_VOICE_Note	db	36	;B.Drum 1	;ロマサガ３設定暫定
 		db	49	;Cymbal 1
 		db	38	;S.Drum 1
 		db	57	;Cymbal 2
@@ -1298,6 +1319,7 @@ UCE_VOICE_M0		db	'0z	k127	v127	y100,2	y101,0	y6,64	H0,0	@',24h
 UCE_VOICE_M0_VGM	db	'	k127	v127					@',24h
 UCE_VOICE_cr	db	0dh,0ah,24h
 
+.code
 UC_Instrument	proc	near
 
 	local	iMultiSample:BYTE
@@ -1503,12 +1525,15 @@ UC_Instrument	endp
 ;---------------------------------------------------------------|
 ifdef	Rhythm12	;---------------
   ifdef	PS1	;-----------------------
+
+.const
 UC_Instrument_Phythm_PS1_M1	db	"	/*J",24h
 UC_Instrument_Phythm_PS1_M2	db	"	/*",24h
 UC_Instrument_Phythm_PS1_ME	db	"*/",24h
 UC_Instrument_Phythm_PS1_E	db	"	E",24h
 UC_Instrument_Phythm_PS1_P	db	"	p",24h
 
+.code
 UC_Instrument_Phythm_PS1	proc	near	uses bx
 
 	;[0]: Voice
@@ -1590,11 +1615,14 @@ endif	;-------------------------------
 ;	ＰＳ１	AKAO Multi sampling Instrument 出力		|
 ;---------------------------------------------------------------|
 ifdef	PS1	;-----------------------
+.const
 UC_Instrument_PS1_M00	db	3bh,"Multi Sampling Instrument No.=",24h
 UC_Instrument_PS1_M01	db	3bh,"	Sample No.=",24h
 UC_Instrument_PS1_M02	db	3bh,"	Noto No.=",24h
 UC_Instrument_PS1_M03	db	"～",24h
 UC_Instrument_PS1_M08	db	3bh,"	Volume =",24h
+
+.code
 UC_Instrument_PS1_multi	proc	near	uses	bp ax bx cx dx si
 
 	xor	cx,cx			;CL←0
@@ -1695,10 +1723,10 @@ endif	;-------------------------------
 ;	１．ＭＭＬ出力						|
 ;	２．使用されている音色番号の記憶			|
 ;---------------------------------------------------------------|
-UC_PART		DB	?			;パート数
-UC_PART_ASC:
+
 ifdef	SPC	;------------------------
-		DB	'A	$',0	;1ch
+.const
+UC_PART_ASC	DB	'A	$',0	;1ch
 		DB	'B	$',0	;2ch
 		DB	'C	$',0	;3ch
 		DB	'D	$',0	;4ch
@@ -1706,10 +1734,13 @@ ifdef	SPC	;------------------------
 		DB	'F	$',0	;6ch
 		DB	'G	$',0	;7ch
 		DB	'H	$',0	;8ch
+.data?
 UC_ADDER	DW	?			;先頭アドレス差分
 endif	;-------------------------------
+
 ifdef	PS1	;------------------------
-		DB	'0A	$'	;1ch
+.const
+UC_PART_ASC	DB	'0A	$'	;1ch
 		DB	'1A	$'	;2ch
 		DB	'2A	$'	;3ch
 		DB	'3A	$'	;4ch
@@ -1742,14 +1773,17 @@ ifdef	PS1	;------------------------
 		DB	'2H	$'	;15ch
 		DB	'3H	$'	;16ch
 endif	;-------------------------------
+
+.const
 UC_CR		DB	0Dh,0Ah,24h
-UCMO_LOOP_OUTPUT:			;
-	DB	'/*L1*/[$'		;
-UCMO_LOOP_OUTPUT2:			;
-	DB	'/*L2*/[$'		;
+UCMO_LOOP_OUTPUT	DB	'/*L1*/[$'		;
+UCMO_LOOP_OUTPUT2	DB	'/*L2*/[$'		;
 
+.data?
 c_Command_EoC	db	?		;End of Channel
+UC_PART		DB	?		;パート数
 
+.code
 UC_MML_OUTPUT	proc	near	uses	ax bx cx dx
 
 	local	stAddr:word

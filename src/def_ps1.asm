@@ -1,16 +1,22 @@
 ifdef	PS1	;------------------------
+.const
 ;****************************************************************
 ;*								*
 ;*		プロジェクト名					*
 ;*								*
 ;****************************************************************
+
 ifdef	ff7	;------------------------
+ifdef	cd1	;------------------------
+ProjectName	equ	'CD1MML'
+else	;--------------------------------
 ProjectName	equ	'FF7MML'
 endif	;--------------------------------
+endif	;--------------------------------
+
 ifdef	ff8	;------------------------
 ProjectName	equ	'FF8MML'
 endif	;--------------------------------
-
 
 
 ;****************************************************************
@@ -18,10 +24,9 @@ endif	;--------------------------------
 ;*		出力ヘッダ					*
 ;*								*
 ;****************************************************************
-MML2MID_HED:
-	DB	'#title     ""',0dh,0ah
-	DB	'#copyright "(c)SQUARE"',0dh,0ah
-	db	0dh,0ah,24h
+MML2MID_HED	DB	'#title     ""',0dh,0ah
+		DB	'#copyright "(c)SQUARE"',0dh,0ah
+		db	0dh,0ah,24h
 
 
 
@@ -121,28 +126,34 @@ LFO_PanDelay0	equ	1	;パンポットLFOに、引数Delay無し
 ;	8	制御 … END of Channel （無限ループ有り）		|
 ;	9	音譜 … タイで繋がれる					|
 ;=======================================================================|
-UCMO_COMMAND_SIZE:				;
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;00h-0Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;10h-1Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;20h-2Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;30h-3Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;40h-4Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;50h-5Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;60h-6Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;70h-7Fh
-	DB	0,0,0,0, 9,9,9,9, 9,9,9,9, 9,9,9,0	;80h-8Fh
-	DB	0,0,0,0, 0,0,0,0, 0,0,1,1, 1,1,1,1	;90h-9Fh
-	DB	7,2,2,2, 3,2,1,1, 2,3,2,3, 2,2,2,2	;A0h-AFh
-	DB	3,2,2,1, 4,2,1,2, 4,2,1,2, 3,2,1,2	;B0h-BFh
-	DB	2,2,1,1, 1,1,1,1, 1,2,1,1, 1,1,1,1	;C0h-CFh
-	DB	1,1,2,2, 1,1,1,1, 2,2,2,1, 2,3,3,3	;D0h-DFh
+UCMO_COMMAND_SIZE	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;00h-0Fh
+			DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;10h-1Fh
+			DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;20h-2Fh
+			DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;30h-3Fh
+			DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;40h-4Fh
+			DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;50h-5Fh
+			DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;60h-6Fh
+			DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;70h-7Fh
+			DB	0,0,0,0, 9,9,9,9, 9,9,9,9, 9,9,9,0	;80h-8Fh
+			DB	0,0,0,0, 0,0,0,0, 0,0,1,1, 1,1,1,1	;90h-9Fh
+			DB	7,2,2,2, 3,2,1,1, 2,3,2,3, 2,2,2,2	;A0h-AFh
+			DB	3,2,2,1, 4,2,1,2, 4,2,1,2, 3,2,1,2	;B0h-BFh
+			DB	2,2,1,1, 1,1,1,1, 1,2,1,1, 1,1,1,1	;C0h-CFh
+			DB	1,1,2,2, 1,1,1,1, 2,2,2,1, 2,3,3,3	;D0h-DFh
+
 ifdef	ff7	;------------------------
-	DB	1,1,1,1, 1,1,1,1, 3,4,3,4, 3,1,8,4	;E0h-EFh
-	DB	4,4,2,1, 3,1,2,3, 2,2,1,1, 3,3,3,1	;F0h-FFh
+ifdef	cd1	;------------------------
+			DB	1,1,1,1, 1,1,1,1, 3,4,3,4, 3,1,8,4	;E0h-EFh
+			DB	4,4,2,1, 3,1,2,3, 2,2,1,1, 6,3,3,1	;F0h-FFh
+else	;--------------------------------
+			DB	1,1,1,1, 1,1,1,1, 3,4,3,4, 3,1,8,4	;E0h-EFh
+			DB	4,4,2,1, 3,1,2,3, 2,2,1,1, 3,3,3,1	;F0h-FFh
 endif	;--------------------------------
+endif	;--------------------------------
+
 ifdef	ff8	;------------------------
-	DB	1,1,1,1, 1,1,3,1, 1,1,1,1, 1,1,1,1	;E0h-EFh
-	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 9,0,6,1	;F0h-FFh
+			DB	1,1,1,1, 1,1,3,1, 1,1,1,1, 1,1,1,1	;E0h-EFh
+			DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 9,0,6,1	;F0h-FFh
 endif	;--------------------------------
 
 ;=======================================================================|
@@ -321,42 +332,50 @@ UC_D9C	DB	' /*9C*/$',00h
 UC_D9D	DB	' /*9D*/$',00h
 UC_D9E	DB	' /*9E*/$',00h
 UC_D9F	DB	' /*9F*/$',00h
+
 UC_DA0	DB	0FFh
 	dw	offset UC_End
 	db	00h			;終了
+
 UC_DA1	DB	24h,24h,0FFH		;音色	'$'の出力
 	DW	OFFSET UC_VOICE_OUTPUT	;	マクロ番号出力
 	DB	00h			;	使用マクロ記憶
+
 UC_DA2	DB	0ffH			;次の音符の音長指定
 	DW	OFFSET UC_Step
 	DB	00h
+
 UC_DA3	DB	' v$',0FFh		;音量（ただしリニア）
 	DW	OFFSET UC_Volume	
 	DB	00h			
+
 UC_DA4	DB	' UB1,$',0ffh		;ポルタメント
 	dw	offset UC_portamento	;
 	db	00h			;
+
 UC_DA5	DB	' o$',0FFh		;オクターブ
 	DW	offset UC_Octave	
 	DB	0
+
 UC_DA6	DB	' >$',00h		;オクターブアップ
 UC_DA7	DB	' <$',00h		;オクターブダウン
+
 UC_DA8	DB	' E$',0FFh		;expression
 	DW	OFFSET UC_SAVE_E	
-	DB	10h,00h
-UC_DA9	DB	' E$',0FFh		;expression move
-	DW	OFFSET UC_LOAD_ES
-	DB	' UE1,0,%$',10h,' ,$',0FFh
-	DW	OFFSET UC_LOAD_E
 	DB	00h
+
+UC_DA9	DB	0FFh			;expression move
+	DW	OFFSET UC_Expression
+	DB	00h
+
 UC_DAA	DB	' p$',0FFh		;panpot
 	DW	OFFSET UC_SAVE_P
-	DB	10h,00h
-UC_DAB	DB	' p$',0FFh		;panpot move
-	DW	OFFSET UC_LOAD_PS
-	DB	' UP1,0,%$',10h,' ,$',0FFh
-	DW	OFFSET UC_LOAD_P
 	DB	00h
+
+UC_DAB	DB	0FFh			;panpot move
+	DW	OFFSET UC_Panpot
+	DB	00h
+
 UC_DAC	DB	' /*AC,$',010h,' */$',00h	;不明
 UC_DAD	DB	' /*AD(AL),$',010h,' */$',00h	;不明
 UC_DAE	DB	' /*AE(DL),$',010h,' */$',00h	;不明
@@ -369,34 +388,45 @@ UC_DB3	DB	' /*B3*/$',00h					;エンベロープ
 UC_DB4	DB	' IW$',0FFh					;LFO
 	dw	offset UC_LFO_PitchBend				;
 	db	00h						;
+
 UC_DB5	DB	' IW$',0FFh					;LFO Depth
 	dw	offset UC_LFO_PitchBendDepth			;
 	db	00h						;
+
 UC_DB6	DB	' IW0$',00h					;LFO off
+
 UC_DB7	DB	' /*B7,$',010h,' */$',00h			;
 
 UC_DB8	DB	' IE$',0ffh					;
 	dw	offset UC_LFO_Expression			;
 	db	00h						;
+
 UC_DB9	DB	' IE$',0ffh					;
 	dw	offset UC_LFO_ExpressionDepth			;
 	db	00h						;
+
 UC_DBA	DB	' IE0$',00h					;
+
 UC_DBB	DB	' /*BB,$',010h,' */$',00h			;
 
 UC_DBC	DB	' IP$',0ffh					;
 	dw	offset UC_LFO_Panpot				;
 	db	' $',00h					;
+
 UC_DBD	DB	' IP$',0ffh					;
 	dw	offset UC_LFO_PanpotDepth			;
 	db	' $',00h					;
+
 UC_DBE	DB	' IP0$',00h					;
+
 UC_DBF	DB	' /*BF,$',010h,' */$',00h			;
 
 UC_DC0	DB	' _$',11h,00h
 UC_DC1	DB	' __$',11h,00h
+
 UC_DC2	DB	' y91,100$',00h		;Reverb on
 UC_DC3	DB	' y91,0$',00h		;Reverb off
+
 UC_DC4	DB	' /*C4(Non)*/$',00h	;Noise on
 UC_DC5	DB	' /*C5(Noff)*/$',00h	;Noise off
 UC_DC6	DB	' /*C6(Mon)*/$',00h	;modulation on
@@ -415,8 +445,10 @@ UC_DCA	DB	0FFh
 	DB	00h
 
 UC_DCB	DB	' /*CB*/$',00h
+
 UC_DCC	DB	' /*P*/$',00h		;スラー開始
 UC_DCD	DB	' /*X*/$',00h		;スラー終了
+
 UC_DCE	DB	' /*CE*/$',00h
 UC_DCF	DB	' /*CF*/$',00h
 UC_DD0	DB	' /*D0*/$',00h
@@ -427,16 +459,20 @@ UC_DD4	DB	' /*D4*/$',00h
 UC_DD5	DB	' /*D5*/$',00h
 UC_DD6	DB	' /*D6*/$',00h
 UC_DD7	DB	' /*D7*/$',00h
+
 UC_DD8	DB	' BW$',0FFh		;ディチューン
 	DW	offset UC_Detune
 	DB	00h
+
 UC_DD9	DB	' BW$',11h,00h		;相対ディチューン
+
 UC_DDA	DB	' /*DA,$',010h,' */$',00h	;不明
 UC_DDB	DB	' /*DB*/$',00h
 UC_DDC	DB	' /*DC,$',010h,' */$',00h	;不明
 UC_DDD	DB	' /*DD,$',012h,' */$',00h	;
 UC_DDE	DB	' /*DE,$',012h,' */$',00h	;
 UC_DDF	DB	' /*DF,$',012h,' */$',00h	;不明
+
 ifdef	ff7	;------------------------
 UC_DE0	DB	' /*E0*/$',80h,00h
 UC_DE1	DB	' /*E1*/$',80h,00h
@@ -446,47 +482,46 @@ UC_DE4	DB	' /*E4*/$',80h,00h
 UC_DE5	DB	' /*E5*/$',80h,00h
 UC_DE6	DB	' /*E6*/$',80h,00h
 UC_DE7	DB	' /*E7*/$',80h,00h
+
 UC_DE8	DB	0FFh				;テンポ(FF7)
 	dw	offset UC_Tempo			;
 	db	00h				;
+
 UC_DE9	DB	0FFh				;相対テンポ(FF7)
 	dw	offset UC_RelativeTempo		;
 	db	00h				;
+
 UC_DEA	DB	0FFh				;リバーブ
 	dw	offset UC_Reverb		;
 	db	00h				;
+
 UC_DEB	DB	0FFh				;相対リバーブ
 	dw	offset UC_RelativeReverb	;
 	db	00h				;
 
-;UC_DEC	DB	0ffh				;パーカッションon
-;	dw	offset UC_PercussionOn		;
-;	db	' /*Adr=$',012h,' */$',00h	;Address?
-;UC_DED	DB	0ffh				;パーカッションoff
-;	dw	offset UC_PercussionOff		;
-;	db	00h				;
-
-UC_DEC	DB	' /*1z*/$',0ffh
+UC_DEC	DB	0ffh
 	dw	offset UC_Rhythm_on
-;	db	' /*Adr=$',012h,' */$',00h	;Address?
-	db	0ffh
-	dw	offset UC_Rhythm_adr_set
 	db	0
-UC_DED	db	' /*0z*/$',0ffh
+UC_DED	db	0ffh
 	dw	offset UC_Rhythm_off
 	db	0				;パーカッション off
 
 UC_DEE	DB	0FFh				;無限ループ(FF7)
 	dw	offset UC_PermanentLoop	;
 	db	00h				;
+
 UC_DEF	DB	' /*EF,$',010h,' ,$',010h,' ,$',010h,' */$',00h	;
+
 UC_DF0	DB	0FFh				;ループ抜け
 	dw	offset Loop_Exit		;
 	db	00h				;
+
 UC_DF1	DB	' /*F1,$',010h,' ,$',010h,' ,$',010h,' */$',00h	;
+
 UC_DF2	DB	24h,24h,0FFH			;音色	'$'の出力
 	DW	OFFSET UC_VOICE_OUTPUT		;	マクロ番号出力
 	DB	00h				;	使用マクロ記憶
+
 UC_DF3	DB	' /*F3*/$',00h
 UC_DF4	DB	' /*F4,$',010h,' ,$',010h,' */$',00h	;不明
 UC_DF5	DB	' /*F5*/$',00h
@@ -496,17 +531,28 @@ UC_DF8	DB	' /*F8,$',010h,' */$',00h	;不明
 UC_DF9	DB	' /*F9,$',010h,' */$',00h	;不明
 UC_DFA	DB	' /*FA*/$',80h,00h
 UC_DFB	DB	' /*FB*/$',80h,00h
+
+ifdef	cd1	;------------------------
+UC_DFC	DB	0FFh
+	DW	OFFSET UCDFF_LSTART
+	DB	00h
+else	;--------------------------------
 UC_DFC	DB	0FFh				;拡張音色
 	DW	offset UC_VoiceEx		;
 	DB	00h				;
+endif	;--------------------------------
+
 UC_DFD	DB	0ffh				;拍子
 	dw	offset UC_Beat			;
 	db	0				;
+
 UC_DFE	DB	0ffh				;リハーサル番号
 	dw	offset UC_Measures		;
 	db	0				;
+
 UC_DFF	DB	' /*FF*/$',80h,00h
 endif	;--------------------------------
+
 ifdef	ff8	;------------------------
 UC_DE0	DB	' /*E0*/$',00h
 UC_DE1	DB	' /*E1,$',010h,' */$',00h	;不明
@@ -524,6 +570,7 @@ UC_DEC	DB	' /*EC*/$',00h
 UC_DED	DB	' /*ED*/$',00h
 UC_DEE	DB	' /*EE*/$',00h
 UC_DEF	DB	' /*EF*/$',00h
+
 UC_DF0	DB	' c%$',10h,21h,00h
 UC_DF1	DB	' c+%$',10h,21h,00h
 UC_DF2	DB	' d%$',10h,21h,00h
@@ -538,9 +585,11 @@ UC_DFA	DB	' a+%$',10h,21h,00h
 UC_DFB	DB	' b%$',10h,21h,00h
 UC_DFC	DB	' r%$',10h,21h,00h	;タイで繋がれる。
 UC_DFD	DB	' r%$',10h,21h,00h
+
 UC_DFE	DB	0FFh
 	DW	OFFSET UCDFF_LSTART
 	DB	00h
+
 UC_DFF	DB	' /*FF*/$',00h		;不明
 endif	;--------------------------------
 
@@ -552,250 +601,164 @@ endif	;--------------------------------
 ;===============================================================
 ;	0xFE系コマンドの処理	(AKAO32)
 ;===============================================================
+
+.const
 ifdef	ff8	;------------------------
-;---------------------------------------
-;	開始
-;---------------------------------------
-UCDFF_LSTART		proc	near
+UCDFF_Mst	DB	'/*FE,$'
+else	
+UCDFF_Mst	DB	'/*FC,$'
+endif	;--------------------------------
+UCDFF_Med	DB	'*/$'
+
+.code
+UCDFF_unknown	proc	near	uses cx,
+		iLoop:WORD
+
+		mov	cx,iLoop
+
+		push	ax
+		lea	DX,[UCDFF_Mst]
+		MOV	AH,09H		;
+		INT	21H		;
+		pop	ax
+
+		mov	ah,al
+		call	hex2asc8
+		MOV	AH,09H		;
+		INT	21H		;
+
+		.while	(cx > 0)
+		MOV	DL,2CH		;','の出力
+		MOV	AH,02H		;
+		INT	21H		;
+
+		MOV	AH,ES:[BX]	;
+		INC	BX		;
+		call	hex2asc8
+		MOV	AH,09H		;
+		INT	21H		;
+		dec	cx
+		.endw
+
+		lea	DX,[UCDFF_Med]
+		MOV	AH,09H		;
+		INT	21H		;
+
+		ret
+UCDFF_unknown	endp
+
+;===============================================================
+UCDFF_unknown0	proc	near
+		invoke	UCDFF_unknown	,0
+		ret
+UCDFF_unknown0	endp
+
+;===============================================================
+UCDFF_unknown1	proc	near
+		invoke	UCDFF_unknown	,1
+		ret
+UCDFF_unknown1	endp
+
+;===============================================================
+UCDFF_unknown2	proc	near
+		invoke	UCDFF_unknown	,2
+		ret
+UCDFF_unknown2	endp
+
+;===============================================================
+.const
+UCDFF_Addr	dw	offset	UC_Tempo	;0x00
+UCDFF_Addr_01	dw	offset	UCDFF_unknown2
+UCDFF_Addr_02	dw	offset	UC_Reverb	;0x02	Reverb
+UCDFF_Addr_03	dw	offset	UCDFF_unknown2
+ifdef	ff8	;------------------------
+UCDFF_Addr_04	dw	offset	UC_PercussionOn	;0x04	パーカッション
+UCDFF_Addr_05	dw	offset	UC_PercussionOff	
+else	;--------------------------------
+UCDFF_Addr_04	dw	offset	UC_Rhythm_on	;0x04	Perc on
+UCDFF_Addr_05	dw	offset	UC_Rhythm_off	;0x05	Perc off
+endif	;--------------------------------
+UCDFF_Addr_06	dw	offset	UC_PermanentLoop
+UCDFF_Addr_07	dw	offset	UCDFF_07	;0x07	条件ジャンプ
+UCDFF_Addr_08	dw	offset	UCDFF_unknown2	;0x08	
+UCDFF_Addr_09	dw	offset	Loop_Exit	;0x09	
+UCDFF_Addr_0A	dw	offset	UCDFF_unknown2
+UCDFF_Addr_0B	dw	offset	UCDFF_unknown2
+UCDFF_Addr_0C	dw	offset	UCDFF_unknown2
+UCDFF_Addr_0D	dw	offset	UCDFF_unknown2
+UCDFF_Addr_0E	dw	offset	UCDFF_unknown2
+UCDFF_Addr_0F	dw	offset	UCDFF_unknown2
+UCDFF_Addr_10	dw	offset	UCDFF_unknown1
+UCDFF_Addr_11	dw	offset	UCDFF_unknown2
+UCDFF_Addr_12	dw	offset	UCDFF_unknown2
+UCDFF_Addr_13	dw	offset	UCDFF_unknown2
+UCDFF_Addr_14	dw	offset	UC_VoiceEx	;0x14	音色
+UCDFF_Addr_15	dw	offset	UC_Beat		;0x15	拍子
+UCDFF_Addr_16	dw	offset	UC_Measures	;0x16	リハーサル番号
+UCDFF_Addr_17	dw	offset	UCDFF_unknown2
+UCDFF_Addr_18	dw	offset	UCDFF_unknown2
+UCDFF_Addr_19	dw	offset	UCDFF_unknown2
+UCDFF_Addr_1A	dw	offset	UCDFF_unknown2
+UCDFF_Addr_1B	dw	offset	UCDFF_unknown2
+UCDFF_Addr_1C	dw	offset	UCDFF_unknown1
+UCDFF_Addr_1D	dw	offset	UCDFF_unknown0
+UCDFF_Addr_1E	dw	offset	UCDFF_unknown0
+UCDFF_Addr_1F	dw	offset	UCDFF_unknown0
+
+.code
+UCDFF_LSTART	proc	near
+	xor	ax,ax
 	MOV	AL,ES:[BX]	;データ読み込み
 	INC	BX		;
-	jmp	UCDFF_L00	
-;---------------------------------------
-;	0x00	テンポ
-;---------------------------------------
-UCDFF_L00:
-	CMP	AL,00h		;テンポ命令
-	jnz	UCDFF_L02	;
-	jmp	UC_Tempo	;
-;---------------------------------------
-;	0x02	リバーブ
-;---------------------------------------
-UCDFF_L02:
-	CMP	AL,02h		;
-	jnz	UCDFF_L04	;
-	jmp	UC_Reverb	;
-;---------------------------------------
-;	0x04	パーカッション
-;---------------------------------------
-UCDFF_L04:
-	CMP	AL,04h		;リズムパートだよ。
-	jnz	UCDFF_L06	;
-	jmp	UC_PercussionOn	;
-;---------------------------------------
-;	0x06	終了
-;---------------------------------------
-UCDFF_L06:
-	CMP	AL,06h		;データ終了
-	jnz	UCDFF_L07	;
-	jmp	UC_PermanentLoop
-;---------------------------------------
-;	0x07	条件ジャンプ
-;---------------------------------------
+
+	.if	(al < 20h)
+		push	bx
+		push	ax
+		shl	ax, 1
+		mov	bx, ax
+		mov	dx, cs:[UCDFF_Addr + bx]
+		pop	ax
+		pop	bx
+		call	dx
+	.else
+		invoke	UCDFF_unknown,	2
+	.endif
+
+	ret
+UCDFF_LSTART	endp
+
+;===============================================================
+.const
 UCDFF_M07_1	DB	'/*FE,07h,$'
 UCDFF_M07_2	DB	'*/:$'
-UCDFF_L07:
-	CMP	AL,07h		;データ終了
-	JZ	UCDFF_L07_1	;
-	JMP	UCDFF_L09	;
-UCDFF_L07_1:
-	lea	DX,[UCDFF_M07_1]
-	MOV	AH,09H		;
-	INT	21H		;
 
-	mov	ah,es:[bx]	;
-	inc	bx		;
-	call	hex2asc8	;
-	MOV	AH,09H		;
-	INT	21H		;
+.code
+UCDFF_07	proc	near
+		lea	DX,[UCDFF_M07_1]
+		MOV	AH,09H		;
+		INT	21H		;
 
-	mov	word ptr cs:[UCDFF_M07_Adr],bx	;現ポインタ
-	MOV	AX,ES:[BX]	;
-	inc	bx		;
-	inc	bx		;
-	add	word ptr cs:[UCDFF_M07_Adr],ax	;相対アドレスを加算
-	call	FH2A16		;
-	MOV	AH,09H		;
-	INT	21H		;
+		mov	ah,es:[bx]	;
+		inc	bx		;
+		call	hex2asc8	;
+		MOV	AH,09H		;
+		INT	21H		;
 
-	lea	DX,[UCDFF_M07_2]
-	MOV	AH,09H		;
-	INT	21H		;
+		mov	word ptr cs:[UCDFF_M07_Adr],bx	;現ポインタ
+		MOV	AX,ES:[BX]	;
+		inc	bx		;
+		inc	bx		;
+		add	word ptr cs:[UCDFF_M07_Adr],ax	;相対アドレスを加算
+		call	FH2A16		;
+		MOV	AH,09H		;
+		INT	21H		;
 
+		lea	DX,[UCDFF_M07_2]
+		MOV	AH,09H		;
+		INT	21H		;
 
-	ret			;
-;---------------------------------------
-;	0x09	ループ抜け
-;---------------------------------------
-UCDFF_L09:
-	CMP	AL,09h		;
-	jnz	UCDFF_L10	;
-	jmp	Loop_Exit	
-;---------------------------------------
-;	0x10
-;---------------------------------------
-UCDFF_M10_1	DB	'/*FE,10h,$'
-UCDFF_M10_2	DB	'*/$'
-UCDFF_L10:
-	CMP	AL,10h		;不明
-	jnz	UCDFF_L14	;
-UCDFF_L10_1:
-	
-	lea	DX,[UCDFF_M10_1]
-	MOV	AH,09H		;
-	INT	21H		;
+		ret
+UCDFF_07	endp
 
-	mov	ah,es:[bx]
-	inc	bx
-	call	hex2asc8
-	mov	ah,09h
-	int	21h
-
-	lea	DX,[UCDFF_M10_2]
-	MOV	AH,09H		;
-	INT	21H		;
-
-	RET			;
-;---------------------------------------
-;	0x14	音色
-;---------------------------------------
-UCDFF_L14:
-	CMP	AL,14h		;音色
-	jnz	UCDFF_L15	;
-	jmp	UC_VoiceEx
-;---------------------------------------
-;	0x15
-;---------------------------------------
-UCDFF_L15:
-	CMP	AL,15h		;拍子
-	jnz	UCDFF_L16	;
-	jmp	UC_Beat		;
-;---------------------------------------
-;	0x16
-;---------------------------------------
-UCDFF_L16:
-	CMP	AL,16h		;リハーサル番号
-	jnz	UCDFF_L1C	;
-	jmp	UC_Measures	;
-;---------------------------------------
-;	0x1C
-;---------------------------------------
-UCDFF_M1C_1	DB	'/*FE,1Ch,$'
-UCDFF_M1C_2	DB	'*/$'
-UCDFF_L1C:
-	CMP	AL,1Ch		;不明
-	JZ	UCDFF_L1C_1	;
-	jmp	UCDFF_L1D
-UCDFF_L1C_1:
-	lea	dx,[UCDFF_M1C_1]
-	mov	ah,09h
-	int	21h
-
-	mov	ah,es:[bx]
-	inc	bx
-	call	hex2asc8
-	mov	ah,09h
-	int	21h
-
-	lea	dx,[UCDFF_M1C_2]
-	mov	ah,09h
-	int	21h
-
-	RET			;
-;---------------------------------------
-;	0x1D	(29)
-;---------------------------------------
-UCDFF_M1D_1	DB	'/*FE,1Dh*/$'
-UCDFF_L1D:
-	CMP	AL,1Dh		;不明
-	jnz	UCDFF_L1E	;
-UCDFF_L1D_1:
-	
-	lea	DX,[UCDFF_M1D_1]
-	MOV	AH,09H		;
-	INT	21H		;
-
-	RET			;
-;---------------------------------------
-;	0x1E	(30)
-;---------------------------------------
-UCDFF_M1E_1	DB	'/*FE,1Eh*/$'
-UCDFF_L1E:
-	CMP	AL,1Eh		;不明
-	jnz	UCDFF_L1F	;
-UCDFF_L1E_1:
-	
-	lea	DX,[UCDFF_M1E_1]
-	MOV	AH,09H		;
-	INT	21H		;
-
-	RET			;
-;---------------------------------------
-;	0x1F
-;---------------------------------------
-UCDFF_M1F_1	DB	'/*FE,1Fh*/$'
-UCDFF_L1F:
-	CMP	AL,1Fh		;不明
-	JZ	UCDFF_L1F_1	;
-	jmp	UCDFF_LQQ
-UCDFF_L1F_1:
-	
-	lea	DX,[UCDFF_M1F_1]
-	MOV	AH,09H		;
-	INT	21H		;
-
-	RET			;
-;---------------------------------------
-;	other
-;---------------------------------------
-UCDFF_Mst	DB	'/*FE,$'
-UCDFF_Med	DB	'*/$'
-;UCDFF_Mc	DB	',$'
-UCDFF_LQQ:
-
-	push	ax
-	lea	DX,[UCDFF_Mst]
-	MOV	AH,09H		;
-	INT	21H		;
-	pop	ax
-
-	mov	ah,al
-	call	hex2asc8
-	MOV	AH,09H		;
-	INT	21H		;
-
-;	MOV	DX,OFFSET UCDFF_Mc
-;	MOV	AH,09H		;
-;	INT	21H		;
-	MOV	DL,2CH		;','の出力
-	MOV	AH,02H		;
-	INT	21H		;
-
-	MOV	AH,ES:[BX]	;
-	INC	BX		;
-	call	hex2asc8
-	MOV	AH,09H		;
-	INT	21H		;
-
-;	MOV	DX,OFFSET UCDFF_Mc
-;	MOV	AH,09H		;
-;	INT	21H		;
-	MOV	DL,2CH		;','の出力
-	MOV	AH,02H		;
-	INT	21H		;
-
-	MOV	AH,ES:[BX]	;
-	INC	BX		;
-	call	hex2asc8
-	MOV	AH,09H		;
-	INT	21H		;
-
-	lea	DX,[UCDFF_Med]
-	MOV	AH,09H		;
-	INT	21H		;
-
-	RET			;
-
-UCDFF_LSTART	endp
-endif	;--------------------------------
-
+;===============================================================
 endif	;--------------------------------

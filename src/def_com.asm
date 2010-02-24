@@ -1,3 +1,4 @@
+.code
 ;===============================================================
 ;	初期化
 ;===============================================================
@@ -49,6 +50,7 @@ UC_INIT		endp
 ;
 ;		音色マクロ変換
 ;
+.data
 ifdef	ff7	;------------------------
 UC_VoiceExWork	dw	16	DUP	(0FFFFh)
 endif	;--------------------------------
@@ -57,13 +59,15 @@ ifndef	ff7	;------------------------
 UC_VOICE	DB	64	DUP	(0FFh)	
 endif	;--------------------------------
 
-UC_VoiceEx_Name:				;音色マクロ名
-		DB	'0a$','1a$','2a$','3a$','4a$','5a$','6a$','7a$'
+
+.const
+		;音色マクロ名
+UC_VoiceEx_Name	DB	'0a$','1a$','2a$','3a$','4a$','5a$','6a$','7a$'
 		DB	'0b$','1b$','2b$','3b$','4b$','5b$','6b$','7b$'
 
-UC_VOICE_NAME:					;音色マクロ名
+		;音色マクロ名
 ifdef	ff7	;------------------------
-		DB	'0c$','1c$','2c$','3c$','4c$','5c$','6c$','7c$','8c$','9c$'
+UC_VOICE_NAME	DB	'0c$','1c$','2c$','3c$','4c$','5c$','6c$','7c$','8c$','9c$'
 		DB	'0d$','1d$','2d$','3d$','4d$','5d$','6d$','7d$','8d$','9d$'
 		DB	'0e$','1e$','2e$','3e$','4e$','5e$','6e$','7e$','8e$','9e$'
 		DB	'0f$','1f$','2f$','3f$','4f$','5f$','6f$','7f$','8f$','9f$'
@@ -77,7 +81,7 @@ ifdef	ff7	;------------------------
 		DB	'0n$','1n$','2n$','3n$','4n$','5n$','6n$','7n$','8n$','9n$'
 		DB	'0o$','1o$','2o$','3o$','4o$','5o$','6o$','7o$','8o$','9o$'
 else	;--------------------------------
-		DB	'0c$','1c$','2c$','3c$','4c$','5c$','6c$','7c$'
+UC_VOICE_NAME	DB	'0c$','1c$','2c$','3c$','4c$','5c$','6c$','7c$'
 		DB	'0d$','1d$','2d$','3d$','4d$','5d$','6d$','7d$'
 		DB	'0e$','1e$','2e$','3e$','4e$','5e$','6e$','7e$'
 		DB	'0f$','1f$','2f$','3f$','4f$','5f$','6f$','7f$'
@@ -90,6 +94,7 @@ endif	;--------------------------------
 ;===============================================================
 ;		音色
 ;===============================================================
+.code
 UC_VOICE_OUTPUT	proc	near	uses	cx dx
 	mov	ax,0				;
 	MOV	AL,ES:[BX]			;ax←データ読み込み
@@ -177,27 +182,44 @@ endif	;--------------------------------
 UC_VoiceEx	endp
 ;****************************************************************
 ifdef	Rhythm12	;---------------
+.data
 UC_Rhythm_flag		db	0
 UC_Rhythm_Address	dw	0
+.code
 ;===============================================================
 ;		リズムon
 ;===============================================================
+UC_Rhythm_on_M	db	'/*1z*/$'
 UC_Rhythm_on	proc	near
+	lea	dx,[UC_Rhythm_on_M]
+	mov	ah,09h			;
+	int	21h			;
+
 	mov	byte ptr cs:[UC_Rhythm_flag],1
+
+	call	UC_Rhythm_adr_set
+
 	ret
 UC_Rhythm_on	endp
 ;===============================================================
 ;		リズムoff
 ;===============================================================
+UC_Rhythm_off_M	db	'/*0z*/$'
 UC_Rhythm_off	proc	near
+	lea	dx,[UC_Rhythm_off_M]
+	mov	ah,09h			;
+	int	21h			;
+
 	mov	byte ptr cs:[UC_Rhythm_flag],0
 	ret
 UC_Rhythm_off	endp
 ;===============================================================
 ;		リズムアドレス　セット
 ;===============================================================
+.const
 UC_Rhythm_adr_set_M1	db	' /*Adr=0x',24h
 UC_Rhythm_adr_set_M2	db	' */',24h
+.code
 UC_Rhythm_adr_set	proc	near	uses dx si
 
 	lea	dx,[UC_Rhythm_adr_set_M1]
@@ -224,9 +246,10 @@ endif	;-------------------------------
 ;===============================================================
 ;	0xEC	パーカッションon
 ;===============================================================
+.const
 UC_Perc_On		db	'1z$'
 UC_Perc_On_VGMtrans	db	'@127$'
-
+.code
 UC_PercussionOn		proc	near
 
 	.if	(cs:[D_Debug] & 02h)
@@ -245,8 +268,9 @@ UC_PercussionOn		endp
 ;===============================================================
 ;	0xED	パーカッションoff
 ;===============================================================
+.const
 UC_Perc_Off	db	'0z$'
-
+.code
 UC_PercussionOff	proc	near
 	MOV	DL,24H		;'$'の出力
 	MOV	AH,02H		;
@@ -276,7 +300,9 @@ UC_Octave	endp
 ;===============================================================
 ;		ピッチベンド
 ;===============================================================
+.data?
 UC_Detune_D	dw	?
+.code
 UC_Detune	proc	near	uses dx
 	xor	ax,ax				;
 	mov	al,es:[bx]			;
@@ -299,7 +325,9 @@ UC_Detune	endp
 ;===============================================================
 ;		ポルタメント
 ;===============================================================
+.data
 UC_portamento_D	db	0			;保存する
+.code
 UC_portamento	proc	near	uses	cx dx
 	mov	al,byte ptr cs:[UC_portamento_D]
 	mov	ah,8				;
@@ -397,9 +425,319 @@ endif	;-------------------------------
 ;****************************************************************
 ;*		音量						*
 ;****************************************************************
+;対数テーブル
+.const
+ifdef	SPC	;------------------------
+UC_Volume_Table	db	00h,	0Fh,	19h,	1Fh,	25h,	29h,	2Ch,	2Fh
+		db	32h,	35h,	37h,	39h,	3Bh,	3Ch,	3Eh,	3Fh
+		db	41h,	42h,	43h,	45h,	46h,	47h,	48h,	49h
+		db	4Ah,	4Bh,	4Ch,	4Ch,	4Dh,	4Eh,	4Fh,	4Fh
+		db	50h,	51h,	52h,	52h,	53h,	53h,	54h,	55h
+		db	55h,	56h,	56h,	57h,	57h,	58h,	58h,	59h
+		db	59h,	5Ah,	5Ah,	5Bh,	5Bh,	5Ch,	5Ch,	5Ch
+		db	5Dh,	5Dh,	5Eh,	5Eh,	5Eh,	5Fh,	5Fh,	5Fh
+		db	60h,	60h,	60h,	61h,	61h,	61h,	62h,	62h
+		db	62h,	63h,	63h,	63h,	64h,	64h,	64h,	65h
+		db	65h,	65h,	65h,	66h,	66h,	66h,	67h,	67h
+		db	67h,	67h,	68h,	68h,	68h,	68h,	69h,	69h
+		db	69h,	69h,	69h,	6Ah,	6Ah,	6Ah,	6Ah,	6Bh
+		db	6Bh,	6Bh,	6Bh,	6Ch,	6Ch,	6Ch,	6Ch,	6Ch
+		db	6Dh,	6Dh,	6Dh,	6Dh,	6Dh,	6Eh,	6Eh,	6Eh
+		db	6Eh,	6Eh,	6Fh,	6Fh,	6Fh,	6Fh,	6Fh,	6Fh
+		db	70h,	70h,	70h,	70h,	70h,	70h,	71h,	71h
+		db	71h,	71h,	71h,	71h,	72h,	72h,	72h,	72h
+		db	72h,	72h,	73h,	73h,	73h,	73h,	73h,	73h
+		db	74h,	74h,	74h,	74h,	74h,	74h,	74h,	75h
+		db	75h,	75h,	75h,	75h,	75h,	75h,	76h,	76h
+		db	76h,	76h,	76h,	76h,	76h,	77h,	77h,	77h
+		db	77h,	77h,	77h,	77h,	77h,	78h,	78h,	78h
+		db	78h,	78h,	78h,	78h,	78h,	79h,	79h,	79h
+		db	79h,	79h,	79h,	79h,	79h,	79h,	7Ah,	7Ah
+		db	7Ah,	7Ah,	7Ah,	7Ah,	7Ah,	7Ah,	7Bh,	7Bh
+		db	7Bh,	7Bh,	7Bh,	7Bh,	7Bh,	7Bh,	7Bh,	7Bh
+		db	7Ch,	7Ch,	7Ch,	7Ch,	7Ch,	7Ch,	7Ch,	7Ch
+		db	7Ch,	7Dh,	7Dh,	7Dh,	7Dh,	7Dh,	7Dh,	7Dh
+		db	7Dh,	7Dh,	7Dh,	7Eh,	7Eh,	7Eh,	7Eh,	7Eh
+		db	7Eh,	7Eh,	7Eh,	7Eh,	7Eh,	7Eh,	7Fh,	7Fh
+		db	7Fh,	7Fh,	7Fh,	7Fh,	7Fh,	7Fh,	7Fh,	7Fh
+endif	;-------------------------------
+ifdef	PS1	;------------------------
+;			指数値を、リニアに変換
+;			=INT(LOG((x+1))/LOG(129)*128)
+;			0	+1	+2	+3	+4	+5	+6	+7
+UC_Volume_TABLE	db	0,	18,	28,	36,	42,	47,	51,	54
+		db	57,	60,	63,	65,	67,	69,	71,	73
+		db	74,	76,	77,	78,	80,	81,	82,	83
+		db	84,	85,	86,	87,	88,	89,	90,	91
+		db	92,	92,	93,	94,	95,	95,	96,	97
+		db	97,	98,	99,	99,	100,	100,	101,	101
+		db	102,	103,	103,	104,	104,	105,	105,	106
+		db	106,	106,	107,	107,	108,	108,	109,	109
+		db	109,	110,	110,	111,	111,	111,	112,	112
+		db	113,	113,	113,	114,	114,	114,	115,	115
+		db	115,	116,	116,	116,	117,	117,	117,	117
+		db	118,	118,	118,	119,	119,	119,	119,	120
+		db	120,	120,	121,	121,	121,	121,	122,	122
+		db	122,	122,	123,	123,	123,	123,	124,	124
+		db	124,	124,	124,	125,	125,	125,	125,	126
+		db	126,	126,	126,	126,	127,	127,	127,	127
+endif	;-------------------------------
 
+;===============================================================
+;		音量	for	PS
+;===============================================================
+.code
+ifdef	PS1	;------------------------
+UC_Volume	proc	near
+	MOV	AL,ES:[BX]			;データ読み込み
+	INC	BX				;
+	PUSH	BX				;
 
+	xor	bx,bx
+	mov	bl,al
+	mov	ah,byte ptr cs:[UC_Volume_TABLE + bx]
 
+	CALL	HEX2ASC8			;出力
+	MOV	AH,09H				;
+	INT	21H				;
+	POP	BX				;
+	RET					;
+UC_Volume	endp
+endif	;-------------------------------
+;===============================================================
+;		音量	for	FF4
+;===============================================================
+.code
+ifdef	FF4	;------------------------
+UC_ExpressionEx	proc	near
+
+	push	bx
+ifdef	Change_tLength	;---------------
+	mov	ax,es:[bx]
+	add	bx,2
+else	;-------------------------------
+	xor	ax,ax
+	mov	al,es:[bx]
+	inc	bx
+endif	;-------------------------------
+
+	.if	(ax==0)
+		lea	dx,[UC_ExpressionM]
+		mov	ah,09h
+		int	21h
+		pop	ax		;Dummy
+		call	UC_SAVE_E
+	.else
+		pop	bx
+		call	UC_Expression
+	.endif
+
+	ret
+UC_ExpressionEx	endp
+endif	;-------------------------------
+;===============================================================
+;		音量
+;===============================================================
+UC_SAVE_E	proc	near
+	MOV	al,ES:[BX]			;データ保存
+	inc	bx
+ifdef	SPC	;-----------------------
+ifdef	ExpRange	;---------------
+	shl	al,1				;倍にする
+endif	;-------------------------------
+	push	bx
+	lea	bx,[UC_Volume_Table]
+	xlat
+	pop	bx
+endif	;-------------------------------
+	mov	ah,al
+	MOV	CS:[UC_DATA_E],al
+
+	call	hex2asc8
+	mov	ah,09h
+	int	21h
+
+	ret
+UC_SAVE_E	endp
+;===============================================================
+;		音量ロード
+;===============================================================
+.const
+UC_ExpressionM	db	'E$'
+UC_ExpressionM1	db	'UE1,0,%$'
+
+.data?
+UC_DATA_E	DB	?			;エクスプレッション
+
+.code
+UC_Expression	proc	near
+
+	lea	DX,[UC_ExpressionM]
+	MOV	AH,09H		;
+	INT	21H		;
+
+	mov	ah,byte ptr cs:[UC_DATA_E]
+	CALL	HEX2ASC8	;数値変換
+	MOV	AH,09H		;
+	INT	21H		;そしてそれを表示
+
+	lea	DX,[UC_ExpressionM1]
+	MOV	AH,09H		;
+	INT	21H		;
+
+ifdef	Change_tLength	;---------------
+	mov	ax,es:[bx]
+	add	bx,2
+else	;-------------------------------
+	xor	ax,ax
+	mov	al,es:[bx]
+	inc	bx		;
+endif	;-------------------------------
+ifdef	SPC	;-----------------------
+	dec	ax		;
+endif	;-------------------------------
+	CALL	HEX2ASC16	;数値変換
+	MOV	AH,09H		;
+	INT	21H		;そしてそれを表示
+
+	MOV	DL,2CH		;','の出力
+	MOV	AH,02H		;
+	INT	21H		;
+
+	XOR	AX,AX		;
+	MOV	al,ES:[BX]	;データ読み込み
+	INC	BX		;
+ifdef	SPC	;-----------------------
+ifdef	ExpRange	;---------------
+	shl	al,1				;倍にする
+endif	;-------------------------------
+	push	bx
+	lea	bx,[UC_Volume_Table]
+	xlat
+	pop	bx
+endif	;-------------------------------
+	mov	ah,al
+
+	sub	ah,byte ptr cs:[UC_DATA_E]
+	mov	byte ptr cs:[UC_DATA_E],al
+	CALL	FH2A8		;数値変換
+	MOV	AH,09H		;
+	INT	21H		;そしてそれを表示
+
+	RET					;
+UC_Expression	endp
+;===============================================================
+;		パン	for	FF4
+;===============================================================
+ifdef	FF4	;------------------------
+UC_PanpotEx	proc	near
+
+	push	bx
+ifdef	Change_tLength	;---------------
+	mov	ax,es:[bx]
+	add	bx,2
+else	;-------------------------------
+	xor	ax,ax
+	mov	al,es:[bx]
+	inc	bx
+endif	;-------------------------------
+
+	.if	(ax==0)
+		lea	dx,[UC_PanpotM]
+		mov	ah,09h
+		int	21h
+		pop	ax		;Dummy
+		call	UC_SAVE_P
+	.else
+		pop	bx
+		call	UC_Panpot
+	.endif
+
+	ret
+UC_PanpotEx	endp
+endif	;-------------------------------
+;===============================================================
+;		パンポット・セーブ
+;===============================================================
+UC_SAVE_P	proc	near
+	MOV	AH,ES:[BX]			;データ保存
+	inc	bx
+
+ifdef	SPC	;-----------------------
+ifndef	PanRange	;---------------
+	shr	ah,1
+endif	;-------------------------------
+endif	;-------------------------------
+	MOV	CS:[UC_DATA_P],ah		;
+
+	call	hex2asc8
+	mov	ah,09h
+	int	21h
+	ret
+UC_SAVE_P	endp
+;===============================================================
+;		パンポット・ロード
+;===============================================================
+.const
+UC_PanpotM	db	'p$'
+UC_PanpotM1	db	'UP1,0,%$'
+
+.data?
+UC_DATA_P	DB	?			;パンポット
+
+.code
+UC_Panpot	proc	near
+
+	lea	DX,[UC_PanpotM]
+	MOV	AH,09H		;
+	INT	21H		;
+
+	mov	ah,byte ptr cs:[UC_DATA_P]
+	CALL	HEX2ASC8	;数値変換
+	MOV	AH,09H		;
+	INT	21H		;そしてそれを表示
+
+	lea	DX,[UC_PanpotM1]
+	MOV	AH,09H		;
+	INT	21H		;
+
+ifdef	Change_tLength	;---------------
+	mov	ax,es:[bx]
+	add	bx,2
+else	;-------------------------------
+	xor	ax,ax
+	mov	al,es:[bx]
+	inc	bx		;
+endif	;-------------------------------
+ifdef	SPC	;-----------------------
+	dec	ax		;
+endif	;-------------------------------
+	CALL	HEX2ASC16	;数値変換
+	MOV	AH,09H		;
+	INT	21H		;そしてそれを表示
+
+	MOV	DL,2CH		;','の出力
+	MOV	AH,02H		;
+	INT	21H		;
+
+	XOR	AX,AX		;
+	MOV	al,ES:[BX]	;データ読み込み
+	INC	BX		;
+
+ifdef	SPC	;-----------------------
+ifndef	PanRange	;---------------
+	shr	al,1
+endif	;-------------------------------
+endif	;-------------------------------
+	mov	ah,al
+	sub	ah,byte ptr cs:[UC_DATA_P]
+	mov	byte ptr cs:[UC_DATA_P],al
+	CALL	FH2A8		;数値変換
+	MOV	AH,09H		;
+	INT	21H		;そしてそれを表示
+
+	RET					;
+UC_Panpot	endp
 
 
 
@@ -418,9 +756,11 @@ endif	;-------------------------------
 ;===============================================================
 ;		リバーブ
 ;===============================================================
+.const
 UC_UC_Reverb_M1	db	'/*Reverb($'
 UC_UC_Reverb_M2	db	')*/$'
 
+.code
 UC_Reverb		proc	near
 	lea	DX,[UC_UC_Reverb_M1]
 	MOV	AH,09H		;
@@ -449,9 +789,11 @@ UC_Reverb		endp
 ;===============================================================
 ;		相対リバーブ
 ;===============================================================
+.const
 UC_UC_Reverb_M8	db	'/*Reverb($'
 UC_UC_Reverb_M9	db	')*/$'
 
+.code
 UC_RelativeReverb	proc	near
 	lea	DX,[UC_UC_Reverb_M8]
 	MOV	AH,09H		;
@@ -527,10 +869,13 @@ endif	;-------------------------------
 ;===============================================================
 ;		テンポ
 ;===============================================================
+.const
 UC_RTempo_M	db	't$'
 
+.data
 UC_Tempo_Work	dw	0
 
+.code
 UC_Tempo	proc	near	uses dx cx
 	lea	DX,[UC_RTempo_M]
 	MOV	AH,09H			;
@@ -565,8 +910,10 @@ UC_Tempo	endp
 ;===============================================================
 ;		相対テンポ
 ;===============================================================
-UC_RelativeTempo_M:
-	db	'UT1,0,%$'
+.const
+UC_RelativeTempo_M	db	'UT1,0,%$'
+
+.code
 UC_RelativeTempo	proc	near	uses dx cx
 
 	lea	DX,[UC_RTempo_M]
@@ -632,7 +979,10 @@ UC_RelativeTempo	endp
 ;===============================================================
 ;	0xFD	拍子
 ;===============================================================
+.const
 UC_Beat_M	db	'BT$'
+
+.code
 UC_Beat			proc	near
 
 	lea	dx,[UC_Beat_M]
@@ -678,7 +1028,10 @@ UC_Beat			endp
 ;===============================================================
 ;	0xFE	小節（リハーサル）番号
 ;===============================================================
+.const
 UC_Measures_M	db	'WC$'
+
+.code
 UC_Measures		proc	near
 
 	lea	dx,[UC_Measures_M]
@@ -709,7 +1062,10 @@ UC_Measures		endp
 ;===============================================================
 ;	0xA2	次の音符・休符の音長
 ;===============================================================
+.data
 UC_Step_work	db	0			;
+
+.code
 UC_Step		proc	near
 	MOV	AH,ES:[BX]			;データ読み込み
 	inc	bx				;
@@ -721,11 +1077,13 @@ UC_Step		endp
 ;		LOOP	処理用の変数	（まずは、32回のネストに対応）
 ;			※シミュレートでも、この変数を使います。
 ;===============================================================
-UC_LoopCountData	dw	0
-UC_Loop_count		db	32	dup(0)
-UC_Loop_counter		db	32	dup(0)
-UC_Loop_addr		dw	32	dup(0)
+.data?
+UC_LoopCountData	dw	?
+UC_Loop_count		db	32	dup(?)
+UC_Loop_counter		db	32	dup(?)
+UC_Loop_addr		dw	32	dup(?)
 
+.code
 ;---------------------------------------------------------------
 Loop_Start	proc	near
 	.if	(cs:[D_Debug]&001h)
@@ -1007,8 +1365,11 @@ Loop_ExitEx	endp
 ;===============================================================
 ;		LOOP	抜け
 ;===============================================================
+.const
 UC_ExitLoop_M1	db	'/*Adr=0x$'
 UC_ExitLoop_M2	db	'*/:$'
+
+.code
 UC_ExitLoop		proc	near	uses cx dx si
 
 	mov	ax,word ptr cs:[UC_LoopCountData]
@@ -1079,10 +1440,14 @@ UC_End	endp
 ;===============================================================
 ;		EoC	with	無限ループ
 ;===============================================================
+.const
 UCDFF_M06_1	DB	']2/*L*/$'
 UCDFF_M06_2	DB	']1$'
+
+.data?
 UCDFF_M07_Adr	dw	?	;飛び先
 
+.code
 UC_PermanentLoop	proc	near	uses cx di
 
 ifdef	FF8	;------------------------
@@ -1137,8 +1502,11 @@ ifdef	SPC	;------------------------
 ;===============================================================
 ;		フラグによるジャンプ！！
 ;===============================================================
+.const
 UC_ConditionalJump_M1	db	'/*L-Adr=0x$'
 UC_ConditionalJump_M2	db	'*/:$'
+
+.code
 UC_ConditionalJump	proc	near	uses ax dx
 	lea	DX,[UC_ConditionalJump_M1]
 	MOV	AH,09H		;

@@ -12,13 +12,14 @@
 ;		メモリ確保					|
 ;---------------------------------------------------------------|
 ;	●引数							|
-;		ax	割り当てたいパラグラム			|
+;		ParaSize	割り当てたいパラグラム		|
 ;	●返り値						|
-;		ax	割り当てたメモリのセグメント		|
+;		ax		割り当てたメモリのセグメント	|
 ;---------------------------------------------------------------|
-Memory_Open	proc	near	uses bx	;
+Memory_Open	proc	near	uses bx,
+	ParaSize:word
 
-	MOV	bx,ax			;データ領域の確保
+	MOV	bx,ParaSize		;データ領域の確保
 
 	MOV	AH,48H			;
 	INT	21H			;
@@ -33,13 +34,14 @@ Memory_Open	endp			;
 ;		メモリ開放					|
 ;---------------------------------------------------------------|
 ;	●引数							|
-;		ax	開放するメモリのセグメント		|
+;		CloseSegment	開放するメモリのセグメント	|
 ;	●返り値						|
 ;		無し						|
 ;---------------------------------------------------------------|
-Memory_Close	proc	near	uses ax es
+Memory_Close	proc	near	uses ax es,
+	CloseSegment:word
 
-	mov	es,ax			;
+	mov	es,CloseSegment		;
 
 	MOV	AH,49H			;
 	INT	21H			;データ領域の開放
@@ -59,15 +61,17 @@ Memory_Close	endp			;
 ;		ファイルの作成					|
 ;---------------------------------------------------------------|
 ;	●引数							|
-;		ds:dx	ファイルネームのポインタ		|
-;			0 ･･･ Read				|
-;			1 ･･･ Write				|
-;			2 ･･･ Randam				|
+;		cFilename	ファイルネームのポインタ	|
+;		iAttr		ファイル属性			|
 ;	●返り値						|
 ;		ax	ハンドル				|
 ;---------------------------------------------------------------|
-File_Create	proc	near		;
+File_Create	proc	near	uses cx dx ds,
+		cFilename:dword,
+		iAttr:word
 
+		lds	dx,cFilename
+		mov	cx,iAttr
 		mov	ah,3ch		;
 		int	21h		;
 
@@ -80,14 +84,19 @@ File_Create	endp			;
 ;		ファイルのオープン				|
 ;---------------------------------------------------------------|
 ;	●引数							|
-;		ds:dx	ファイルネームのポインタ		|
-;		al	0 ･･･ Read				|
-;			1 ･･･ Write				|
-;			2 ･･･ Randam				|
+;		cFilename	ファイルネームのポインタ	|
+;		cMode		0 ･･･ Read			|
+;				1 ･･･ Write			|
+;				2 ･･･ Randam			|
 ;	●返り値						|
 ;		ax	ハンドル				|
 ;---------------------------------------------------------------|
-File_Open	proc	near		;
+File_Open	proc	near	uses cx dx ds,
+		cFilename:dword,
+		cMode:byte
+
+		lds	dx,cFilename
+		mov	al,cMode
 
 		mov	ah,3dh		;
 		int	21h		;
@@ -101,12 +110,14 @@ File_Open	endp			;
 ;		ファイルのクローズ				|
 ;---------------------------------------------------------------|
 ;	●引数							|
-;		ax	ハンドル				|
+;		hFile	ハンドル				|
 ;	●返り値						|
+;		無し						|
 ;---------------------------------------------------------------|
-File_Close	proc	near	uses ax bx
+File_Close	proc	near	uses ax bx,
+		hFile:word
 
-		mov	bx,ax		;bx←ハンドル
+		mov	bx,hFile	;bx←ハンドル
 
 		mov	ah,3eh		;
 		int	21h		;
@@ -120,15 +131,18 @@ File_Close	endp			;
 ;		ファイルのロード				|
 ;---------------------------------------------------------------|
 ;	●引数							|
-;		ax	ハンドル				|
-;		ds:dx	バッファのアドレス			|
+;		hFile	ハンドル				|
+;		cBuff	バッファのアドレス			|
 ;	●返り値						|
 ;		ax	読み込めたバイト数			|
 ;---------------------------------------------------------------|
-File_Load	proc	near	uses bx cx
+File_Load	proc	near	uses bx cx dx ds,
+		hFile:word,
+		cBuff:dword
 
-		mov	bx,ax		;bx←ハンドル
-		mov	cx,0ffffh	;全部読むよ？
+		lds	dx,dword ptr cBuff
+		mov	cx,0FFFFh	;全部読むよ？
+		mov	bx,hFile	;bx←ハンドル
 		mov	ah,3fh		;
 		int	21h		;
 
@@ -138,17 +152,48 @@ File_Load_Ok:				;
 		ret			;
 File_Load	endp			;
 ;---------------------------------------------------------------|
+;		ファイルのロード				|
+;---------------------------------------------------------------|
+;	●引数							|
+;		hFile	ハンドル				|
+;		cBuff	バッファのアドレス			|
+;	●返り値						|
+;		ax	読み込めたバイト数			|
+;---------------------------------------------------------------|
+File_Load_S	proc	near	uses bx cx dx ds,
+		hFile:word,
+		cBuff:dword,
+		iSize:word
+
+		lds	dx,dword ptr cBuff
+		mov	cx,iSize	;全部読むよ？
+		mov	bx,hFile	;bx←ハンドル
+		mov	ah,3fh		;
+		int	21h		;
+
+		jnc	File_Load_S_Ok	;
+		call	File_Err	;
+File_Load_S_Ok:				;
+		ret			;
+File_Load_S	endp			;
+;---------------------------------------------------------------|
 ;		ファイルのライト				|
 ;---------------------------------------------------------------|
 ;	●引数							|
-;		ax	ハンドル				|
-;		cx	書き込みバイト数			|
-;		ds:dx	バッファのアドレス			|
+;		hFile	ハンドル				|
+;		iSize	書き込みバイト数			|
+;		cBuff	バッファのアドレス			|
 ;	●返り値						|
+;		無し						|
 ;---------------------------------------------------------------|
-File_Write	proc	near	uses bx cx
+File_Write	proc	near	uses ax bx cx dx ds,
+		hFile:word,
+		iSize:word,
+		cBuff:dword
 
-		mov	bx,ax		;bx←ハンドル
+		lds	dx,dword ptr cBuff
+		mov	cx,iSize	;cx←サイズ
+		mov	bx,hFile	;bx←ハンドル
 		mov	ah,040h		;
 		int	21h		;
 
@@ -174,84 +219,159 @@ File_Write	endp			;
 ;		BX←変更できる最大の大きさ			|
 ;		AX←INT21H ﾌｧﾝｸｼｮﾝ4AH参照			|
 ;---------------------------------------------------------------|
-ComSmoleMessage7	DB	"プログラムによるメモリー中のデーターの破壊。",0DH,0AH,"$"
-ComSmoleMessage8	DB	"十分な空きメモリーが無い。",0DH,0AH,"$"
-ComSmoleMessage9	DB	"不正なメモリーブロックの使用。",0DH,0AH,"$"
-ComSmole	proc	near	uses dx cx
-				;メモリーの最小化
+ComSmole	proc	near	uses dx cx ds es	;メモリーの最小化
 	
 	MOV	ES,CS:[002CH]	;環境セグメントの開放
 	MOV	AH,49H		;
 	INT	21H		;
-	
+	.if	(carry?)
+	jmp	File_Err
+	.endif
+
 	MOV	AX,CS		;
 	MOV	DS,AX		;DS←CS
 	MOV	ES,AX		;ES←CS
-	MOV	BX,OFFSET CEND+BSTACK
-	MOV	CL,4		;
-	SHR	BX,CL		;
-	INC	BX		;BX←プログラムの大きさ（パラグラフ単位）
+	mov	bx, offset DGROUP:STACK
+	shr	bx, 4
 	MOV	AH,04AH		;
 	INT	21H		;最小化
+	.if	(carry?)
+	jmp	File_Err
+	.endif
 
-	PUSH	BX		;
-	PUSH	AX		;返り値の保存
-
-	JC	ComSmoleERR	;エラー時に飛ぶ
-	CLC			;Cy←'L'
-	JMP	ComSmoleRET	;RETURN
-;===============================================================|
-ComSmoleERR:			;ファンクション4AH のＥＲＲＯＲ
-	CMP	AX,07H		;
-	JNZ	ComSmoleER8	;ERROR CODE=07H
-	MOV	AH,09H		;
-	MOV	DX,OFFSET ComSmoleMessage7
-	INT	21H		;メッセージの表示
-	STC			;Cy←'H'
-	JMP	ComSmoleRET	;RETURN
-ComSmoleER8:
-	CMP	AX,08H		;
-	JNZ	ComSmoleER9	;ERROR CODE=08H
-	MOV	AH,09H		;
-	MOV	DX,OFFSET ComSmoleMessage8
-	INT	21H		;メッセージの表示
-	STC			;Cy←'L'
-	JMP	ComSmoleRET	;RETURN
-ComSmoleER9:
-	MOV	AH,09H		;ERROR CODE=09H
-	MOV	DX,OFFSET ComSmoleMessage9
-	INT	21H		;メッセージの表示
-	STC			;Cy←'H'
-	JMP	ComSmoleRET	;RETURN
-;===============================================================|
-ComSmoleRET:			;ＲＥＴＵＲＮ
-	POP	AX		;
-	POP	BX		;
-	RET			;RETURN
+	ret			;RETURN
 ComSmole	endp		;
+;---------------------------------------------------------------|
+;		ファイル名の拡張子変更				|
+;---------------------------------------------------------------|
+;	●引数							|
+;		cFilename	拡張子付きファイル名		|
+;		cExt		変更後の拡張子(3文字で)		|
+;	●返り値						|
+;		cFilename	拡張子変更後　ファイル名	|
+;---------------------------------------------------------------|
+ChangeExt	proc	near	uses ax cx si di ds es,
+	cFilename:dword,
+	cExt:dword
+
+	les	di,cFilename
+	lds	si,cExt
+
+	mov	al,'.'			;
+	mov	cx,085h			;
+	repnz	scasb			;拡張子を捜す
+
+	mov	cx,3			;
+	rep	movsb			;
+	mov	al,0			;
+	stosb				;
+	mov	al,24h			;
+	stosb				;書き換える
+
+	ret
+ChangeExt	endp
+;---------------------------------------------------------------|
+;		カレントディレクトリの変更			|
+;---------------------------------------------------------------|
+;	●引数							|
+;		cDirname	ディレクトリ名			|
+;---------------------------------------------------------------|
+.const
+Current_Directory_Mess1	DB	'カレントディレクトリを',24h
+Current_Directory_Mess2	DB	'に変更しました。',0dh,0ah,24h
+.code
+Change_Current_Directory	proc	near	uses ds es,
+		cDirname:dword
+	local	Current_Directory[128]:byte
+
+	pusha
+
+	;-------------------------------
+	;カレントディレクトリあるか？
+	lds	si,cDirname
+	push	ss
+	pop	es
+	lea	di,[Current_Directory]
+	xor	cx,cx
+	xor	bx,bx
+	push	si
+	.repeat
+	   lodsb
+	   .if		(al=='\')
+		mov	bx,cx	;一番最後の'\'をbxに記憶する。
+	   .endif
+	   inc	cx
+	.until	(al<21h)
+	pop	si
+
+	;-------------------------------
+	;カレントディレクトリ名を設定
+	.if	(bx>0)
+		mov	cx,bx
+		cld
+		rep	movsb
+		mov	al,00H
+		stosb
+		mov	al,24H
+		stosb
+
+		;-------------------------------
+		;カレントディレクトリを変更する。
+		push	ss
+		pop	ds
+		lea	dx,[Current_Directory]
+		mov	ah,3BH			;
+		int	21h			;
+		.if	(carry?)
+		jmp	File_Err
+		.endif
+		push	cs
+		pop	ds
+		lea	dx,[Current_Directory_Mess1]
+		mov	ah,09H			;
+		int	21h			;
+
+		push	ss			;
+		pop	ds			;
+		lea	dx,[Current_Directory]	;
+		mov	ah,09H			;
+		int	21h			;
+
+		push	cs			;
+		pop	ds			;
+		lea	dx,[Current_Directory_Mess2]
+		mov	ah,09H			;
+		int	21h			;
+	.endif
+	;-------------------------------
+	;終了
+
+	popa
+	ret				;
+Change_Current_Directory	endp
 ;---------------------------------------------------------------|
 ;		エラー終了					|
 ;---------------------------------------------------------------|
 ;	●引数							|
 ;		ax Error Code					|
 ;---------------------------------------------------------------|
-Error_MsgOffset:
-	dw	offset	Err_M00
-	dw	offset	Err_M01
-	dw	offset	Err_M02
-	dw	offset	Err_M03
-	dw	offset	Err_M04
-	dw	offset	Err_M05
-	dw	offset	Err_M06
-	dw	offset	Err_M07
-	dw	offset	Err_M08
-	dw	offset	Err_M09
-	dw	offset	Err_M0A
-	dw	offset	Err_M0B
-	dw	offset	Err_M0C
-	dw	offset	Err_M0D
-	dw	offset	Err_M0E
-	dw	offset	Err_M0F
+.const
+Error_MsgOffset	dw	offset	Err_M00
+		dw	offset	Err_M01
+		dw	offset	Err_M02
+		dw	offset	Err_M03
+		dw	offset	Err_M04
+		dw	offset	Err_M05
+		dw	offset	Err_M06
+		dw	offset	Err_M07
+		dw	offset	Err_M08
+		dw	offset	Err_M09
+		dw	offset	Err_M0A
+		dw	offset	Err_M0B
+		dw	offset	Err_M0C
+		dw	offset	Err_M0D
+		dw	offset	Err_M0E
+		dw	offset	Err_M0F
 
 Err_M00	db	'Err=0x00:正常',0dh,0ah,24h
 Err_M01	db	'Err=0x01:無効な機能コードです。',0dh,0ah,24h
@@ -269,6 +389,7 @@ Err_M0C	db	'Err=0x0C:ファイルアクセスコードが0～2の範囲外です',0dh,0ah,24h
 Err_M0D	db	'Err=0x0D:指定されたデバイスは無効です。',0dh,0ah,24h
 Err_M0E	db	'Err=0x0E:？',0dh,0ah,24h
 Err_M0F	db	'Err=0x0F:指定されたドライブ番号は無効です。',0dh,0ah,24h
+.code
 File_Err	proc	near
 
 		push	ds
@@ -292,7 +413,5 @@ File_Err	proc	near
 		int	21H			;
 	.endif
 
-		jmp	COMEND			;
-
-		ret
+		.exit
 File_Err	endp

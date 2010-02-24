@@ -91,7 +91,7 @@ Command	param		MML	機能
 +-------+-------+-------+-------+-------
 0xD7			IW	音程LFO
 	bDelay		…	ディレイ	bDelay [ticks]
-	bFreq		…	周期		bFreq×48/40 [ticks]
+	bFreq		…	周期		bFreq×24/40 [ticks]
 	bDepth		…	振幅	（符号付？）
 
 0xD8			IW0	音程LFO 停止
@@ -99,7 +99,7 @@ Command	param		MML	機能
 +-------+-------+-------+-------+-------
 0xD9			IE	音量LFO
 	bDelay		…	ディレイ	bDelay [ticks]
-	bFreq		…	周期		bFreq×48/40 [ticks]
+	bFreq		…	周期		bFreq×24/40 [ticks]
 	bDepth		…	振幅	（符号付？）
 
 0xDA			IE0	音量LFO 停止
@@ -107,7 +107,7 @@ Command	param		MML	機能
 +-------+-------+-------+-------+-------
 0xDB			IP	パンポットLFO（バランス？）
 	bDepth		…	振幅	（符号付？）
-	bFreq		…	周期		bFreq×48/40 [ticks]
+	bFreq		…	周期		bFreq×24/40 [ticks]
 
 0xDC			IP0	パンポットLFO 停止
 
@@ -205,7 +205,12 @@ Command	param		MML	機能
 
 +-------+-------+-------+-------+-------
 0xFC
+
++-------+-------+-------+-------+-------
 0xFD
+	b
+
++-------+-------+-------+-------+-------
 0xFE
 0xFF
 ========================================
