@@ -27,10 +27,6 @@
 iOffset		dw	0		;補正
 
 segLZS_File	dw	0		;元LZSファイル用
-hLZS_File	dw	0		;元LZSファイル用
-
-segBIN_File	dw	0
-hBIN_File	dw	0
 
 ;=======================================================================|
 ;				Start Up				|
@@ -38,7 +34,7 @@ hBIN_File	dw	0
 .code
 	.startup
 
-	MOV	SP,DGROUP:stack
+	MOV	SP,offset DGROUP:stack
 
 	MOV	AX,CS			;
 	MOV	DS,AX			;
@@ -246,12 +242,11 @@ Op_	proc	near	uses ds es,
 
 		;オープン
 		invoke	File_Open,			addr es:[di],	0
-		mov	word ptr cs:[hLZS_File],ax
 		push	ax
 
 		;ロード
 		mov	ds,word ptr CS:[segLZS_File]
-		invoke	File_Load_S,	ax,addr ds:0,4000h
+		invoke	File_Load,	ax,addr ds:0
 
 		;クローズ
 		pop	ax
@@ -279,11 +274,6 @@ de_compress	proc	near
 
 	;===============================
 	;■変数設定
-	xor	di,di
-	xor	ax,ax
-	mov	cx,8000h
-   rep	stosw				;メモリ空間を０クリア
-
 	xor	di,di		;ES:DI	BIN fileのポインタ
 	mov	si,cs:[iOffset]
 
@@ -368,7 +358,6 @@ _main	proc	near
 	mov	ds,ax
 
 	invoke	Memory_Open,	01000h	;BINファイル
-	mov	word ptr cs:[segBIN_File],ax
 	mov	es,ax
 
 

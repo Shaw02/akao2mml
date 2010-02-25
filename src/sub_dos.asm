@@ -28,6 +28,13 @@ Memory_Open	proc	near	uses bx cx di es,
 	call	File_Err		;
 Memory_Open_Err:			;
 
+	mov	es,ax
+	xor	di,di
+	xor	ax,ax
+	mov	cx,8000h
+   rep	stosw				;メモリ空間を０クリア
+	mov	ax,es
+
 	RET				;
 Memory_Open	endp			;
 ;---------------------------------------------------------------|
@@ -152,31 +159,6 @@ File_Load_Ok:				;
 		ret			;
 File_Load	endp			;
 ;---------------------------------------------------------------|
-;		ファイルのロード				|
-;---------------------------------------------------------------|
-;	●引数							|
-;		hFile	ハンドル				|
-;		cBuff	バッファのアドレス			|
-;	●返り値						|
-;		ax	読み込めたバイト数			|
-;---------------------------------------------------------------|
-File_Load_S	proc	near	uses bx cx dx ds,
-		hFile:word,
-		cBuff:dword,
-		iSize:word
-
-		lds	dx,dword ptr cBuff
-		mov	cx,iSize	;全部読むよ？
-		mov	bx,hFile	;bx←ハンドル
-		mov	ah,3fh		;
-		int	21h		;
-
-		jnc	File_Load_S_Ok	;
-		call	File_Err	;
-File_Load_S_Ok:				;
-		ret			;
-File_Load_S	endp			;
-;---------------------------------------------------------------|
 ;		ファイルのライト				|
 ;---------------------------------------------------------------|
 ;	●引数							|
@@ -231,7 +213,7 @@ ComSmole	proc	near	uses dx cx ds es	;メモリーの最小化
 	MOV	AX,CS		;
 	MOV	DS,AX		;DS←CS
 	MOV	ES,AX		;ES←CS
-	mov	bx, offset DGROUP:STACK
+	MOV	bx, offset DGROUP:stack
 	shr	bx, 4
 	MOV	AH,04AH		;
 	INT	21H		;最小化

@@ -62,6 +62,9 @@ ifdef	LFO_RateDiv	;---------------
 		mov	cx,LFO_RateDiv
 		div	cx
 endif	;-------------------------------
+	.if	(ax==0)
+		mov	ax,1
+	.endif
 		call	hex2asc16
 		mov	ah,09h		;
 		int	21h		;rate

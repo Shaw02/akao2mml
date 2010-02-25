@@ -567,9 +567,35 @@ Command	param		MML	機能
 0xFA				
 0xFB				
 +-------+-------+-------+-------+-------
+<< Saga Frontier >>
 0xFC				拡張音色（Multi sampling instrument.）
 	wAddress	…	音色定義構造体への相対アドレス(offset address to struct.)
 				構造体の構造は(3)項参照。
+
+<< チョコボの不思議なダンジョン >>
+0xFC	0x00	wTempo		tempo	2byte
+	0x01	wTempo		tempo move？
+	0x02	wReverb		Reverb depth？
+	0x03	wReverb		Reverb depth move？
+	0x04	wAddress	percussion on
+	0x05			percussion off？
+	0x06			無条件ジャンプ（Jump）
+	0x07	b1,	ptAddr	ゲーム内フラグによる条件分岐（condition jump）
+	0x09	b1,	ptAddr	リピート内条件分岐（Repeat break）
+	0x10	b1		■不明
+	0x14	bPatch		拡張音色（Multi sampling instrument）
+	0x15	bTimeb,	bTime	拍子(Time Signature)
+	0x16	wMeasure	小節番号(Rehearsal number)
+	0x1C	b1		■不明
+	0x1D			■不明
+	0x1E			■不明
+	0x1F			■不明
+
+※詳細は、後期AKAOの、0xFE コマンドとほぼ同一であるので、こちらを参照。
+　但し、サブコマンドの 0x04 は、後期AKAOの場合は引数（wAddress）が無い。
+　（後期AKAOでは、ヘッダーにパーカッション構造体のアドレスがあるため。）
+　初期AKAOでは、ヘッダーにパーカッション情報が無く、
+　引数（wAddress）にてパーカッション情報への相対アドレスを示している。
 
 +-------+-------+-------+-------+-------
 0xFD			BT	拍子(Time Signature)

@@ -143,7 +143,7 @@ FF7MML （/D<var>debug mode</var>） <var>filename1（.SND）</var> （><var>filename
 FF8MML （/D<var>debug mode</var>） <var>filename1（.SND）</var> （><var>filename2.MML</var>）<br>
 <br>
 <var>filename1(.SPC / .SND)</var>は、逆コンパイルする元ファイル(source file)を指定します。<br>
-拡張子を省略した場合は、自動的に拡張子を".SPC"（FF7MML,FF8MMLは、".SND"）とします。<br>
+拡張子を省略した場合は、自動的に拡張子を".SPC"（CD1MML, FF7MML, FF8MMLは、".SND"）とします。<br>
 拡張子がないファイルを指定する場合は、"<var>ファイル名１.</var>"とピリオドまで記述して下さい。<br>
 元ファイルは、AKAOフォーマットである必要があります。<br>
 <br>
@@ -175,10 +175,10 @@ MMLの文法は、別途、<a href='http://platz.jp/~mml2mid/'>MML2MID</a>のドキュメント
 	<var>addr[n]</var>は、無限ループコマンドが示す絶対アドレスです。<br>
 <li>未解析のコマンド及び非対応のコマンドは、『/* ～ */』でコメントアウトしてMMLファイルに出力します。<br>
 	主に、解析が目的です。何のコマンドか解ったら、是非教えてください。<br>
-<li>"init.mml"にて、MIDI音源の初期設定を定義できます。（FF7MML.COMで吐いたMMLでは使いません。）<br>
-<li>FF7MML.COMにで吐いたMMLについては、"define.mml"にて、MIDI音源の初期設定及び、音色を定義できます。<br>
+<li>"init.mml"にて、MIDI音源の初期設定を定義できます。（CD1MML.COM, FF7MML.COMで吐いたMMLでは使いません。）<br>
+<li>CD1MML.COM, FF7MML.COMにで吐いたMMLについては、"define.mml"にて、MIDI音源の初期設定及び、音色を定義できます。<br>
 <li>又、出力後のMMLファイルの最後尾に、音色定義用のマクロを出力しますので、曲データ毎に編集して下さい。<br>
-<li>FF7MML.COMに関しては、曲毎に違う音色が割り当てられる音色番号のみ、音色定義のマクロを出力します。<br>
+<li>CD1MML.COM, FF7MML.COMに関しては、曲毎に違う音色が割り当てられる音色番号のみ、音色定義のマクロを出力します。<br>
 <li>定義の文法については、<a href='http://platz.jp/~mml2mid/'>MML2MID</a>の取扱説明書及び、
 	MIDI規格（<a href="http://www.amei.or.jp/">AMEI</a>より発刊）を参照して下さい。<br>
 </ul>

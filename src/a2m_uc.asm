@@ -1917,10 +1917,7 @@ UC_MML_OUTPUT	endp
 ;---------------------------------------------------------------|
 ;		‹t‚l‚l‚k•”ƒƒCƒ“ƒ‹[ƒ`ƒ“			|
 ;---------------------------------------------------------------|
-UN_MML_COMPAILE	proc	near	uses ax es
-
-	MOV	AX,CS:[segAKAO_File]	;
-	MOV	ES,AX			;ES©AKAO SEGMENT
+UN_MML_COMPAILE	proc	near	uses es
 
 	CALL	UC_START	;‰ŠúÝ’è
 	CALL	UC_MML_OUTPUT	;‚l‚l‚ko—Í•”

@@ -13,7 +13,8 @@
 
 .dosseg
 
-.stack	1000h
+.stack	01000h
+
 
 ;=======================================================================|
 ;				define					|
@@ -26,18 +27,16 @@
 ;
 D_Debug		DB	00h		;デバッグフラグ
 segAKAO_File	dw	0		;元ファイル用
-hAKAO_File	dw	0		;元ファイル用
 ;=======================================================================|
 ;				Start Up				|
 ;=======================================================================|
 .code
 	.startup
 
-	MOV	SP,DGROUP:stack
+	MOV	SP,offset DGROUP:stack
 
 	MOV	AX,CS			;
 	MOV	DS,AX			;
-	MOV	ES,AX			;セグメントがえへへへ。
 	MOV	SS,AX			;
 
 	cld
@@ -286,7 +285,6 @@ endif	;--------------------------------
 
 		;オープン
 		invoke	File_Open,			addr es:[di],	0
-		mov	word ptr cs:[hAKAO_File],ax
 		push	ax
 
 		;ロード
@@ -313,9 +311,10 @@ _main	proc near
 	;-------------------------------
 	;■メモリオープン
 	invoke	ComSmole		;メモリの最小化
+
 	invoke	Memory_Open,	01000h	;
 	mov	word ptr cs:[segAKAO_File],ax
-	push	ax
+	mov	es,ax
 
 	;-------------------------------
 	;■オプション処理
@@ -327,8 +326,7 @@ _main	proc near
 
 	;-------------------------------
 	;■メモリの解放
-	pop	ax
-	invoke	Memory_Close,	ax
+	invoke	Memory_Close,	es
 
 	ret
 _main	endp
