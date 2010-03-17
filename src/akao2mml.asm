@@ -19,6 +19,7 @@
 ;=======================================================================|
 ;				define					|
 ;=======================================================================|
+include	lib_dos.inc
 .data
 ;
 ;	逆ＭＭＬ変換情報
@@ -33,11 +34,12 @@ segAKAO_File	dw	0		;元ファイル用
 .code
 	.startup
 
-	MOV	SP,offset DGROUP:stack
 
 	MOV	AX,CS			;
 	MOV	DS,AX			;
 	MOV	SS,AX			;
+	MOV	SP,offset DGROUP:stack
+	invoke	ComSmole,	sp	;メモリの最小化
 
 	cld
 
@@ -61,10 +63,6 @@ PRINT_ERR:
 ;=======================================================================|
 ;				Start					|
 ;=======================================================================|
-;・汎用サブルーチン
-include	sub_dos.asm
-include	sub_cnv.asm
-
 ;・ゲーム毎の設定
 include	def_ff4.asm		;SPC FINAL FANTASY 4
 include	def_ff5.asm		;SPC FINAL FANTASY 4
@@ -310,8 +308,6 @@ _main	proc near
 
 	;-------------------------------
 	;■メモリオープン
-	invoke	ComSmole		;メモリの最小化
-
 	invoke	Memory_Open,	01000h	;
 	mov	word ptr cs:[segAKAO_File],ax
 	mov	es,ax

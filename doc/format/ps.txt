@@ -9,6 +9,8 @@
 	WORD	2byte (short型 / pointer型)
 	DWORD	4byte (long型)
 
+
+
 ■(1) ヘッダー情報
 ━━━━━━━━━━━━━━━
 1-1.) First(初期) Akao format (24 tracks)	(Final Fantasy 7, Saga Frontier, etc..)
@@ -48,7 +50,41 @@ Address		type	内容
 
 
 
-1-2.) Late(後期) Akao format (32 tracks)	(Final Fantasy 2,8,9等)
+1-2.) Middle(中期) Akao format (32 tracks)	(Parasite Eve)
+========================================
+Address		type	内容
++-------+-------+-------+-------+-------
+0x0000～0x0003	char[4]	"AKAO" strings
+			4Byteの文字列。曲データである事を示す。
++-------+-------+-------+-------+-------
+0x0004～0x0005	word	File serial ID number？
++-------+-------+-------+-------+-------
+0x0006～0x0007	word	File size （headers of 16[byte] were excluded.）
+			ファイルサイズ（16[byte]のヘッダーは除外する。）
++-------+-------+-------+-------+-------
+0x0008～0x0009		unknown
++-------+-------+-------+-------+-------
+0x000A～0x000F		Time stamp
++-------+-------+-------+-------+-------
+0x0010～0x0013	dword	本曲データで使用されるチャンネル(32bit)
+			各Bitがそれぞれのチャンネルに対応。
++-------+-------+-------+-------+-------
+0x0014～0x001F		unknown
++-------+-------+-------+-------+-------
+0x0020～0x0021	word	曲データのある相対アドレス＋２　Track 1	…(5)参照
+0x0022～0x0023	word	曲データのある相対アドレス＋２　Track 2	…(5)参照
+0x0024～0x0025	word	曲データのある相対アドレス＋２　Track 3	…(5)参照
+・・・		word	・・・
+0x005C～0x005D	word	曲データのある相対アドレス＋２　Track31	…(5)参照
+0x005E～0x005F	word	曲データのある相対アドレス＋２　Track32	…(5)参照
+			Pointer of music tracks.
+
+※中期AKAOの相対アドレスは、書かれているアドレスの2Byte先を基点とする。
+========================================
+
+
+
+1-3.) Late(後期) Akao format (32 tracks)	(Final Fantasy 2,8,9等)
 ========================================
 Address		type	内容
 +-------+-------+-------+-------+-------
@@ -111,7 +147,7 @@ Address		type	内容
 
 
 ■(3) 音色データ情報　　　　　　…（(2)項の構造体が示す先の内容、及び）
-━━━━━━━━━━━━━━━　…（初期AKAO の0xFCコマンドの引数が示す先の内容）
+━━━━━━━━━━━━━━━　…（初期・中期AKAOの拡張音色コマンドの引数が示す先の内容）
 8[Byte]×(n)の構造体。構造は以下の通り
 	+0	音色番号			Instrument number
 	+1	適用音程範囲　開始ノート番号	Start applying note number
@@ -121,29 +157,41 @@ Address		type	内容
 	+5	エンベロープ関連		ADSR
 	+6	エンベロープ関連		ADSR
 	+7	ボリューム			Volume
-尚、8Byteの構造体が全て0x00のときは、構造体の終了である事を示す。
+
+尚以下の時は、構造体の終了である事を示す。
+・後期AKAOにおいて、8[Byte]の構造体が全て0x00の時。
+・初期・中期AKAOにおいて、先頭1[Byte]が0x80の時。
+
 
 
 
 
 ■(4) パーカッション音色データ　　　…（後期AKAO ヘッダーの0x0034が示す先の内容）
-━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━　　　…（初期・中期AKAO のパーカッション・コマンドの引数が示す先の内容）
+【初期AKAO】
+構造体は、5[Byte]×12[音程]で、先頭の5Byteから、
+C,Cis,D,Dis,E…の音色データを示す。
+　+0 :	パーカッション音色番号		Instrument number
+　+1 :	発音する音程（ノート番号）	Note number
+　+2 :	不明				unknown
+　+3 :	ボリューム（リニア値）		Volume
+　+4 :	パンポット			Panpot
+
+【中期・後期AKAO】
 8[Byte]×(128)の構造体。
 先頭の8Byteから、オクターブ0のC,Cis,D,Dis,E…の音色データを示す。
 8Byteの構造は以下の通り。
-	+0	パーカッション音色番号		Instrument number
-	+1	発音する音程（ノート番号）	Note number
-	+2	不明				unknown
-	+3	ボリューム			Volume
-	+4	エンベロープ関連		ADSR
-	+5	エンベロープ関連		ADSR
-	+6	エンベロープ関連		ADSR
-	+7	パンポット			Panpot
+　+0 :	パーカッション音色番号		Instrument number
+　+1 :	発音する音程（ノート番号）	Note number
+　+2 :	不明				unknown
+　+3 :	ボリューム			Volume
+　+4 :	エンベロープ関連		ADSR
+　+5 :	エンベロープ関連		ADSR
+　+6 :	エンベロープ関連		ADSR
+　+7 :	パンポット			Panpot
 尚、8Byteの構造体が全て0x00のときは、未使用である事を示す。
 構造上、0x00がたくさん並ぶ事があるが、『決して、AKAOデータの終わりではない』ので、抜き出し時は注意。
 一部資料には、『0x00が連続したらAKAOデータ終わり』とか書いてあったけど、そんな事は無い。
-
-
 
 
 
@@ -490,7 +538,7 @@ Command	param		MML	機能
 	wTime		…	有効時間[ticks]（2byte）
 
 ========================================
-■Akao for 24ch
+【初期・中期AKAO】
 +-------+-------+-------+-------+-------
 0xE0				End of Channel ?
 0xE1				End of Channel ?
@@ -521,13 +569,6 @@ Command	param		MML	機能
 0xEC				percussion on
 	wAddress		パーカッション定義構造体への相対アドレス
 				(Offset address to percussion struct)
-				構造体は、5[Byte]×12[音程]で、先頭の5Byteから、
-				C,Cis,D,Dis,E…の音色データを示す。
-				　+0 :	パーカッション音色番号		Instrument number
-				　+1 :	発音する音程（ノート番号）	Note number
-				　+2 :	不明				unknown
-				　+3 :	ボリューム（リニア値）		Volume
-				　+4 :	パンポット			Panpot
 
 0xED				percussion off
 
@@ -573,19 +614,35 @@ Command	param		MML	機能
 				構造体の構造は(3)項参照。
 
 << チョコボの不思議なダンジョン >>
-0xFC	0x00	wTempo		tempo	2byte
-	0x01	wTempo		tempo move？
-	0x02	wReverb		Reverb depth？
-	0x03	wReverb		Reverb depth move？
-	0x04	wAddress	percussion on
-	0x05			percussion off？
-	0x06			無条件ジャンプ（Jump）
+<< Parasite Eve >>
+0xFC	0x00	wTempo		tempo
+	0x01	bLength	wTempo	tempo move
+	0x02	wReverb		Reverb depth
+	0x03	bLength	wReverb	Reverb depth move
+	0x04(*)	wAddress	percussion on
+	0x05			percussion off
+	0x06	ptAddr		無条件ジャンプ（Jump）
 	0x07	b1,	ptAddr	ゲーム内フラグによる条件分岐（condition jump）
+	0x08			■不明
 	0x09	b1,	ptAddr	リピート内条件分岐（Repeat break）
+	0x0A			■不明
+	0x0B			■不明
+	0x0C			■不明
+	0x0D			■不明
+	0x0E			■不明
+	0x0F			■不明
 	0x10	b1		■不明
-	0x14	bPatch		拡張音色（Multi sampling instrument）
+	0x11			■不明
+	0x12			■不明
+	0x13			■不明
+	0x14(*)	wAddress	拡張音色（Multi sampling instrument）
 	0x15	bTimeb,	bTime	拍子(Time Signature)
 	0x16	wMeasure	小節番号(Rehearsal number)
+	0x17			■不明
+	0x18			■不明
+	0x19			■不明
+	0x1A			■不明
+	0x1B			■不明
 	0x1C	b1		■不明
 	0x1D			■不明
 	0x1E			■不明
@@ -594,8 +651,11 @@ Command	param		MML	機能
 ※詳細は、後期AKAOの、0xFE コマンドとほぼ同一であるので、こちらを参照。
 　但し、サブコマンドの 0x04 は、後期AKAOの場合は引数（wAddress）が無い。
 　（後期AKAOでは、ヘッダーにパーカッション構造体のアドレスがあるため。）
-　初期AKAOでは、ヘッダーにパーカッション情報が無く、
+　初期・中期AKAOでは、ヘッダーにパーカッション情報が無く、
 　引数（wAddress）にてパーカッション情報への相対アドレスを示している。
+
+　又、サブコマンド 0x14 は、後期AKAOの場合はパッチ番号(引数=1Byte)となるが、
+　初期・中期AKAOでは、パッチ情報のある相対アドレス(引数=2Byte)となる。
 
 +-------+-------+-------+-------+-------
 0xFD			BT	拍子(Time Signature)
@@ -618,7 +678,7 @@ Command	param		MML	機能
 0xFF				
 
 ========================================
-■Akao for 32ch
+【後期AKAO】
 +-------+-------+-------+-------+-------
 0xE0
 0xE1	b1			不明
@@ -659,15 +719,18 @@ Command	param		MML	機能
 				BPMへの変換は、218で割ると良い感じ。
 
 	- - - - - - - - - - - - - - - - -
-	0x01	ｗTempo		tempo move？
+	0x01			tempo move
+		bLength	…	変化に要する時間 [ticks]
+		wTempo		テンポの目標値 wTempo÷218[bpm]
 
 	- - - - - - - - - - - - - - - - -
-	0x02			Reverb depth？
+	0x02			Reverb depth
 		wReverb	…
 
 	- - - - - - - - - - - - - - - - -
-	0x03			Reverb depth move？
-		wReverb	…
+	0x03			Reverb depth move
+		bLength	…	変化に要する時間 [ticks]
+		wTempo		テンポの目標値 wTempo÷218[bpm]
 
 	- - - - - - - - - - - - - - - - -
 	0x04		RT	percussion on

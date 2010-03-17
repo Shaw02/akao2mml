@@ -36,7 +36,6 @@ c_output_note_As	db	'g+$'
 c_output_note_A		db	'a$'
 c_output_note_B		db	'a+$'
 c_output_note_H		db	'b$'
-c_output_note_O		db	'o$'
 
 
 .code
@@ -48,11 +47,10 @@ c_output_note	proc	near
 	div	dl			;ah ← octave
 	xchg	al,ah			;al ← note
 
-
 	push	ax
-	lea	dx,[c_output_note_O]
-	mov	ah,09h
-	int	21h			;'o'の表示
+	mov	dl,'o'
+	mov	ah,02h
+	int	21h
 	pop	ax
 
 	push	ax
@@ -64,9 +62,6 @@ c_output_note	proc	near
 
 	xor	ah,ah			;ax←Note Number
 	shl	ax,1
-;	mov	bx,offset c_output_note_N
-;	add	bx,ax
-;	mov	dx,cs:[bx]
 	mov	bx,ax
 	mov	dx,cs:[c_output_note_N + bx]
 	mov	ah,09h
@@ -240,90 +235,87 @@ ifdef	SPC	;------------------------
 endif	;--------------------------------
 
 	.if	((al==0)||(al==9))	;音符・EoCだった場合の処理
-ifdef	SPC	;------------------------
-		mov	al,1	;
-endif	;--------------------------------
 ifdef	PS1	;------------------------
 		.if	(ah<0F0h)	;
 			mov	al,1	;
 		.else
 			mov	al,2	;
 		.endif
+else	;SPC	;------------------------
+		mov	al,1	;
 endif	;--------------------------------
 	.endif
 
 	.if	(al==6)
-ifdef	PS1	;------------------------
-
-		MOV	AX,ES:[BX]		;
- ifdef	CD1	;------------------------
-		mov	al,0FEh
- endif	;--------------------------------
-
-		.if	(ax==006FEh)
+ifdef	SubCommand	;----------------
+		xor	ax,ax
+		MOV	al,byte ptr ES:[BX + 1]	;
+		.if	(al==06h)
 			MOV	DX,BX		;DX←FE06hコマンドのアドレス
 			ADD	BX,2		;
 			MOV	AX,ES:[BX]	;
 			TEST	AX,AX		;
 			JZ	UCMOL_EE	;If AX=0 Then Return
- ifndef	FF8	;------------------------
-			add	ax,2		;FF8以外は
- endif	;--------------------------------
+			add	ax,MUSIC_ADDRESSa	;FF8以外は+2
 			add	bx,ax		;BX←ループ先アドレス
 			mov	ax,bx		;AX←BX
 			.break
-		.elseif	(ax==007FEh)
-			.if	(tempBX!=0)
+		.elseif	(al==07h)
+			.if	(tempBX!=0)	;条件ジャンプ先が登録されている？
 				;デバッグ用
-				push	ax
 				lea	dx,[UCMOLS_LOOP_msg3]
 				mov	ah,09h
 				int	21h
-				pop	ax
 			.endif
 			inc	iCount		;
 			add	bx,3		;
 			mov	ax,es:[bx]	;
- ifndef	FF8	;------------------------
+ ifndef	lastAkao	;------------------------
 			add	ax,2		;FF8以外は
  endif	;--------------------------------
 			add	ax,bx		;
 			mov	tempBX,ax	;条件ジャンプ先
- ifdef	FF8	;------------------------
+ ifdef	lastAkao	;------------------------
 			add	bx,2		;FF8は、最後にカウント
  endif	;--------------------------------
 
- ifdef	FF8	;------------------------
-		.elseif	((ax==004FEh)||(ax==005FEh)||(ax==01DFEh)||(ax==01EFEh)||(ax==01FFEh))
- else	;--------------------------------
-		.elseif	((ax==005FEh)||(ax==01DFEh)||(ax==01EFEh)||(ax==01FFEh))
- endif	;--------------------------------
-			add	bx,2
-		.elseif	((ax==010FEh)||(ax==014FEh)||(ax==01CFEh))
-			add	bx,3
-		.elseif	(ax==009FEh)
-			add	bx,5
+; ifdef	lastAkao	;------------------------
+;		.elseif	((al==04h)||(al==05h)||(al==1Dh)||(al==1Eh)||(al==1Fh))
+; else	;--------------------------------
+;		.elseif	((al==05h)||(al==1Dh)||(al==1Eh)||(al==1Fh))
+; endif	;--------------------------------
+;			add	bx,2
+; ifdef	lastAkao	;------------------------
+;		.elseif	((al==10h)||(al==14h)||(al==1Ch))
+; else	;--------------------------------
+;		.elseif	((al==10h)||(al==1Ch))
+; endif	;--------------------------------
+;			add	bx,3
+;		.elseif	((al==01h)||(al==03h)||(al==09h))
+;			add	bx,5
 		.else
-			add	bx,4
+;			add	bx,4
+			push	di
+			mov	di,ax
+			mov	al,byte ptr cs:[SubComSize + di]
+			add	bx,ax
+			pop	di
 		.endif
-else	;--------------------------------
+else	;SPC	-------------------------
 		.if	(tempBX!=0)
 			;デバッグ用
-			push	ax
 			lea	dx,[UCMOLS_LOOP_msg3]
 			mov	ah,09h
 			int	21h
-			pop	ax
 		.endif
 		inc	iCount			;
 		add	bx,1			;
 		mov	ax,es:[bx]		;
 		add	bx,2			;次のコマンド
-  ifdef	SPC	;------------------------
-		sub	ax,cs:[UC_ADDER]	;ax←戻り先絶対アドレス
-  endif	;--------------------------------
   ifdef	PS1	;------------------------
-		add	ax,bx			;
+		add	ax,bx
+  else	;SPC	;------------------------
+		sub	ax,cs:[UC_ADDER]	;ax←戻り先絶対アドレス
   endif	;--------------------------------
 		mov	tempBX,ax		;条件ジャンプ先保存
 endif	;--------------------------------
@@ -337,12 +329,11 @@ endif	;--------------------------------
 		MOV	AX,ES:[BX]		;
 		TEST	AX,AX			;
 		JZ	UCMOL_EE		;If AX=0 Then Return
-ifdef	SPC	;------------------------
-		sub	ax,cs:[UC_ADDER]	;ax←戻り先絶対アドレス
-endif	;--------------------------------
 ifdef	PS1	;------------------------
 		add	ax,MUSIC_ADDRESSa
 		add	ax,bx			;ax←戻り先絶対アドレス
+else	;SPC	;------------------------
+		sub	ax,cs:[UC_ADDER]	;ax←戻り先絶対アドレス
 endif	;--------------------------------
 		mov	bx,ax			;BX←AX
 		.break
@@ -372,7 +363,7 @@ endif	;--------------------------------
 	call	dat2hex16	;
 	MOV	AH,09H		;
 	INT	21H		;
-	mov	dl,2ch		;
+	mov	dl,','		;
 	mov	ah,02h		;
 	int	21h		;
 
@@ -921,22 +912,36 @@ endif	;-------------------------------
 			.endif
 			.break
 
-		.elseif	(al==6)			;６：解析終了
-ifdef	ff8	;------------------------
-			MOV	AX,ES:[BX]
-			.if	(ax==006FEh)
+		.elseif	(al==6)
+ifdef	SubCommand	;------------------------
+			xor	ax,ax
+			MOV	al,byte ptr ES:[BX+1]
+			.if	(al==06h)
 				.break
-			.elseif	((ax==004FEh)||(ax==01DFEh)||(ax==01EFEh)||(ax==01FFEh))
-				add	bx,2
-			.elseif	((ax==010FEh)||(ax==014FEh)||(ax==01CFEh))
-				add	bx,3
-			.elseif	((ax==007FEh)||(ax==009FEh))
-				add	bx,5
+;  ifdef	lastAkao	;------------------------
+;			.elseif	((al==04h)||(al==05h)||(al==1Dh)||(al==1Eh)||(al==1Fh))
+;  else	;--------------------------------
+;			.elseif	((al==05h)||(al==1Dh)||(al==1Eh)||(al==1Fh))
+;  endif	;--------------------------------
+;				add	bx,2
+;  ifdef	lastAkao	;------------------------
+;			.elseif	((al==10h)||(al==14h)||(al==1Ch))
+;  else	;--------------------------------
+;			.elseif	((al==10h)||(al==1Ch))
+;  endif	;--------------------------------
+;				add	bx,3
+;			.elseif	((al==01h)||(al==03h)||(al==07h)||(al==09h))
+;				add	bx,5
 			.else
-				add	bx,4
-			.endif
+;				add	bx,4
+				push	di
+				mov	di,ax
+				mov	al,cs:[SubComSize + di]
+				add	bx,ax
+				pop	di
+			.endif			;６：サブコマンド
 else	;--------------------------------
-			.break
+			.break			;６：解析終了
 endif	;--------------------------------
 
 		.elseif	((al==7)||(al==8))	;７, ８：解析終了（End of Channel）
@@ -1015,14 +1020,16 @@ c_decode	endp
 MML2MID_HED1	db	'8z	@0	/*Instrument of percussion 1z*/'		,0dh,0ah,24h
 MML2MID_HED2	db	'9z	@48	/*Instrument of percussion 2z*/'		,0dh,0ah,24h
 MML2MID_HED3	db	0dh,0ah
-ifdef	ff7	;------------------------
+ifdef	FixedVoice	;----------------
+		;音色番号固定
 		DB	'#include "define.mml"',0dh,0ah
 else	;--------------------------------
+		;音色番号不定
 		DB	'#include "init.mml"',0dh,0ah
 endif	;--------------------------------
 		db	0dh,0ah,24h		;改行は、ff8mmlでも出力する。
 
-ifdef	ff8	;------------------------
+ifdef	lastAkao	;------------------------
 MML2MID_HED4	db	'/* Instrument Set ID = ',24h
 MML2MID_HED5	db	' */',0dh,0ah,24h
 endif	;--------------------------------
@@ -1053,7 +1060,7 @@ UC_START	proc	near
 	MOV	AH,09H			;
 	INT	21H			;
 
-ifdef	ff8	;------------------------
+ifdef	lastAkao	;------------------------
 	lea	DX,[MML2MID_HED4]	;
 	MOV	AH,09H			;
 	INT	21H			;
@@ -1135,6 +1142,7 @@ UC_START	endp
 ;---------------------------------------------------------------|
 .const
 ifdef	PS1	;------------------------	;Multi Sampling Instrument
+	;拡張音色(PS1)
 UC_END_VOICE_ADD	DW	OFFSET UCE_VOICE_0A	
 			DW	OFFSET UCE_VOICE_1A	
 			DW	OFFSET UCE_VOICE_2A	
@@ -1152,14 +1160,14 @@ UC_END_VOICE_ADD	DW	OFFSET UCE_VOICE_0A
 			DW	OFFSET UCE_VOICE_6B	
 			DW	OFFSET UCE_VOICE_7B	
 endif	;--------------------------------
-ifndef	ff7	;------------------------	;Normal Instrument
 
-
-ifndef	PS1	;------------------------
+ifndef	FixedVoice	;------------------------	;Normal Instrument
+	;音色番号不定
+ ifndef	PS1	;------------------------
 UC_END_VOICE_ADD	DW	OFFSET UCE_VOICE_0C	;(FF7以外で要る)
-else		;------------------------
+ else		;------------------------
 			DW	OFFSET UCE_VOICE_0C	;(FF7以外で要る)
-endif		;------------------------
+ endif		;------------------------
 		DW	OFFSET UCE_VOICE_1C	
 		DW	OFFSET UCE_VOICE_2C	
 		DW	OFFSET UCE_VOICE_3C	
@@ -1192,6 +1200,7 @@ endif		;------------------------
 		DW	OFFSET UCE_VOICE_6F	
 		DW	OFFSET UCE_VOICE_7F	
 endif	;--------------------------------
+
 ifdef	Rhythm12	;---------------	;Percussion
 UC_Rhythm_Add	dw	offset UC_Rhythm_0x	
 		dw	offset UC_Rhythm_1x	
@@ -1208,6 +1217,7 @@ UC_Rhythm_Add	dw	offset UC_Rhythm_0x
 endif	;--------------------------------
 
 ifdef	PS1	;------------------------
+	;拡張音色(PS1)
 UCE_VOICE_0A	DB	'0a	',24h
 UCE_VOICE_1A	DB	'1a	',24h
 UCE_VOICE_2A	DB	'2a	',24h
@@ -1225,7 +1235,8 @@ UCE_VOICE_5B	DB	'5b	',24h
 UCE_VOICE_6B	DB	'6b	',24h
 UCE_VOICE_7B	DB	'7b	',24h
 endif	;--------------------------------
-ifndef	ff7	;------------------------	FF7以外で要る
+ifndef	FixedVoice	;------------------------	FF7以外で要る
+	;音色番号不定
 UCE_VOICE_0C	DB	'0c	',24h
 UCE_VOICE_1C	DB	'1c	',24h
 UCE_VOICE_2C	DB	'2c	',24h
@@ -1277,6 +1288,7 @@ endif	;--------------------------------
 
 
 ifdef	PS1	;------------------------
+	;拡張音色(PS1)
  ifdef	ff7	;------------------------
 UCE_VOICE_Program	db	46	;harp
  else	;--------------------------------
@@ -1330,12 +1342,15 @@ UC_Instrument	proc	near
 ;Multi Sampling Instrument
 ;=======================================
 ifdef	PS1	;------------------------
+	;拡張音色(PS1)
 	XOR	CX,CX			;CL←0
 	lea	SI,[UC_END_VOICE_ADD]
 	lea	di,[UCE_VOICE_Program]
-  ifdef	ff7	;------------------------
+  ifdef	nlastAkao	;------------------------
+	;拡張音色命令の引数がアドレス
 	lea	BX,[UC_VoiceExWork]
   else	;--------------------------------
+	;拡張音色命令の引数が音色番号
 	MOV	BX,VOICE_ADDRESS	;従属音色情報アドレス
 	MOV	DX,ES:[BX]		;
 	.if	(dx==0000h)
@@ -1347,9 +1362,11 @@ ifdef	PS1	;------------------------
 
 	.while	(cx<16)
 
-  ifdef	ff7	;------------------------
+  ifdef	nlastAkao	;------------------------
+	;拡張音色命令の引数がアドレス
 		mov	ax,cs:[bx]		;AL←音色登録情報
   else	;--------------------------------
+	;拡張音色命令の引数が音色番号
 		mov	ax,es:[bx]		;AL←音色登録情報
   endif	;--------------------------------
 		.break	.if	(ax==0ffffh)
@@ -1401,7 +1418,8 @@ endif	;-------------------------------
 ;=======================================
 ;Normal Instrument
 ;=======================================
-ifndef	ff7	;------------------------
+ifndef	FixedVoice	;------------------------
+	;音色番号は、曲毎に不定
 	XOR	CX,CX			;CL←0
 	lea	SI,[UC_END_VOICE_ADD]
   ifdef	PS1	;------------------------
@@ -1514,6 +1532,7 @@ endif	;-------------------------------
 
 
 ifdef	PS1	;-----------------------
+	;拡張音色(PS1)の情報を吐く
 	call	UC_Instrument_PS1_multi
 endif	;-------------------------------
 
@@ -1626,9 +1645,11 @@ UC_Instrument_PS1_M08	db	3bh,"	Volume =",24h
 UC_Instrument_PS1_multi	proc	near	uses	bp ax bx cx dx si
 
 	xor	cx,cx			;CL←0
-ifdef	ff7	;------------------------
+ifdef	nlastAkao	;------------------------
+	;引数がアドレス
 	lea	si,[UC_VoiceExWork]
 else	;--------------------------------
+	;引数が、番号
 	MOV	bx,ES:[VOICE_ADDRESS]	;従属音色情報アドレス
 	.if	(bx==0000h)
 		mov	cx,16
@@ -1639,10 +1660,12 @@ endif	;--------------------------------
 	lea	bp,[si]			;
 
 	.while	(cx<16)
-ifdef	ff7	;------------------------
+ifdef	nlastAkao	;------------------------
+	;引数がアドレス
 		lodsw	cs:[si]			;ax←音色登録情報
 		mov	bx,ax			;bx ← 音色情報アドレス
 else	;--------------------------------
+	;引数が、番号
 		lodsw	es:[si]			;ax←音色登録情報
 		lea	bx,[bp + 20h]
 		add	bx,ax			;bx ← 音色情報アドレス
@@ -1664,11 +1687,13 @@ endif	;--------------------------------
 		int	21h			;
 
 		;各サンプリング情報
-ifdef	ff7
-		.while	((word ptr es:[bx+0]!=8080h) || (word ptr es:[bx+2]!=8080h))
-else
+ifdef	nlastAkao	;-----------------------
+	;初期・中期の判定
+		.while	(word ptr es:[bx+0]!=8080h)
+else		;-------------------------------
+	;後期の判定
 		.while	((word ptr es:[bx+0]!=0) || (word ptr es:[bx+2]!=0) || (word ptr es:[bx+4]!=0) || (word ptr es:[bx+6]!=0))
-endif
+endif		;-------------------------------
 			;Voice No.
 			lea	dx,[UC_Instrument_PS1_M01]
 			mov	ah,09h			;

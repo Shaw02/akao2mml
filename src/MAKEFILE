@@ -1,0 +1,53 @@
+
+PORJLIST =	rs1mml.com rs2mml.com rs3mml.com sd2mml.com cd1mml.com pe1mml.com\
+		ff4mml.com ff5mml.com ff6mml.com ff7mml.com ff8mml.com\
+		lzs2bin.com
+
+LIBFILE	= lib\DOSLIB.LIB
+
+FILES	= akao2mml.asm a2m_uc.asm def_com.asm  $(LIBFILE)
+
+AFLAGS	= /Fe$* /AT /Sa /Fl$*.lst
+LFLAGS	= /link $(LIBFILE)
+
+all :	$(PORJLIST) $(LIBFILE)
+	del *.bak
+	del *.obj
+
+
+rs1mml.com : akao2mml.asm $(FILES) def_sfc.asm def_rs1.asm
+	ml /DSPC=1 /DRS1=1 $(AFLAGS) akao2mml.asm $(LFLAGS)
+
+rs2mml.com : akao2mml.asm $(FILES) def_sfc.asm def_rs2.asm
+	ml /DSPC=1 /DRS2=1 $(AFLAGS) akao2mml.asm $(LFLAGS)
+
+rs3mml.com : akao2mml.asm $(FILES) def_sfc.asm def_rs3.asm
+	ml /DSPC=1 /DRS3=1 $(AFLAGS) akao2mml.asm $(LFLAGS)
+
+sd2mml.com : akao2mml.asm $(FILES) def_sfc.asm def_sd2.asm
+	ml  /DSPC=1 /DSD2=1 $(AFLAGS) akao2mml.asm $(LFLAGS)
+
+ff4mml.com : akao2mml.asm $(FILES) def_sfc.asm def_ff4.asm
+	ml /DSPC=1 /DFF4=1 $(AFLAGS) akao2mml.asm $(LFLAGS)
+
+ff5mml.com : akao2mml.asm $(FILES) def_sfc.asm def_ff5.asm
+	ml /DSPC=1 /DFF5=1 $(AFLAGS) akao2mml.asm $(LFLAGS)
+
+ff6mml.com : akao2mml.asm $(FILES) def_sfc.asm def_ff6.asm
+	ml /DSPC=1 /DFF6=1 $(AFLAGS) akao2mml.asm $(LFLAGS)
+
+ff7mml.com : akao2mml.asm $(FILES) def_ps.asm  def_ps1.asm
+	ml /DPS1=1 /DFF7=1 $(AFLAGS) akao2mml.asm $(LFLAGS)
+
+ff8mml.com : akao2mml.asm $(FILES) def_ps.asm  def_ps1.asm
+	ml /DPS1=1 /DFF8=1 $(AFLAGS) akao2mml.asm $(LFLAGS)
+
+cd1mml.com : akao2mml.asm $(FILES) def_ps.asm  def_ps1.asm
+	ml /DPS1=1 /DCD1=1 $(AFLAGS) akao2mml.asm $(LFLAGS)
+
+pe1mml.com : akao2mml.asm $(FILES) def_ps.asm  def_ps1.asm
+	ml /DPS1=1 /DPE1=1 $(AFLAGS) akao2mml.asm $(LFLAGS)
+
+lzs2bin.com : lzs2bin.asm $(LIBFILE)
+	ml $(AFLAGS) $*.asm $(LFLAGS)
+

@@ -6,18 +6,37 @@ ifdef	PS1	;------------------------
 ;*								*
 ;****************************************************************
 
-ifdef	ff7	;------------------------
-ifdef	cd1	;------------------------
-ProjectName	equ	'CD1MML'
-else	;--------------------------------
+ifdef		ff7	;------------------------
 ProjectName	equ	'FF7MML'
-endif	;--------------------------------
-endif	;--------------------------------
+firstAkao	equ	1
+comRepeatExit	equ	0F0h	; : コマンド
 
-ifdef	ff8	;------------------------
+elseifdef	cd1	;------------------------
+ProjectName	equ	'CD1MML'
+firstAkao	equ	1
+SubCommand	equ	0FCh
+comRepeatExit	equ	0FC09h	; : コマンド
+
+elseifdef	PE1	;------------------------
+ProjectName	equ	'PE1MML'
+midAkao		equ	1
+SubCommand	equ	0FCh
+comRepeatExit	equ	0FC09h	; : コマンド
+
+else	;	ff8	;------------------------
 ProjectName	equ	'FF8MML'
+lastAkao	equ	1
+SubCommand	equ	0FEh
+comRepeatExit	equ	0FE09h	; : コマンド
+
 endif	;--------------------------------
 
+
+
+ifndef	lastAkao	;----------------
+nlastAkao	equ	1
+
+endif	;--------------------------------
 
 ;****************************************************************
 ;*								*
@@ -39,23 +58,37 @@ MML2MID_HED	DB	'#title     ""',0dh,0ah
 ;****************************************************************
 ;---------------------------------------
 ;◆アドレス関連
-ifdef	ff7	;------------------------
+ifdef		firstAkao	;----------------
 ;FINAL FANTASY 7
 PARTF_ADDRESS	equ	0010h		
 VOICE_ADDRESS	EQU	0000H		
 RIHTM_ADDRESS	EQU	0000H		
 MUSIC_ADDRESS	EQU	0014H		
 MUSIC_ADDRESSa	equ	+2
-endif	;--------------------------------
 
-ifdef	ff8	;------------------------
+FixedVoice	equ	1		;音色番号固定
+Rhythm12	equ	11		;パーカッション有無 ＆ 割る数
+					;無い場合は、定義しない事
+
+elseifdef	midAkao		;----------------
+;Parasite Eve
+PARTF_ADDRESS	equ	0010h		
+VOICE_ADDRESS	EQU	0000H		
+RIHTM_ADDRESS	EQU	0000H		
+MUSIC_ADDRESS	EQU	0020H		
+MUSIC_ADDRESSa	equ	+2
+
+else	;	lastAkao	;----------------
 ;FINAL FANTASY 2,8,9
 PARTF_ADDRESS	equ	0020h		
 VOICE_ADDRESS	EQU	0030H		
 RIHTM_ADDRESS	EQU	0034H		
 MUSIC_ADDRESS	EQU	0040H		
 MUSIC_ADDRESSa	equ	0
-endif	;--------------------------------
+
+endif		;--------------------------------
+
+
 
 ;---------------------------------------
 ;◆コマンド関連
@@ -63,18 +96,8 @@ Music_Note	EQU	099h	;どこまで音譜？
 comRepeatStart	equ	0C8h	; [ コマンド
 comRepeatEnd	equ	0C9h	; ]n コマンド
 comRepeatEnd2	equ	0CAh	; ]2 コマンド
-ifdef	ff7	;------------------------
-comRepeatExit	equ	0F0h	; : コマンド
-endif	;--------------------------------
-ifdef	ff8	;------------------------
-comRepeatExit	equ	0FE09h	; : コマンド
-endif	;--------------------------------
 
-ifdef	ff7	;------------------------
-Rhythm12	equ	11	;パーカッション有無 ＆ 割る数
-				;無い場合は、定義しない事
-	;後期PS版AKAOは、全音程に割り当てられる仕様の為、処理しない。
-endif	;--------------------------------
+
 
 ;---------------------------------------
 ;◆音量・パンポット命令の引数のレンジ
@@ -141,19 +164,63 @@ UCMO_COMMAND_SIZE	DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0	;00h-0Fh
 			DB	2,2,1,1, 1,1,1,1, 1,2,1,1, 1,1,1,1	;C0h-CFh
 			DB	1,1,2,2, 1,1,1,1, 2,2,2,1, 2,3,3,3	;D0h-DFh
 
-ifdef	ff7	;------------------------
-ifdef	cd1	;------------------------
-			DB	1,1,1,1, 1,1,1,1, 3,4,3,4, 3,1,8,4	;E0h-EFh
-			DB	4,4,2,1, 3,1,2,3, 2,2,1,1, 6,3,3,1	;F0h-FFh
-else	;--------------------------------
+ifdef		ff7	;------------------------
 			DB	1,1,1,1, 1,1,1,1, 3,4,3,4, 3,1,8,4	;E0h-EFh
 			DB	4,4,2,1, 3,1,2,3, 2,2,1,1, 3,3,3,1	;F0h-FFh
-endif	;--------------------------------
-endif	;--------------------------------
-
-ifdef	ff8	;------------------------
+elseifdef	cd1	;------------------------
+			DB	1,1,1,1, 1,1,1,1, 3,4,3,4, 3,1,8,4	;E0h-EFh
+			DB	4,4,2,1, 3,1,2,3, 2,2,1,1, 6,3,3,1	;F0h-FFh
+elseifdef	PE1	;------------------------
+			DB	1,1,1,1, 1,1,1,1, 3,4,3,4, 3,1,8,4	;E0h-EFh
+			DB	4,4,2,1, 3,1,2,3, 2,2,1,1, 6,3,3,1	;F0h-FFh
+else	;	FF8	;------------------------
 			DB	1,1,1,1, 1,1,3,1, 1,1,1,1, 1,1,1,1	;E0h-EFh
 			DB	0,0,0,0, 0,0,0,0, 0,0,0,0, 9,0,6,1	;F0h-FFh
+endif	;--------------------------------
+
+
+ifdef	SubCommand	;----------------
+SubComSize	db	4	;00	Tempo
+		db	5	;01	Tempo Move
+		db	4	;02	Reverb
+		db	5	;03	Reverb Move
+  ifdef	lastAkao	;-------
+		db	2	;04	Percussion On
+  else	;-----------------------
+		db	4	;04	Percussion On
+  endif	;-----------------------
+		db	2	;05	Percussion Off
+		db	4	;06	
+		db	5	;07	
+		db	4	;08
+		db	5	;09	
+		db	4	;0A
+		db	4	;0B
+		db	4	;0C
+		db	4	;0D
+		db	4	;0E
+		db	4	;0F
+		db	3	;10
+		db	4	;11
+		db	4	;12
+		db	4	;13
+  ifdef	lastAkao	;-------
+		db	3	;14	Voice
+  else	;-----------------------
+		db	4	;14	Voice
+  endif	;-----------------------
+		db	4	;15
+		db	4	;16
+		db	4	;17
+		db	4	;18
+		db	4	;19
+		db	4	;1A
+		db	4	;1B
+		db	3	;1C
+		db	2	;1D
+		db	2	;1E
+		db	2	;1F
+
 endif	;--------------------------------
 
 ;=======================================================================|
@@ -473,7 +540,7 @@ UC_DDD	DB	' /*DD,$',012h,' */$',00h	;
 UC_DDE	DB	' /*DE,$',012h,' */$',00h	;
 UC_DDF	DB	' /*DF,$',012h,' */$',00h	;不明
 
-ifdef	ff7	;------------------------
+ifdef	nlastAkao	;------------------------
 UC_DE0	DB	' /*E0*/$',80h,00h
 UC_DE1	DB	' /*E1*/$',80h,00h
 UC_DE2	DB	' /*E2*/$',80h,00h
@@ -499,12 +566,21 @@ UC_DEB	DB	0FFh				;相対リバーブ
 	dw	offset UC_RelativeReverb	;
 	db	00h				;
 
+ifdef	firstAkao	;---------------
 UC_DEC	DB	0ffh
 	dw	offset UC_Rhythm_on
 	db	0
 UC_DED	db	0ffh
 	dw	offset UC_Rhythm_off
 	db	0				;パーカッション off
+else	;-------------------------------
+UC_DEC	DB	0ffh
+	dw	offset UC_PercussionOn
+	db	0
+UC_DED	db	0ffh
+	dw	offset UC_PercussionOff
+	db	0				;パーカッション off
+endif	;-------------------------------
 
 UC_DEE	DB	0FFh				;無限ループ(FF7)
 	dw	offset UC_PermanentLoop	;
@@ -532,14 +608,14 @@ UC_DF9	DB	' /*F9,$',010h,' */$',00h	;不明
 UC_DFA	DB	' /*FA*/$',80h,00h
 UC_DFB	DB	' /*FB*/$',80h,00h
 
-ifdef	cd1	;------------------------
-UC_DFC	DB	0FFh
-	DW	OFFSET UCDFF_LSTART
-	DB	00h
-else	;--------------------------------
+ifdef	ff7	;------------------------
 UC_DFC	DB	0FFh				;拡張音色
 	DW	offset UC_VoiceEx		;
 	DB	00h				;
+else	;--------------------------------
+UC_DFC	DB	0FFh
+	DW	OFFSET UCDFF_LSTART
+	DB	00h
 endif	;--------------------------------
 
 UC_DFD	DB	0ffh				;拍子
@@ -551,9 +627,8 @@ UC_DFE	DB	0ffh				;リハーサル番号
 	db	0				;
 
 UC_DFF	DB	' /*FF*/$',80h,00h
-endif	;--------------------------------
 
-ifdef	ff8	;------------------------
+else	;(lastAkao)--------------------------------
 UC_DE0	DB	' /*E0*/$',00h
 UC_DE1	DB	' /*E1,$',010h,' */$',00h	;不明
 UC_DE2	DB	' /*E2*/$',00h
@@ -603,7 +678,7 @@ endif	;--------------------------------
 ;===============================================================
 
 .const
-ifdef	ff8	;------------------------
+ifdef	lastAkao	;----------------
 UCDFF_Mst	DB	'/*FE,$'
 else	
 UCDFF_Mst	DB	'/*FC,$'
@@ -667,21 +742,21 @@ UCDFF_unknown2	endp
 
 ;===============================================================
 .const
-UCDFF_Addr	dw	offset	UC_Tempo	;0x00
-UCDFF_Addr_01	dw	offset	UCDFF_unknown2
-UCDFF_Addr_02	dw	offset	UC_Reverb	;0x02	Reverb
-UCDFF_Addr_03	dw	offset	UCDFF_unknown2
-ifdef	ff8	;------------------------
-UCDFF_Addr_04	dw	offset	UC_PercussionOn	;0x04	パーカッション
-UCDFF_Addr_05	dw	offset	UC_PercussionOff	
-else	;--------------------------------
-UCDFF_Addr_04	dw	offset	UC_Rhythm_on	;0x04	Perc on
-UCDFF_Addr_05	dw	offset	UC_Rhythm_off	;0x05	Perc off
-endif	;--------------------------------
-UCDFF_Addr_06	dw	offset	UC_PermanentLoop
-UCDFF_Addr_07	dw	offset	UCDFF_07	;0x07	条件ジャンプ
-UCDFF_Addr_08	dw	offset	UCDFF_unknown2	;0x08	
-UCDFF_Addr_09	dw	offset	Loop_Exit	;0x09	
+UCDFF_Addr	dw	offset	UC_Tempo		;0x00	Tempo
+UCDFF_Addr_01	dw	offset	UC_RelativeTempo	;0x01	Tempo（相対）
+UCDFF_Addr_02	dw	offset	UC_Reverb		;0x02	Reverb
+UCDFF_Addr_03	dw	offset	UC_RelativeReverb	;0x03	Reverb（相対）
+ifdef	firstAkao	;------------------------
+UCDFF_Addr_04	dw	offset	UC_Rhythm_on		;0x04	Perc on
+UCDFF_Addr_05	dw	offset	UC_Rhythm_off		;0x05	Perc off
+else	;----------------------------------------
+UCDFF_Addr_04	dw	offset	UC_PercussionOn		;0x04	パーカッション on
+UCDFF_Addr_05	dw	offset	UC_PercussionOff	;0x05	パーカッション off
+endif	;----------------------------------------
+UCDFF_Addr_06	dw	offset	UC_PermanentLoop	;0x06	無条件ジャンプ
+UCDFF_Addr_07	dw	offset	UC_ConditionalJump	;0x07	条件ジャンプ
+UCDFF_Addr_08	dw	offset	UCDFF_unknown2		;0x08	
+UCDFF_Addr_09	dw	offset	Loop_Exit		;0x09	
 UCDFF_Addr_0A	dw	offset	UCDFF_unknown2
 UCDFF_Addr_0B	dw	offset	UCDFF_unknown2
 UCDFF_Addr_0C	dw	offset	UCDFF_unknown2
@@ -692,9 +767,9 @@ UCDFF_Addr_10	dw	offset	UCDFF_unknown1
 UCDFF_Addr_11	dw	offset	UCDFF_unknown2
 UCDFF_Addr_12	dw	offset	UCDFF_unknown2
 UCDFF_Addr_13	dw	offset	UCDFF_unknown2
-UCDFF_Addr_14	dw	offset	UC_VoiceEx	;0x14	音色
-UCDFF_Addr_15	dw	offset	UC_Beat		;0x15	拍子
-UCDFF_Addr_16	dw	offset	UC_Measures	;0x16	リハーサル番号
+UCDFF_Addr_14	dw	offset	UC_VoiceEx		;0x14	音色
+UCDFF_Addr_15	dw	offset	UC_Beat			;0x15	拍子
+UCDFF_Addr_16	dw	offset	UC_Measures		;0x16	リハーサル番号
 UCDFF_Addr_17	dw	offset	UCDFF_unknown2
 UCDFF_Addr_18	dw	offset	UCDFF_unknown2
 UCDFF_Addr_19	dw	offset	UCDFF_unknown2
@@ -726,39 +801,6 @@ UCDFF_LSTART	proc	near
 
 	ret
 UCDFF_LSTART	endp
-
-;===============================================================
-.const
-UCDFF_M07_1	DB	'/*FE,07h,$'
-UCDFF_M07_2	DB	'*/:$'
-
-.code
-UCDFF_07	proc	near
-		lea	DX,[UCDFF_M07_1]
-		MOV	AH,09H		;
-		INT	21H		;
-
-		mov	ah,es:[bx]	;
-		inc	bx		;
-		call	hex2asc8	;
-		MOV	AH,09H		;
-		INT	21H		;
-
-		mov	word ptr cs:[UCDFF_M07_Adr],bx	;現ポインタ
-		MOV	AX,ES:[BX]	;
-		inc	bx		;
-		inc	bx		;
-		add	word ptr cs:[UCDFF_M07_Adr],ax	;相対アドレスを加算
-		call	FH2A16		;
-		MOV	AH,09H		;
-		INT	21H		;
-
-		lea	DX,[UCDFF_M07_2]
-		MOV	AH,09H		;
-		INT	21H		;
-
-		ret
-UCDFF_07	endp
 
 ;===============================================================
 endif	;--------------------------------
