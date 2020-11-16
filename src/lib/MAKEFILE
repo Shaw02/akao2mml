@@ -15,8 +15,8 @@ CNV	= a2h8.obj a2h16.obj h2a8.obj h2a16.obj h2a_f.obj h2a8f.obj fh2a8.obj fh2a16
 
 # DOS ÉGÉâÅ[èàóù
 $(PROJ).lib : $(ERR) $(MEMORY) $(FILE) $(CNV)
-	lib $(PROJ) -+ $(ERR);
-	lib $(PROJ) -+ $(MEMORY);
-	lib $(PROJ) -+ $(FILE);
-	lib $(PROJ) -+ $(CNV);
+	msdos lib $(PROJ) -+ $(ERR);
+	msdos lib $(PROJ) -+ $(MEMORY);
+	msdos lib $(PROJ) -+ $(FILE);
+	msdos lib $(PROJ) -+ $(CNV);
 	del *.obj
