@@ -5,7 +5,7 @@ MML2MID仕様のMML（Music Macro Language）に逆コンパイルします。
 
 ## 動作条件
 - Microsot社製MS-DOS及び、NEC製PC98用MS-DOSの、version 3.30d以降。
-- 64bit版Windowsでは、動作しません。
+- 64bit版Windowsでは、別途、MS-DOS Playerが必要になります。
 - NEC社V30シリーズ、intel社i80186若しくは、その上位互換のCPU。
   Protected mode, Intel 64bit, AMD64及びIA-64モード時は動作しません。
   Virtual 86 mode（32bit版WindowsのDOS窓、command prompt）での動作は確認しております。
